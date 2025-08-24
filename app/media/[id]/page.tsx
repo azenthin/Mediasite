@@ -181,4 +181,7 @@ export default function MediaPlayerPage() {
             )}
           </div>
         </div>
- 
+      </div>
+    </div>
+  );
+}
