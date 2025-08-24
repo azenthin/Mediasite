@@ -1,0 +1,52 @@
+{
+  "name": "mediasite",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "start-clean": "powershell -ExecutionPolicy Bypass -File start-dev.ps1",
+    "start-clean-bat": "start-dev.bat",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:push:win": "cmd /c \"set DATABASE_URL=file:./prisma/dev.db && prisma db push\"",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx scripts/seed-database.ts"
+  },
+  "dependencies": {
+    "@auth/core": "^0.40.0",
+    "@prisma/client": "^5.22.0",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/dompurify": "^3.0.5",
+    "@types/nodemailer": "^6.4.17",
+    "autoprefixer": "^10.4.21",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.0.1",
+    "dompurify": "^3.2.6",
+    "express-rate-limit": "^8.0.1",
+    "framer-motion": "^12.23.12",
+    "next": "14.0.4",
+    "next-auth": "^5.0.0-beta.29",
+    "nodemailer": "^6.10.1",
+    "postcss": "^8.5.6",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwindcss": "^4.1.11",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^15.4.6",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "prisma": "^5.22.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+body {
+    font-family: 'Roboto', 'Inter', sans-serif;
+    background-color: #0f0f0fff;
+}
+
+.color-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 32px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+    border: 2px solid #fff;
+    border-radius: 6px;
+}
+
+:root {
+    --button-bg-color: #282828;
+    --light-up-color: #444444;
+    --navbar-bg-color: #0f0f0fff;
+    --sidebar-bg-color: #0f0f0fff;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.aspect-3-4 {
+    aspect-ratio: 3 / 4;
+}
+
+.aspect-9-16 {
+    aspect-ratio: 9 / 16;
+}
+
+/* High-quality SVG icon rendering */
+.icon-hq {
+    shape-rendering: geometricPrecision;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.icon-hq path, .icon-hq line, .icon-hq circle, .icon-hq polyline, .icon-hq rect {
+    vector-effect: non-scaling-stroke;
+}
+
+/* Harmonize search placeholder to match brand */
+/* Placeholder aesthetics tuned: slimmer, clean, neutral */
+input.search-input::placeholder {
+    font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+    font-weight: 400;
+    font-size: 0.92rem;
+    letter-spacing: 0.15px;
+}
