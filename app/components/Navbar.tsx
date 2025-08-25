@@ -91,7 +91,7 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                                     className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-600 hover:border-white transition-colors focus:outline-none"
                                 >
                                     <img
-                                        src={session.user?.image || session.user?.avatarUrl || `https://placehold.co/32x32/555555/ffffff?text=${(session.user?.name || 'U').charAt(0).toUpperCase()}`}
+                                        src={session.user?.avatarUrl || `https://placehold.co/32x32/555555/ffffff?text=${(session.user?.displayName || session.user?.username || 'U').charAt(0).toUpperCase()}`}
                                         alt="Profile"
                                         className="w-full h-full object-cover"
                                     />
@@ -102,7 +102,7 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                                     <div className="absolute right-0 mt-2 w-48 bg-[#282828] rounded-md shadow-lg border border-gray-600 z-50">
                                         <div className="py-1">
                                             <div className="px-4 py-2 border-b border-gray-600">
-                                                <div className="text-sm font-medium text-white">{session.user?.name}</div>
+                                                <div className="text-sm font-medium text-white">{session.user?.displayName || session.user?.username}</div>
                                                 <div className="text-xs text-gray-400">{session.user?.email}</div>
                                             </div>
                                             
