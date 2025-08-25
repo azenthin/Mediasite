@@ -209,10 +209,10 @@ const HistoryPageContent = () => {
                                 <VideoCard 
                                     video={video} 
                                     onImpression={(id, position) => {
-                                        logImpression(id, position, 'history_v1', 0, sessionSeed);
+                                        logImpression(id, position);
                                     }}
                                     onCardClick={(id, position) => {
-                                        logClick(id, position, 'history_v1', 0, sessionSeed);
+                                        logClick(id, position);
                                     }}
                                 />
                                 
