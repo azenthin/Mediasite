@@ -158,9 +158,9 @@ const ProfilePageContent = () => {
                       views: media.views,
                       _count: media._count,
                       uploader: {
-                        username: session.user?.name || 'You',
-                        displayName: session.user?.name || 'You',
-                        avatarUrl: session.user?.image || undefined
+                        username: session.user?.username || 'You',
+                        displayName: session.user?.displayName || session.user?.username || 'You',
+                        avatarUrl: session.user?.avatarUrl || undefined
                       }
                     }}
                   />
@@ -223,7 +223,7 @@ const ProfilePageContent = () => {
                 </label>
                 <input
                   type="text"
-                  defaultValue={session.user?.name || ''}
+                  defaultValue={session.user?.displayName || session.user?.username || ''}
                   className="w-full px-3 py-2 bg-[#444444] border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-white focus:border-white"
                 />
               </div>
@@ -262,13 +262,13 @@ const ProfilePageContent = () => {
         <div className="bg-[#282828] rounded-lg p-8 mb-8">
           <div className="flex items-center space-x-6">
             <img
-              src={session.user?.image || `https://placehold.co/100x100/555555/ffffff?text=${(session.user?.name || 'U').charAt(0).toUpperCase()}`}
+              src={session.user?.avatarUrl || `https://placehold.co/100x100/555555/ffffff?text=${(session.user?.displayName || session.user?.username || 'U').charAt(0).toUpperCase()}`}
               alt="Profile"
               className="w-24 h-24 rounded-full"
             />
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-white mb-2">
-                {session.user?.name || 'User'}
+                {session.user?.displayName || session.user?.username || 'User'}
               </h1>
               <p className="text-gray-400 mb-4">{session.user?.email}</p>
               
