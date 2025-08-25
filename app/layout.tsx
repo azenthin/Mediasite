@@ -1,5 +1,6 @@
 import './globals.css';
 import Providers from './providers';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
   title: 'MediaSite',
@@ -17,6 +18,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   )
