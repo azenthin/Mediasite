@@ -165,7 +165,7 @@ export default function BrowsePage() {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-white">
-              {filteredVideos.length} {filteredVideos.length === 1 ? 'result' : 'results'} found
+              {videos.length} {videos.length === 1 ? 'result' : 'results'} found
             </h2>
             {searchTerm && (
               <button
@@ -179,9 +179,9 @@ export default function BrowsePage() {
         </div>
 
         {/* Video Grid */}
-        {filteredVideos.length > 0 ? (
+        {videos.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredVideos.map((video, index) => (
+            {videos.map((video, index) => (
               <VideoCard key={video.id || index} video={video} />
             ))}
           </div>
@@ -203,7 +203,7 @@ export default function BrowsePage() {
         )}
 
         {/* Load More Button */}
-        {filteredVideos.length > 0 && (
+        {videos.length > 0 && (
           <div className="text-center mt-8">
             <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
               Load More
