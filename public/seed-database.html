@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seed Database</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        button { 
+            background: #0070f3; 
+            color: white; 
+            border: none; 
+            padding: 15px 30px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border-radius: 5px;
+        }
+        button:hover { background: #0051cc; }
+        .result { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 5px; 
+            white-space: pre-wrap;
+        }
+        .success { background: #1a472a; border: 1px solid #2d5a3d; }
+        .error { background: #4a1a1a; border: 1px solid #5a2d2d; }
+    </style>
+</head>
+<body>
+    <h1>🌱 Seed MediaSite Database</h1>
+    <p>Click the button below to seed your production database with all the media content.</p>
+    
+    <button onclick="seedDatabase()">Seed Database</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function seedDatabase() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '🔄 Seeding database... This may take 10-30 seconds.';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('/api/seed?secret=mediasite_seed_2024', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '✅ ' + data.message;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = '❌ Error: ' + (data.error || 'Unknown error');
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '❌ Network error: ' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>
