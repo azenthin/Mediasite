@@ -42,18 +42,62 @@ async function seedDatabase() {
   try {
     console.log('🌱 Starting database seeding...');
     
-    // Clear existing data
-    await prisma.analyticsEvent.deleteMany();
-    await prisma.watchHistory.deleteMany();
-    await prisma.like.deleteMany();
-    await prisma.comment.deleteMany();
-    await prisma.playlistMedia.deleteMany();
-    await prisma.playlist.deleteMany();
-    await prisma.media.deleteMany();
-    await prisma.subscription.deleteMany();
-    await prisma.user.deleteMany();
+    // Check if tables exist before trying to delete from them
+    try {
+      await prisma.analyticsEvent.deleteMany();
+    } catch (e) {
+      console.log('AnalyticsEvent table does not exist, skipping...');
+    }
     
-    console.log('🧹 Cleared existing data');
+    try {
+      await prisma.watchHistory.deleteMany();
+    } catch (e) {
+      console.log('WatchHistory table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.like.deleteMany();
+    } catch (e) {
+      console.log('Like table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.comment.deleteMany();
+    } catch (e) {
+      console.log('Comment table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.playlistMedia.deleteMany();
+    } catch (e) {
+      console.log('PlaylistMedia table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.playlist.deleteMany();
+    } catch (e) {
+      console.log('Playlist table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.media.deleteMany();
+    } catch (e) {
+      console.log('Media table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.subscription.deleteMany();
+    } catch (e) {
+      console.log('Subscription table does not exist, skipping...');
+    }
+    
+    try {
+      await prisma.user.deleteMany();
+    } catch (e) {
+      console.log('User table does not exist, skipping...');
+    }
+    
+    console.log('🧹 Cleared existing data (or tables did not exist)');
     
     // Create test users
     const testUser = await prisma.user.create({
