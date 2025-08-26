@@ -32,31 +32,20 @@ interface MediaData {
 
 const RecommendedPageContent = () => {
     
-    const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
+    const currentVideoRef = useRef<HTMLVideoElement | null>(null);
     const playerContainerRef = useRef<HTMLDivElement | null>(null);
-    
-    // Refs to store current values for event handlers (to avoid dependency issues)
-    const currentMediaIndexRef = useRef(0);
-    const currentRelatedIndexRef = useRef(0);
-    const mediaDataRef = useRef<MediaData[]>([]);
     
     // Function to manually trigger video play/pause logic
     const triggerVideoPlayPause = () => {
-        const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
-        const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
-        const currentContent = allContent[currentRelatedIndexRef.current];
-
-        // Pause all videos first
-        Object.values(videoRefs.current).forEach(video => {
-            if (video) video.pause();
-        });
-
-        // Play the video of the currently visible slide
-        if (currentContent?.type === 'VIDEO') {
-            const videoElement = videoRefs.current[`${currentMediaIndexRef.current}-${currentRelatedIndexRef.current}`];
-            if (videoElement) {
-                videoElement.play().catch(() => {});
-                logStartPlay(currentContent.id);
+        if (currentVideoRef.current) {
+            if (currentVideoRef.current.paused) {
+                currentVideoRef.current.play().catch(() => {});
+                const currentMedia = mediaData[currentMediaIndex];
+                if (currentMedia?.type === 'VIDEO') {
+                    logStartPlay(currentMedia.id);
+                }
+            } else {
+                currentVideoRef.current.pause();
             }
         }
     };
@@ -212,51 +201,40 @@ const RecommendedPageContent = () => {
         fetchMedia();
     }, []);
 
-    // Keep refs in sync with state for event handlers
-    useEffect(() => {
-
-        currentMediaIndexRef.current = currentMediaIndex;
-        currentRelatedIndexRef.current = currentRelatedIndex;
-        mediaDataRef.current = mediaData;
-    }, [currentMediaIndex, currentRelatedIndex, mediaData]);
+    // Removed duplicate ref system - using state directly
 
     // (debug logs removed)
 
-        // Ref-based scroll handlers to avoid dependency issues
-    const handleHorizontalScrollRef = (direction: 'left' | 'right') => {
-        const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
+        // Simplified scroll handlers using state directly
+    const handleHorizontalScroll = (direction: 'left' | 'right') => {
+        const currentMedia = mediaData[currentMediaIndex];
         if (!currentMedia) return;
 
         const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
-
         if (allContent.length <= 1) return;
 
         const nextIndex = direction === 'right'
-            ? (currentRelatedIndexRef.current + 1) % allContent.length
-            : (currentRelatedIndexRef.current - 1 + allContent.length) % allContent.length;
-
+            ? (currentRelatedIndex + 1) % allContent.length
+            : (currentRelatedIndex - 1 + allContent.length) % allContent.length;
 
         pauseAllVideos();
         setCurrentRelatedIndex(nextIndex);
     };
 
-    const handleVerticalScrollRef = (direction: 'up' | 'down') => {
-
-        let nextIndex = currentMediaIndexRef.current;
-
+    const handleVerticalScroll = (direction: 'up' | 'down') => {
+        let nextIndex = currentMediaIndex;
         
-        if (direction === 'down' && currentMediaIndexRef.current < mediaDataRef.current.length - 1) {
-            nextIndex = currentMediaIndexRef.current + 1;
-        } else if (direction === 'up' && currentMediaIndexRef.current > 0) {
-            nextIndex = currentMediaIndexRef.current - 1;
+        if (direction === 'down' && currentMediaIndex < mediaData.length - 1) {
+            nextIndex = currentMediaIndex + 1;
+        } else if (direction === 'up' && currentMediaIndex > 0) {
+            nextIndex = currentMediaIndex - 1;
         }
 
-
-        if (nextIndex !== currentMediaIndexRef.current) {
+        if (nextIndex !== currentMediaIndex) {
             pauseAllVideos();
             setVerticalSlideDirection(direction);
             setCurrentMediaIndex(nextIndex);
-            setCurrentRelatedIndex(0); // Reset related index when moving to a new post
+            setCurrentRelatedIndex(0);
         }
     };
 
@@ -270,18 +248,17 @@ const RecommendedPageContent = () => {
 
                     e.preventDefault();
                     // Go to previous video
-                    if (currentMediaIndexRef.current > 0) {
+                    if (currentMediaIndex > 0) {
                         pauseAllVideos();
                         setVerticalSlideDirection('up');
-                        setCurrentMediaIndex(currentMediaIndexRef.current - 1);
+                        setCurrentMediaIndex(currentMediaIndex - 1);
                         setCurrentRelatedIndex(0);
                         
                         // Update URL to reflect current video
-                        const prevIndex = currentMediaIndexRef.current - 1;
-                        const currentVideo = mediaDataRef.current[prevIndex];
+                        const prevIndex = currentMediaIndex - 1;
+                        const currentVideo = mediaData[prevIndex];
                         if (currentVideo) {
-                            const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
-                            window.location.href = newUrl;
+                            history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
                         }
                     }
                     break;
