@@ -66,11 +66,10 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
           },
-          // Temporarily disabled CSP to fix Vercel scripts
-          // {
-          //   key: 'Content-Security-Policy',
-          //   value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://vercel.live https://vercel.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://* https://picsum.photos https://placehold.co; media-src 'self' https://*; connect-src 'self' https://va.vercel-scripts.com https://vercel.live https://vercel.com; object-src 'none'; base-uri 'self'",
-          // },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://vercel.live https://vercel.com https://*.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://* https://picsum.photos https://placehold.co; media-src 'self' https://*; connect-src 'self' https://va.vercel-scripts.com https://vercel.live https://vercel.com https://*.vercel-scripts.com; object-src 'none'; base-uri 'self'",
+          },
         ],
       },
     ];
