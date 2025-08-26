@@ -8,6 +8,15 @@ if (!process.env.DATABASE_URL) {
     process.env.DATABASE_URL = "file:./prisma/dev.db";
 }
 
+// Set DATABASE_PROVIDER for schema
+if (!process.env.DATABASE_PROVIDER) {
+    if (process.env.NODE_ENV === 'production') {
+        process.env.DATABASE_PROVIDER = "postgresql";
+    } else {
+        process.env.DATABASE_PROVIDER = "sqlite";
+    }
+}
+
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

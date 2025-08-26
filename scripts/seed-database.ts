@@ -286,7 +286,7 @@ function randomProductImageUrl(brand: string, product: string, seed: number) {
   return `${baseUrl}?w=600&h=800&fit=crop&auto=format`;
 }
 
-async function seedDatabase() {
+export async function seedDatabase() {
   try {
     console.log('🌱 Seeding database with sports-brand-themed content...');
 
@@ -455,7 +455,5 @@ async function seedDatabase() {
     await prisma.$disconnect();
   }
 }
-
-seedDatabase();
 
 
