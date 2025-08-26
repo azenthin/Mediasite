@@ -28,84 +28,7 @@ interface MediaData {
 
 
 
-// Mock recommended content for vertical scrolling
-const mockRecommendedContent: MediaData[] = [
-    {
-        id: 'rec1',
-        type: 'VIDEO',
-        url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-        title: 'Epic Rally Car Adventure',
-        description: 'High-octane racing action on city streets',
-        thumbnailUrl: 'https://placehold.co/720x1280/1a1a1a/ffffff?text=Epic+Rally+Car+Adventure',
-        uploader: {
-            username: 'racing_channel',
-            displayName: 'Racing Channel',
-            avatarUrl: 'https://placehold.co/40x40/ff0000/ffffff?text=R'
-        },
-        views: 5000,
-        likes: 300,
-        _count: {
-            likeRecords: 300,
-            comments: 50
-        }
-    },
-    {
-        id: 'rec2',
-        type: 'IMAGE',
-        url: 'https://placehold.co/720x1280/2d2d2d/ffffff?text=Urban+Street+Photography',
-        title: 'Urban Street Photography',
-        description: 'Capturing the essence of city life',
-        thumbnailUrl: 'https://placehold.co/720x1280/2d2d2d/ffffff?text=Urban+Street+Photography',
-        uploader: {
-            username: 'street_photographer',
-            displayName: 'Street Photographer',
-            avatarUrl: 'https://placehold.co/40x40/00ff00/ffffff?text=S'
-        },
-        views: 3200,
-        likes: 180,
-        _count: {
-            likeRecords: 180,
-            comments: 25
-        }
-    },
-    {
-        id: 'rec3',
-        type: 'VIDEO',
-        url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        title: 'Monster Energy Racing Highlights',
-        description: 'Best moments from the racing season',
-        thumbnailUrl: 'https://placehold.co/720x1280/1a1a1a/ffffff?text=Monster+Energy+Racing+Highlights',
-        uploader: {
-            username: 'monster_racing',
-            displayName: 'Monster Racing',
-            avatarUrl: 'https://placehold.co/40x40/00ff00/ffffff?text=M'
-        },
-        views: 7800,
-        likes: 450,
-        _count: {
-            likeRecords: 450,
-            comments: 75
-        },
-        relatedMedia: [
-            {
-                id: 'rec3-1',
-                type: 'IMAGE',
-                url: 'https://placehold.co/720x1280/ff0000/ffffff?text=Related+Image+1',
-                title: 'Related Fire Show Image 1',
-                uploader: { username: 'recommended' },
-                views: 100, likes: 10, _count: { likeRecords: 10, comments: 2 }
-            },
-            {
-                id: 'rec3-2',
-                type: 'IMAGE',
-                url: 'https://placehold.co/720x1280/00ff00/ffffff?text=Related+Image+2',
-                title: 'Related Fire Show Image 2',
-                uploader: { username: 'recommended' },
-                views: 120, likes: 15, _count: { likeRecords: 15, comments: 3 }
-            }
-        ]
-    }
-];
+// YouTube-style: No static data, everything comes from API
 
 const RecommendedPageContent = () => {
     
@@ -223,8 +146,8 @@ const RecommendedPageContent = () => {
                 }
                 const data = await response.json();
                 
-                // Combine fetched media with mock recommended content as separate posts
-                const uploadedMedia = (data.media || []).map((m: any) => ({
+                // YouTube-style: Use only API data, no mock processing
+                const apiMediaData = (data.media || []).map((m: any) => ({
                     id: m.id,
                     type: m.type,
                     url: m.url,
@@ -237,73 +160,14 @@ const RecommendedPageContent = () => {
                     _count: m._count,
                 }));
                 
-                // Create dynamic mock content with meaningful titles
-                const dynamicMockContent = mockRecommendedContent.map((item, index) => {
-                    // Generate meaningful URLs and titles based on content type
-                    let randomUrl = item.url;
-                    let randomThumbnail = item.thumbnailUrl;
-                    let meaningfulTitle = item.title;
-                    
-                    if (item.type === 'VIDEO') {
-                        // Meaningful video titles that match the content
-                        const videoTitles = [
-                            'Epic Rally Car Adventure',
-                            'Monster Energy Racing Highlights',
-                            'Street Racing Compilation',
-                            'Car Show Spectacular',
-                            'Racing Championship Moments'
-                        ];
-                        meaningfulTitle = videoTitles[Math.floor(Math.random() * videoTitles.length)];
-                        
-                        // Use appropriate video URLs
-                        const videoUrls = [
-                            'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-                            'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                            'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-                            'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-                            'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
-                        ];
-                        randomUrl = videoUrls[Math.floor(Math.random() * videoUrls.length)];
-                        randomThumbnail = `https://placehold.co/720x1280/1a1a1a/ffffff?text=${encodeURIComponent(meaningfulTitle)}`;
-                    } else if (item.type === 'IMAGE') {
-                        // Meaningful image titles
-                        const imageTitles = [
-                            'Urban Street Photography',
-                            'City Architecture',
-                            'Street Art Collection',
-                            'Urban Lifestyle',
-                            'City Landmarks'
-                        ];
-                        meaningfulTitle = imageTitles[Math.floor(Math.random() * imageTitles.length)];
-                        
-                        // Use appropriate image colors
-                        const colors = ['2d2d2d', '3a3a3a', '4a4a4a', '5a5a5a', '6a6a6a'];
-                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                        randomUrl = `https://placehold.co/720x1280/${randomColor}/ffffff?text=${encodeURIComponent(meaningfulTitle)}`;
-                        randomThumbnail = randomUrl;
-                    }
-                    
-                    return {
-                        ...item,
-                        id: `rec${index + 1}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                        url: randomUrl,
-                        thumbnailUrl: randomThumbnail,
-                        title: meaningfulTitle,
-                        views: item.views + Math.floor(Math.random() * 1000),
-                        likes: item.likes + Math.floor(Math.random() * 100)
-                    };
-                });
-                
-                let allMedia = [...uploadedMedia, ...dynamicMockContent];
-                
                 // Shuffle the content for variety (Fisher-Yates shuffle)
-                for (let i = allMedia.length - 1; i > 0; i--) {
+                for (let i = apiMediaData.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
-                    [allMedia[i], allMedia[j]] = [allMedia[j], allMedia[i]];
+                    [apiMediaData[i], apiMediaData[j]] = [apiMediaData[j], apiMediaData[i]];
                 }
 
                 // If a mediaId is present, ensure it's in the list
-                if (mediaId && !allMedia.some(m => m.id === mediaId)) {
+                if (mediaId && !apiMediaData.some((m: any) => m.id === mediaId)) {
                     try {
                         const res = await fetch(`/api/media/${mediaId}`);
                         if (res.ok) {
@@ -320,22 +184,18 @@ const RecommendedPageContent = () => {
                                 likes: item.likes,
                                 _count: item._count,
                             } as MediaData;
-                            allMedia = [normalized, ...allMedia];
+                            apiMediaData.unshift(normalized);
                         }
-                    } catch {}
+                    } catch (error) {
+                        console.error('Failed to fetch specific media:', error);
+                    }
                 }
 
-                setMediaData(prevData => {
-                    // Only update if data actually changed
-                    if (JSON.stringify(prevData) !== JSON.stringify(allMedia)) {
-                        return allMedia;
-                    }
-                    return prevData;
-                });
+                setMediaData(apiMediaData);
 
                 // If a mediaId is present, jump to it if found
                 if (mediaId) {
-                    const idx = allMedia.findIndex(m => m.id === mediaId);
+                    const idx = apiMediaData.findIndex((m: any) => m.id === mediaId);
                     if (idx >= 0) {
                         setCurrentMediaIndex(idx);
                         setCurrentRelatedIndex(0);
