@@ -56,6 +56,8 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                     <div className="flex w-full h-10 rounded-full overflow-hidden border backdrop-blur-sm max-[440px]:hidden" style={{ borderColor: 'var(--light-up-color)', backgroundColor: 'rgba(20,20,20,0.9)' }}>
                         <input
                             type="search"
+                            id="navbar-search"
+                            name="search"
                             placeholder="Search"
                             className="search-input w-full h-full px-4 py-0 outline-none placeholder-white/60 caret-white text-sm text-white bg-transparent"
                             style={{ color: linkColor }}
