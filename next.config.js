@@ -1,25 +1,45 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Only apply dev optimizations in development
-  ...(process.env.NODE_ENV === 'development' && {
-    experimental: {
-      optimizeCss: false,
-    },
-    webpack: (config, { dev }) => {
-      if (dev) {
-        config.watchOptions = {
-          poll: 1000,
-          aggregateTimeout: 300,
-        };
-      }
-      return config;
-    },
-  }),
+  // Production optimizations for instant loading
+  experimental: {
+    optimizeCss: false,
+  },
   
-  // Production optimizations
+  // Static generation for instant page loads
+  output: 'standalone',
+  
+  // Image optimization like YouTube
   images: {
-    domains: ['images.unsplash.com', 'picsum.photos', 'placehold.co'],
+    domains: ['images.unsplash.com', 'placehold.co'],
     formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  
+  // Webpack optimizations for faster builds
+  webpack: (config, { dev, isServer }) => {
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+    
+    // Production optimizations
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    
+    return config;
   },
   async headers() {
     return [

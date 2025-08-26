@@ -34,13 +34,13 @@ const mockRecommendedContent: MediaData[] = [
         id: 'rec1',
         type: 'VIDEO',
         url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-        title: 'Amazing Car Ride - Recommended',
-        description: 'Recommended content based on your interests',
-        thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Recommended+1',
+        title: 'Epic Rally Car Adventure',
+        description: 'High-octane racing action on city streets',
+        thumbnailUrl: 'https://placehold.co/720x1280/1a1a1a/ffffff?text=Epic+Rally+Car+Adventure',
         uploader: {
-            username: 'recommended',
-            displayName: 'Recommended Content',
-            avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=R'
+            username: 'racing_channel',
+            displayName: 'Racing Channel',
+            avatarUrl: 'https://placehold.co/40x40/ff0000/ffffff?text=R'
         },
         views: 5000,
         likes: 300,
@@ -52,14 +52,14 @@ const mockRecommendedContent: MediaData[] = [
     {
         id: 'rec2',
         type: 'IMAGE',
-        url: 'https://placehold.co/720x1280/282828/ffffff?text=Recommended+2',
-        title: 'Beautiful Landscape - Recommended',
-        description: 'Another recommended post for you',
-        thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Recommended+2',
+        url: 'https://placehold.co/720x1280/2d2d2d/ffffff?text=Urban+Street+Photography',
+        title: 'Urban Street Photography',
+        description: 'Capturing the essence of city life',
+        thumbnailUrl: 'https://placehold.co/720x1280/2d2d2d/ffffff?text=Urban+Street+Photography',
         uploader: {
-            username: 'recommended',
-            displayName: 'Recommended Content',
-            avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=R'
+            username: 'street_photographer',
+            displayName: 'Street Photographer',
+            avatarUrl: 'https://placehold.co/40x40/00ff00/ffffff?text=S'
         },
         views: 3200,
         likes: 180,
@@ -72,13 +72,13 @@ const mockRecommendedContent: MediaData[] = [
         id: 'rec3',
         type: 'VIDEO',
         url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        title: 'Fire Show - Recommended',
-        description: 'Trending content you might like',
-        thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Recommended+3',
+        title: 'Monster Energy Racing Highlights',
+        description: 'Best moments from the racing season',
+        thumbnailUrl: 'https://placehold.co/720x1280/1a1a1a/ffffff?text=Monster+Energy+Racing+Highlights',
         uploader: {
-            username: 'recommended',
-            displayName: 'Recommended Content',
-            avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=R'
+            username: 'monster_racing',
+            displayName: 'Monster Racing',
+            avatarUrl: 'https://placehold.co/40x40/00ff00/ffffff?text=M'
         },
         views: 7800,
         likes: 450,
@@ -237,14 +237,25 @@ const RecommendedPageContent = () => {
                     _count: m._count,
                 }));
                 
-                // Create dynamic mock content with random variations
+                // Create dynamic mock content with meaningful titles
                 const dynamicMockContent = mockRecommendedContent.map((item, index) => {
-                    // Generate random URLs for variety
+                    // Generate meaningful URLs and titles based on content type
                     let randomUrl = item.url;
                     let randomThumbnail = item.thumbnailUrl;
+                    let meaningfulTitle = item.title;
                     
                     if (item.type === 'VIDEO') {
-                        // Random video from Google's sample collection
+                        // Meaningful video titles that match the content
+                        const videoTitles = [
+                            'Epic Rally Car Adventure',
+                            'Monster Energy Racing Highlights',
+                            'Street Racing Compilation',
+                            'Car Show Spectacular',
+                            'Racing Championship Moments'
+                        ];
+                        meaningfulTitle = videoTitles[Math.floor(Math.random() * videoTitles.length)];
+                        
+                        // Use appropriate video URLs
                         const videoUrls = [
                             'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
                             'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -253,12 +264,22 @@ const RecommendedPageContent = () => {
                             'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
                         ];
                         randomUrl = videoUrls[Math.floor(Math.random() * videoUrls.length)];
-                        randomThumbnail = `https://placehold.co/720x1280/${Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}/ffffff?text=Video+${Math.floor(Math.random() * 1000)}`;
+                        randomThumbnail = `https://placehold.co/720x1280/1a1a1a/ffffff?text=${encodeURIComponent(meaningfulTitle)}`;
                     } else if (item.type === 'IMAGE') {
-                        // Random image with different colors
-                        const colors = ['ff0000', '00ff00', '0000ff', 'ffff00', 'ff00ff', '00ffff'];
+                        // Meaningful image titles
+                        const imageTitles = [
+                            'Urban Street Photography',
+                            'City Architecture',
+                            'Street Art Collection',
+                            'Urban Lifestyle',
+                            'City Landmarks'
+                        ];
+                        meaningfulTitle = imageTitles[Math.floor(Math.random() * imageTitles.length)];
+                        
+                        // Use appropriate image colors
+                        const colors = ['2d2d2d', '3a3a3a', '4a4a4a', '5a5a5a', '6a6a6a'];
                         const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                        randomUrl = `https://placehold.co/720x1280/${randomColor}/ffffff?text=Image+${Math.floor(Math.random() * 1000)}`;
+                        randomUrl = `https://placehold.co/720x1280/${randomColor}/ffffff?text=${encodeURIComponent(meaningfulTitle)}`;
                         randomThumbnail = randomUrl;
                     }
                     
@@ -267,7 +288,7 @@ const RecommendedPageContent = () => {
                         id: `rec${index + 1}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                         url: randomUrl,
                         thumbnailUrl: randomThumbnail,
-                        title: `${item.title} ${Math.floor(Math.random() * 1000)}`,
+                        title: meaningfulTitle,
                         views: item.views + Math.floor(Math.random() * 1000),
                         likes: item.likes + Math.floor(Math.random() * 100)
                     };
@@ -949,27 +970,27 @@ const RecommendedPageContent = () => {
                                     {/* Media Info */}
                                     <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-20">
                                         <div className="flex-1 space-y-1">
-                                            <h3 className="text-lg font-semibold text-white line-clamp-2">{currentRelatedMedia?.title}</h3>
+                                            <h3 className="text-lg font-semibold text-white line-clamp-2">{media.title}</h3>
                                             <div className="flex items-center space-x-2">
                                                 <img 
-                                                    src={currentRelatedMedia?.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${currentRelatedMedia?.uploader.username.charAt(0).toUpperCase()}`} 
+                                                    src={media.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${media.uploader.username.charAt(0).toUpperCase()}`} 
                                                     alt="Channel profile" 
                                                     className="w-8 h-8 rounded-full" 
                                                 />
-                                                <p className="text-gray-200 text-sm">{currentRelatedMedia?.uploader.displayName || currentRelatedMedia?.uploader.username}</p>
+                                                <p className="text-gray-200 text-sm">{media.uploader.displayName || media.uploader.username}</p>
                                             </div>
                                         </div>
                                         <div className="flex flex-col space-y-4">
                                             <ActionButton
                                                 icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
-                                                label={currentRelatedMedia?._count?.likeRecords?.toString() || '0'}
+                                                label={media._count?.likeRecords?.toString() || '0'}
                                             />
                                             <ActionButton
                                                 icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
-                                                label={currentRelatedMedia?._count?.comments?.toString() || '0'}
+                                                label={media._count?.comments?.toString() || '0'}
                                             />
                                             <ActionButton
-                                                icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
+                                                icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
                                                 label="Share"
                                             />
                                         </div>

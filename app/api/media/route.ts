@@ -85,6 +85,11 @@ export async function GET(request: NextRequest) {
     return rateLimitResult;
   }
 
+  // Add caching for instant responses like YouTube
+  const response = NextResponse.next();
+  response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  response.headers.set('CDN-Cache-Control', 'public, max-age=300');
+
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
