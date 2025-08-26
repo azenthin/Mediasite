@@ -205,38 +205,7 @@ const RecommendedPageContent = () => {
 
     // (debug logs removed)
 
-        // Simplified scroll handlers using state directly
-    const handleHorizontalScroll = (direction: 'left' | 'right') => {
-        const currentMedia = mediaData[currentMediaIndex];
-        if (!currentMedia) return;
-
-        const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
-        if (allContent.length <= 1) return;
-
-        const nextIndex = direction === 'right'
-            ? (currentRelatedIndex + 1) % allContent.length
-            : (currentRelatedIndex - 1 + allContent.length) % allContent.length;
-
-        pauseAllVideos();
-        setCurrentRelatedIndex(nextIndex);
-    };
-
-    const handleVerticalScroll = (direction: 'up' | 'down') => {
-        let nextIndex = currentMediaIndex;
-        
-        if (direction === 'down' && currentMediaIndex < mediaData.length - 1) {
-            nextIndex = currentMediaIndex + 1;
-        } else if (direction === 'up' && currentMediaIndex > 0) {
-            nextIndex = currentMediaIndex - 1;
-        }
-
-        if (nextIndex !== currentMediaIndex) {
-            pauseAllVideos();
-            setVerticalSlideDirection(direction);
-            setCurrentMediaIndex(nextIndex);
-            setCurrentRelatedIndex(0);
-        }
-    };
+        // Scroll handlers using state directly
 
     // Handle keyboard navigation
     useEffect(() => {
@@ -265,18 +234,17 @@ const RecommendedPageContent = () => {
                 case 'ArrowDown':
                     e.preventDefault();
                     // Go to next video
-                    if (currentMediaIndexRef.current < mediaDataRef.current.length - 1) {
+                    if (currentMediaIndex < mediaData.length - 1) {
                         pauseAllVideos();
                         setVerticalSlideDirection('down');
-                        setCurrentMediaIndex(currentMediaIndexRef.current + 1);
+                        setCurrentMediaIndex(currentMediaIndex + 1);
                         setCurrentRelatedIndex(0);
                         
                         // Update URL to reflect current video
-                        const nextIndex = currentMediaIndexRef.current + 1;
-                        const currentVideo = mediaDataRef.current[nextIndex];
+                        const nextIndex = currentMediaIndex + 1;
+                        const currentVideo = mediaData[nextIndex];
                         if (currentVideo) {
-                            const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
-                            window.location.href = newUrl;
+                            history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
                         }
                     }
                     break;
@@ -285,15 +253,14 @@ const RecommendedPageContent = () => {
                     e.preventDefault();
                     // Seek backward 10 seconds in current video
                     {
-                        const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
+                        const currentMedia = mediaData[currentMediaIndex];
                         const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
-                        const currentContent = allContent[currentRelatedIndexRef.current];
+                        const currentContent = allContent[currentRelatedIndex];
                         if (currentContent?.type === 'VIDEO') {
-                            const videoElement = videoRefs.current[`${currentMediaIndexRef.current}-${currentRelatedIndexRef.current}`];
-                            if (videoElement) {
+                            if (currentVideoRef.current) {
                                 // Seek backward by 10% of video duration (like YouTube)
-                                const seekAmount = videoElement.duration * 0.1;
-                                videoElement.currentTime = Math.max(0, videoElement.currentTime - seekAmount);
+                                const seekAmount = currentVideoRef.current.duration * 0.1;
+                                currentVideoRef.current.currentTime = Math.max(0, currentVideoRef.current.currentTime - seekAmount);
                             }
                         }
                     }
@@ -578,15 +545,14 @@ const RecommendedPageContent = () => {
         const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
         const currentContent = allContent[currentRelatedIndex];
 
-        // Pause all videos first
-        Object.values(videoRefs.current).forEach(video => {
-            if (video) video.pause();
-        });
+        // Pause current video if playing
+        if (currentVideoRef.current && !currentVideoRef.current.paused) {
+            currentVideoRef.current.pause();
+        }
 
         // Play the video of the currently visible slide
         if (currentContent?.type === 'VIDEO') {
-            const videoElement = videoRefs.current[`${currentMediaIndex}-${currentRelatedIndex}`];
-            if (videoElement) {
+            if (currentVideoRef.current) {
                 // Apply resume functionality if available
                 if (resumeProgress && resumeProgress > 0.05 && resumeProgress < 0.95) {
                     const handleLoadedMetadata = () => {
@@ -643,11 +609,11 @@ const RecommendedPageContent = () => {
 
     
 
-    // Pause all videos helper function
+    // Pause current video helper function
     const pauseAllVideos = () => {
-        Object.values(videoRefs.current).forEach(video => {
-            if (video) video.pause();
-        });
+        if (currentVideoRef.current && !currentVideoRef.current.paused) {
+            currentVideoRef.current.pause();
+        }
     };
 
     // --- Core Logic for Sliding Transition ---
