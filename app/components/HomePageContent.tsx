@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import CategoryBar from './CategoryBar';
 import VideoCard from './VideoCard';
+import { pagePreloader } from '@/lib/preloader';
 
 interface VideoData {
     id?: string;
@@ -280,6 +281,7 @@ const HomePageContent = () => {
     const [seenIds, setSeenIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isPreloadingRecommended, setIsPreloadingRecommended] = useState(false);
     
     const categories = [
         'All', 'Music', 'Gaming', 'News', 'Sports', 'Entertainment', 'Education', 'Science & Technology', 
@@ -368,6 +370,16 @@ const HomePageContent = () => {
         } catch {}
 
         fetchMedia();
+        
+        // Preload the recommended page for instant navigation (YouTube Shorts style)
+        // This prevents the "stuck on home page" feeling when clicking recommended
+        // The preloader fetches media data and stores it in sessionStorage
+        // When user navigates to /recommended, the page loads instantly with preloaded data
+        setIsPreloadingRecommended(true);
+        pagePreloader.preloadRecommendedPage().finally(() => {
+            setIsPreloadingRecommended(false);
+        });
+        
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeCategory]);
 
@@ -496,6 +508,16 @@ const HomePageContent = () => {
             </div>
 
             <div className="mt-1 pt-1 px-4 pb-6">
+                {/* Preloading indicator for recommended page */}
+                {isPreloadingRecommended && (
+                    <div className="mb-4 p-3 bg-black/20 rounded-lg border border-white/10">
+                        <div className="flex items-center gap-2 text-white/80 text-sm">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Preloading recommended page for instant navigation...</span>
+                        </div>
+                    </div>
+                )}
+                
                 <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-10 gap-2 gap-y-3 w-full">
                     {videoData.map((video, index) => {
                         const isRowStart = index % gridCols === 0;

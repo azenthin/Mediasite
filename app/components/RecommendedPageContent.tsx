@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { logStartPlay } from '@/lib/analytics';
 import { motion, AnimatePresence } from 'framer-motion';
 import ActionButton from './ActionButton';
+import { pagePreloader } from '@/lib/preloader';
 
 interface MediaData {
     id: string;
@@ -57,6 +58,27 @@ const RecommendedPageContent = () => {
     const [verticalSlideDirection, setVerticalSlideDirection] = useState<'up' | 'down'>('down');
     const [resumeProgress, setResumeProgress] = useState<number | null>(null);
     
+    // Check if page was preloaded from home page
+    useEffect(() => {
+        const preloadedData = pagePreloader.getPreloadedData('recommended');
+        if (preloadedData) {
+            // Use preloaded data for instant page load
+            setMediaData(preloadedData.mediaData);
+            setLoading(false);
+            // Clear the preloaded data after use
+            pagePreloader.clearPreloadedData('recommended');
+        } else {
+            // Normal loading if no preloaded data
+            fetchMedia();
+        }
+    }, []);
+
+
+    
+    // Preloading state for smooth transitions
+    const [preloadedVideos, setPreloadedVideos] = useState<Set<string>>(new Set());
+    const [isPreloading, setIsPreloading] = useState(false);
+    
 
 
     // Animation variants for horizontal sliding
@@ -95,111 +117,171 @@ const RecommendedPageContent = () => {
         })
     };
 
-    // Fetch media data from API (use recommendations for consistency)
-    useEffect(() => {
-
-        const fetchMedia = async () => {
-            try {
-                setLoading(true);
-                // Respect deep link to a specific mediaId
-                const url = new URL(window.location.href);
-                const mediaId = url.searchParams.get('v');
-                const resumeTime = url.searchParams.get('t'); // Resume time as percentage
-                // Generate a new seed each time for variety, or use existing one if deep-linked
-                const existingSeed = url.searchParams.get('seed') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('rec_seed') : null);
-                const seedParam = existingSeed || Math.floor(Math.random() * 1000000).toString();
+    // Preload next few videos for smooth transitions (YouTube Shorts style)
+    // This prevents the "stuck on previous page" feeling by preloading:
+    // - Thumbnail images
+    // - Video metadata (duration, etc.)
+    // - Page structure for instant transitions
+    const preloadNextVideos = useCallback(async (startIndex: number, count: number = 3) => {
+        if (isPreloading || mediaData.length === 0) return;
+        
+        setIsPreloading(true);
+        const newPreloaded = new Set(preloadedVideos);
+        
+        try {
+            for (let i = 0; i < count; i++) {
+                const index = startIndex + i;
+                if (index >= mediaData.length) break;
                 
-                // Store the seed for this session
-                if (typeof window !== 'undefined') {
-                    window.sessionStorage.setItem('rec_seed', seedParam);
-                }
-                const categoryParam = url.searchParams.get('category');
+                const media = mediaData[index];
+                if (!media || newPreloaded.has(media.id)) continue;
                 
-                // Store resume progress for later use
-                if (resumeTime) {
-                    setResumeProgress(parseInt(resumeTime, 10) / 100); // Convert percentage to decimal
+                // Preload thumbnail image
+                if (media.thumbnailUrl) {
+                    const img = new Image();
+                    img.src = media.thumbnailUrl;
+                    await new Promise((resolve) => {
+                        img.onload = resolve;
+                        img.onerror = resolve; // Continue even if image fails
+                    });
                 }
-                const params = new URLSearchParams();
-                params.set('limit', '500'); // Increased to maximum for more variety
-                if (seedParam) params.set('seed', seedParam);
-                if (categoryParam) params.set('category', categoryParam);
                 
-                // Exclude recently seen content to avoid repetition
-                const recentlySeen = mediaData.slice(0, 10).map(m => m.id);
-                if (recentlySeen.length > 0) {
-                    params.set('exclude', recentlySeen.join(','));
-                }
-                const response = await fetch(`/api/media/recommendations?${params.toString()}`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch media');
-                }
-                const data = await response.json();
-                
-                // YouTube-style: Use only API data, no mock processing
-                const apiMediaData = (data.media || []).map((m: any) => ({
-                    id: m.id,
-                    type: m.type,
-                    url: m.url,
-                    title: m.title,
-                    description: m.description,
-                    thumbnailUrl: m.thumbnailUrl,
-                    uploader: m.uploader,
-                    views: m.views,
-                    likes: m.likes,
-                    _count: m._count,
-                }));
-                
-                // Shuffle the content for variety (Fisher-Yates shuffle)
-                for (let i = apiMediaData.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [apiMediaData[i], apiMediaData[j]] = [apiMediaData[j], apiMediaData[i]];
-                }
-
-                // If a mediaId is present, ensure it's in the list
-                if (mediaId && !apiMediaData.some((m: any) => m.id === mediaId)) {
+                // Preload video metadata (duration, etc.)
+                if (media.type === 'VIDEO' && media.url) {
                     try {
-                        const res = await fetch(`/api/media/${mediaId}`);
-                        if (res.ok) {
-                            const item = await res.json();
-                            const normalized = {
-                                id: item.id,
-                                type: item.type,
-                                url: item.url,
-                                title: item.title,
-                                description: item.description,
-                                thumbnailUrl: item.thumbnailUrl,
-                                uploader: item.uploader,
-                                views: item.views,
-                                likes: item.likes,
-                                _count: item._count,
-                            } as MediaData;
-                            apiMediaData.unshift(normalized);
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch specific media:', error);
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        video.src = media.url;
+                        await new Promise((resolve) => {
+                            video.onloadedmetadata = resolve;
+                            video.onerror = resolve;
+                            // Timeout after 2 seconds to avoid blocking
+                            setTimeout(resolve, 2000);
+                        });
+                    } catch (e) {
+                        // Continue if video preloading fails
                     }
                 }
-
-                setMediaData(apiMediaData);
-
-                // If a mediaId is present, jump to it if found
-                if (mediaId) {
-                    const idx = apiMediaData.findIndex((m: any) => m.id === mediaId);
-                    if (idx >= 0) {
-                        setCurrentMediaIndex(idx);
-                        setCurrentRelatedIndex(0);
-                    }
-                }
-            } catch (err) {
-                console.error('Error fetching media:', err);
-                setError('Failed to load media');
-            } finally {
-                setLoading(false);
+                
+                newPreloaded.add(media.id);
             }
-        };
+            
+            setPreloadedVideos(newPreloaded);
+        } catch (e) {
+            // Continue even if preloading fails
+        } finally {
+            setIsPreloading(false);
+        }
+    }, [mediaData, preloadedVideos, isPreloading]);
 
-        fetchMedia();
-    }, []);
+    // Fetch media data from API (use recommendations for consistency)
+    const fetchMedia = async () => {
+
+        try {
+            setLoading(true);
+            // Respect deep link to a specific mediaId
+            const url = new URL(window.location.href);
+            const mediaId = url.searchParams.get('v');
+            const resumeTime = url.searchParams.get('t'); // Resume time as percentage
+            // Generate a new seed each time for variety, or use existing one if deep-linked
+            const existingSeed = url.searchParams.get('seed') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('rec_seed') : null);
+            const seedParam = existingSeed || Math.floor(Math.random() * 1000000).toString();
+            
+            // Store the seed for this session
+            if (typeof window !== 'undefined') {
+                window.sessionStorage.setItem('rec_seed', seedParam);
+            }
+            const categoryParam = url.searchParams.get('category');
+            
+            // Store resume progress for later use
+            if (resumeTime) {
+                setResumeProgress(parseInt(resumeTime, 10) / 100); // Convert percentage to decimal
+            }
+            const params = new URLSearchParams();
+            params.set('limit', '500'); // Increased to maximum for more variety
+            if (seedParam) params.set('seed', seedParam);
+            if (categoryParam) params.set('category', categoryParam);
+            
+            // Exclude recently seen content to avoid repetition
+            const recentlySeen = mediaData.slice(0, 10).map(m => m.id);
+            if (recentlySeen.length > 0) {
+                params.set('exclude', recentlySeen.join(','));
+            }
+            const response = await fetch(`/api/media/recommendations?${params.toString()}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch media');
+            }
+            const data = await response.json();
+            
+            // YouTube-style: Use only API data, no mock processing
+            const apiMediaData = (data.media || []).map((m: any) => ({
+                id: m.id,
+                type: m.type,
+                url: m.url,
+                title: m.title,
+                description: m.description,
+                thumbnailUrl: m.thumbnailUrl,
+                uploader: m.uploader,
+                views: m.views,
+                likes: m.likes,
+                _count: m._count,
+            }));
+            
+            // Shuffle the content for variety (Fisher-Yates shuffle)
+            for (let i = apiMediaData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [apiMediaData[i], apiMediaData[j]] = [apiMediaData[j], apiMediaData[i]];
+            }
+
+            // If a mediaId is present, ensure it's in the list
+            if (mediaId && !apiMediaData.some((m: any) => m.id === mediaId)) {
+                try {
+                    const res = await fetch(`/api/media/${mediaId}`);
+                    if (res.ok) {
+                        const item = await res.json();
+                        const normalized = {
+                            id: item.id,
+                            type: item.type,
+                            url: item.url,
+                            title: item.title,
+                            description: item.description,
+                            thumbnailUrl: item.thumbnailUrl,
+                            uploader: item.uploader,
+                            views: item.views,
+                            likes: item.likes,
+                            _count: item._count,
+                        } as MediaData;
+                        apiMediaData.unshift(normalized);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch specific media:', error);
+                }
+            }
+
+            setMediaData(apiMediaData);
+
+            // If a mediaId is present, jump to it if found
+            if (mediaId) {
+                const idx = apiMediaData.findIndex((m: any) => m.id === mediaId);
+                if (idx >= 0) {
+                    setCurrentMediaIndex(idx);
+                    setCurrentRelatedIndex(0);
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching media:', err);
+            setError('Failed to load media');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Trigger preloading when media data changes
+    useEffect(() => {
+        if (mediaData.length > 0) {
+            preloadNextVideos(0, 5); // Preload first 5 videos
+        }
+    }, [mediaData, preloadNextVideos]);
 
     // Removed duplicate ref system - using state directly
 
@@ -245,6 +327,9 @@ const RecommendedPageContent = () => {
                             if (currentVideo) {
                                 const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
                                 window.location.href = newUrl;
+                                
+                                // Preload next few videos for smooth navigation
+                                preloadNextVideos(nextIndex, 3);
                             }
                         }
                     } else {
@@ -252,15 +337,18 @@ const RecommendedPageContent = () => {
                         if (currentMediaIndex > 0) {
                             pauseAllVideos();
                             setVerticalSlideDirection('up');
-                            setCurrentMediaIndex(currentMediaIndex - 1);
+                            const prevIndex = currentMediaIndex - 1;
+                            setCurrentMediaIndex(prevIndex);
                             setCurrentRelatedIndex(0);
                             
                             // Update URL to reflect current video
-                            const prevIndex = currentMediaIndex - 1;
                             const currentVideo = mediaData[prevIndex];
                             if (currentVideo) {
                                 const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
                                 window.location.href = newUrl;
+                                
+                                // Preload next few videos for smooth navigation
+                                preloadNextVideos(prevIndex, 3);
                             }
                         }
                     }
@@ -521,6 +609,9 @@ const RecommendedPageContent = () => {
                     if (currentVideo) {
                         history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
                     }
+                    
+                    // Preload next few videos for smooth navigation
+                    preloadNextVideos(newIndex, 3);
                 }
                 break;
             case 'ArrowDown':
@@ -538,6 +629,9 @@ const RecommendedPageContent = () => {
                     if (currentVideo) {
                         history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
                     }
+                    
+                    // Preload next few videos for smooth navigation
+                    preloadNextVideos(newIndex, 3);
                 }
                 break;
             case 'ArrowLeft':
@@ -592,7 +686,7 @@ const RecommendedPageContent = () => {
                 }
                 break;
         }
-    }, [currentMediaIndex, currentRelatedIndex, mediaData, pauseAllVideos]);
+    }, [currentMediaIndex, currentRelatedIndex, mediaData, pauseAllVideos, preloadNextVideos]);
 
     // Set up keyboard controls after handleKeyDown is defined
     useEffect(() => {
@@ -689,6 +783,13 @@ const RecommendedPageContent = () => {
                 <div ref={playerContainerRef} className="h-full w-full max-w-md rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
                     {/* Glow tied to the player box (not the full page) */}
                     <div className="pointer-events-none absolute inset-1 rounded-[1.5rem] bg-white/12 blur-[18px] z-0" />
+                    
+                    {/* Preloading indicator (YouTube Shorts style) */}
+                    {isPreloading && (
+                        <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded z-50">
+                            ⚡ Preloading...
+                        </div>
+                    )}
                 {/* Main Media Display Container using AnimatePresence for vertical transitions */}
                 <AnimatePresence 
                     initial={false} 
