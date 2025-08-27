@@ -205,124 +205,11 @@ const RecommendedPageContent = () => {
 
     // (debug logs removed)
 
-        // Scroll handlers using state directly
+    // Scroll handlers using state directly
 
-    // Handle keyboard navigation
-    useEffect(() => {
+    // Handle keyboard navigation moved below after pauseAllVideos function
 
-        const handleKeyDown = (e: KeyboardEvent) => {
 
-            switch (e.key) {
-                case 'ArrowUp':
-
-                    e.preventDefault();
-                    // Go to previous video
-                    if (currentMediaIndex > 0) {
-                        pauseAllVideos();
-                        setVerticalSlideDirection('up');
-                        setCurrentMediaIndex(currentMediaIndex - 1);
-                        setCurrentRelatedIndex(0);
-                        
-                        // Update URL to reflect current video
-                        const prevIndex = currentMediaIndex - 1;
-                        const currentVideo = mediaData[prevIndex];
-                        if (currentVideo) {
-                            history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
-                        }
-                    }
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    // Go to next video
-                    if (currentMediaIndex < mediaData.length - 1) {
-                        pauseAllVideos();
-                        setVerticalSlideDirection('down');
-                        setCurrentMediaIndex(currentMediaIndex + 1);
-                        setCurrentRelatedIndex(0);
-                        
-                        // Update URL to reflect current video
-                        const nextIndex = currentMediaIndex + 1;
-                        const currentVideo = mediaData[nextIndex];
-                        if (currentVideo) {
-                            history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
-                        }
-                    }
-                    break;
-                case 'ArrowLeft':
-
-                    e.preventDefault();
-                    // Seek backward 10 seconds in current video
-                    {
-                        const currentMedia = mediaData[currentMediaIndex];
-                        const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
-                        const currentContent = allContent[currentRelatedIndex];
-                        if (currentContent?.type === 'VIDEO') {
-                            if (currentVideoRef.current) {
-                                // Seek backward by 10% of video duration (like YouTube)
-                                const seekAmount = currentVideoRef.current.duration * 0.1;
-                                currentVideoRef.current.currentTime = Math.max(0, currentVideoRef.current.currentTime - seekAmount);
-                            }
-                        }
-                    }
-                    break;
-                case 'ArrowRight':
-
-                    e.preventDefault();
-                    // Seek forward 10 seconds in current video
-                    {
-                        const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
-                        const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
-                        const currentContent = allContent[currentRelatedIndexRef.current];
-                        if (currentContent?.type === 'VIDEO') {
-                            const videoElement = videoRefs.current[`${currentMediaIndexRef.current}-${currentRelatedIndexRef.current}`];
-                            if (videoElement) {
-                                // Seek forward by 10% of video duration (like YouTube)
-                                const seekAmount = videoElement.duration * 0.1;
-                                videoElement.currentTime = Math.min(videoElement.duration || 0, videoElement.currentTime + seekAmount);
-                            }
-                        }
-                    }
-                    break;
-                case ' ':
-                case 'Space':
-                    e.preventDefault();
-                    // Toggle play/pause for current video
-                    {
-                        const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
-                        const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
-                        const currentContent = allContent[currentRelatedIndexRef.current];
-                        if (currentContent?.type === 'VIDEO') {
-                            const videoElement = videoRefs.current[`${currentMediaIndexRef.current}-${currentRelatedIndexRef.current}`];
-                            if (videoElement) {
-                                if (videoElement.paused) {
-                                    videoElement.play().catch(console.error);
-                                } else {
-                                    videoElement.pause();
-                                }
-                            }
-                        }
-                    }
-                    break;
-            }
-        };
-
-        // Global keyboard controls - work anywhere on the page
-        window.addEventListener('keydown', handleKeyDown);
-        
-        // Click anywhere on the page to enable keyboard controls
-        const handlePageClick = () => {
-            const container = document.querySelector('.recommended-container');
-            if (container) {
-                (container as HTMLElement).focus();
-            }
-        };
-        document.addEventListener('click', handlePageClick);
-        
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('click', handlePageClick);
-        };
-    }, []); // No dependencies needed - uses refs
 
     // Handle mouse wheel scrolling
     useEffect(() => {
@@ -346,15 +233,15 @@ const RecommendedPageContent = () => {
 
                     if (e.deltaY > 0) {
                         // Go to next video
-                        if (currentMediaIndexRef.current < mediaDataRef.current.length - 1) {
+                        if (currentMediaIndex < mediaData.length - 1) {
                             pauseAllVideos();
                             setVerticalSlideDirection('down');
-                            setCurrentMediaIndex(currentMediaIndexRef.current + 1);
+                            setCurrentMediaIndex(currentMediaIndex + 1);
                             setCurrentRelatedIndex(0);
                             
                             // Update URL to reflect current video
-                            const nextIndex = currentMediaIndexRef.current + 1;
-                            const currentVideo = mediaDataRef.current[nextIndex];
+                            const nextIndex = currentMediaIndex + 1;
+                            const currentVideo = mediaData[nextIndex];
                             if (currentVideo) {
                                 const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
                                 window.location.href = newUrl;
@@ -362,15 +249,15 @@ const RecommendedPageContent = () => {
                         }
                     } else {
                         // Go to previous video
-                        if (currentMediaIndexRef.current > 0) {
+                        if (currentMediaIndex > 0) {
                             pauseAllVideos();
                             setVerticalSlideDirection('up');
-                            setCurrentMediaIndex(currentMediaIndexRef.current - 1);
+                            setCurrentMediaIndex(currentMediaIndex - 1);
                             setCurrentRelatedIndex(0);
                             
                             // Update URL to reflect current video
-                            const prevIndex = currentMediaIndexRef.current - 1;
-                            const currentVideo = mediaDataRef.current[prevIndex];
+                            const prevIndex = currentMediaIndex - 1;
+                            const currentVideo = mediaData[prevIndex];
                             if (currentVideo) {
                                 const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
                                 window.location.href = newUrl;
@@ -392,11 +279,11 @@ const RecommendedPageContent = () => {
 
                 if (e.deltaX > 0) {
                     // Go to next related content
-                    const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
+                    const currentMedia = mediaData[currentMediaIndex];
                     if (currentMedia) {
                         const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
                         if (allContent.length > 1) {
-                            const nextIndex = (currentRelatedIndexRef.current + 1) % allContent.length;
+                            const nextIndex = (currentRelatedIndex + 1) % allContent.length;
                             pauseAllVideos();
                             setCurrentRelatedIndex(nextIndex);
                             
@@ -408,11 +295,11 @@ const RecommendedPageContent = () => {
                     }
                 } else {
                     // Go to previous related content
-                    const currentMedia = mediaDataRef.current[currentMediaIndexRef.current];
+                    const currentMedia = mediaData[currentMediaIndex];
                     if (currentMedia) {
                         const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
                         if (allContent.length > 1) {
-                            const nextIndex = (currentRelatedIndexRef.current - 1 + allContent.length) % allContent.length;
+                            const nextIndex = (currentRelatedIndex - 1 + allContent.length) % allContent.length;
                             pauseAllVideos();
                             setCurrentRelatedIndex(nextIndex);
                             
@@ -556,22 +443,22 @@ const RecommendedPageContent = () => {
                 // Apply resume functionality if available
                 if (resumeProgress && resumeProgress > 0.05 && resumeProgress < 0.95) {
                     const handleLoadedMetadata = () => {
-                        if (videoElement.duration) {
-                            videoElement.currentTime = videoElement.duration * resumeProgress;
+                        if (currentVideoRef.current?.duration) {
+                            currentVideoRef.current.currentTime = currentVideoRef.current.duration * resumeProgress;
                             setResumeProgress(null); // Clear resume progress after applying
                         }
-                        videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                        currentVideoRef.current?.removeEventListener('loadedmetadata', handleLoadedMetadata);
                     };
                     
-                    if (videoElement.readyState >= 1) {
+                    if (currentVideoRef.current?.readyState >= 1) {
                         // Metadata already loaded
                         handleLoadedMetadata();
                     } else {
-                        videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+                        currentVideoRef.current?.addEventListener('loadedmetadata', handleLoadedMetadata);
                     }
                 }
                 
-                videoElement.play().catch(() => {});
+                currentVideoRef.current?.play().catch(() => {});
                 logStartPlay(currentContent.id);
 
                 // Focus the container so keyboard controls work immediately (like YouTube Shorts)
@@ -583,9 +470,9 @@ const RecommendedPageContent = () => {
                 }, 100);
 
                 // Add watch progress tracking for this video
-                const trackProgress = (videoElement: HTMLVideoElement, mediaId: string) => {
-                    if (videoElement.duration) {
-                        const progress = videoElement.currentTime / videoElement.duration;
+                const trackProgress = (video: HTMLVideoElement, mediaId: string) => {
+                    if (video.duration) {
+                        const progress = video.currentTime / video.duration;
                         if (!isNaN(progress) && progress > 0.01) {
                             fetch('/api/history', {
                                 method: 'POST',
@@ -598,11 +485,11 @@ const RecommendedPageContent = () => {
                 };
 
                 // Add event listeners for this specific video
-                const handlePause = () => trackProgress(videoElement, currentContent.id);
-                const handleEnded = () => trackProgress(videoElement, currentContent.id);
+                const handlePause = () => trackProgress(currentVideoRef.current!, currentContent.id);
+                const handleEnded = () => trackProgress(currentVideoRef.current!, currentContent.id);
                 
-                videoElement.addEventListener('pause', handlePause);
-                videoElement.addEventListener('ended', handleEnded);
+                currentVideoRef.current?.addEventListener('pause', handlePause);
+                currentVideoRef.current?.addEventListener('ended', handleEnded);
             }
         }
     }, [currentMediaIndex, currentRelatedIndex, mediaData, resumeProgress]);
@@ -615,6 +502,125 @@ const RecommendedPageContent = () => {
             currentVideoRef.current.pause();
         }
     };
+
+    // Handle keyboard navigation with useCallback to avoid stale closures
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        switch (e.key) {
+            case 'ArrowUp':
+                e.preventDefault();
+                // Go to previous video
+                if (currentMediaIndex > 0) {
+                    pauseAllVideos();
+                    setVerticalSlideDirection('up');
+                    const newIndex = currentMediaIndex - 1;
+                    setCurrentMediaIndex(newIndex);
+                    setCurrentRelatedIndex(0);
+                    
+                    // Update URL to reflect current video
+                    const currentVideo = mediaData[newIndex];
+                    if (currentVideo) {
+                        history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
+                    }
+                }
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                // Go to next video
+                if (currentMediaIndex < mediaData.length - 1) {
+                    pauseAllVideos();
+                    setVerticalSlideDirection('down');
+                    const newIndex = currentMediaIndex + 1;
+                    setCurrentMediaIndex(newIndex);
+                    setCurrentRelatedIndex(0);
+                    
+                    // Update URL to reflect current video
+                    const currentVideo = mediaData[newIndex];
+                    if (currentVideo) {
+                        history.pushState({}, '', `/recommended?v=${currentVideo.id}`);
+                    }
+                }
+                break;
+            case 'ArrowLeft':
+                e.preventDefault();
+                // Seek backward 10 seconds in current video
+                {
+                    const currentMedia = mediaData[currentMediaIndex];
+                    const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
+                    const currentContent = allContent[currentRelatedIndex];
+                    if (currentContent?.type === 'VIDEO') {
+                        if (currentVideoRef.current) {
+                            // Seek backward by 10% of video duration (like YouTube)
+                            const seekAmount = currentVideoRef.current.duration * 0.1;
+                            currentVideoRef.current.currentTime = Math.max(0, currentVideoRef.current.currentTime - seekAmount);
+                        }
+                    }
+                }
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                // Seek forward 10 seconds in current video
+                {
+                    const currentMedia = mediaData[currentMediaIndex];
+                    const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
+                    const currentContent = allContent[currentRelatedIndex];
+                    if (currentContent?.type === 'VIDEO') {
+                        if (currentVideoRef.current) {
+                            // Seek forward by 10% of video duration (like YouTube)
+                            const seekAmount = currentVideoRef.current.duration * 0.1;
+                            currentVideoRef.current.currentTime = Math.min(currentVideoRef.current.duration || 0, currentVideoRef.current.currentTime + seekAmount);
+                        }
+                    }
+                }
+                break;
+            case ' ':
+            case 'Space':
+                e.preventDefault();
+                // Toggle play/pause for current video
+                {
+                    const currentMedia = mediaData[currentMediaIndex];
+                    const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
+                    const currentContent = allContent[currentRelatedIndex];
+                    if (currentContent?.type === 'VIDEO') {
+                        if (currentVideoRef.current) {
+                            if (currentVideoRef.current.paused) {
+                                currentVideoRef.current.play().catch(console.error);
+                            } else {
+                                currentVideoRef.current.pause();
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+    }, [currentMediaIndex, currentRelatedIndex, mediaData, pauseAllVideos]);
+
+    // Set up keyboard controls after handleKeyDown is defined
+    useEffect(() => {
+        // Global keyboard controls - work anywhere on the page
+        window.addEventListener('keydown', handleKeyDown);
+        
+        // Click anywhere on the page to enable keyboard controls
+        const handlePageClick = () => {
+            const container = document.querySelector('.recommended-container');
+            if (container) {
+                (container as HTMLElement).focus();
+            }
+        };
+        document.addEventListener('click', handlePageClick);
+        
+        // Auto-focus container on mount for development
+        setTimeout(() => {
+            const container = document.querySelector('.recommended-container');
+            if (container) {
+                (container as HTMLElement).focus();
+            }
+        }, 100);
+        
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('click', handlePageClick);
+        };
+    }, [handleKeyDown]); // Add handleKeyDown as dependency
 
     // --- Core Logic for Sliding Transition ---
 
@@ -713,9 +719,7 @@ const RecommendedPageContent = () => {
                                     {/* Media Content */}
                                     {media.type === 'VIDEO' ? (
                                         <video
-                                            ref={(el) => {
-                                                videoRefs.current[`${currentMediaIndex}-${index}`] = el;
-                                            }}
+                                            ref={index === currentRelatedIndex ? currentVideoRef : null}
                                             className="w-full h-full object-cover"
                                             src={media.url}
                                              preload="metadata"
@@ -728,14 +732,12 @@ const RecommendedPageContent = () => {
 
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                // Use refs for current values
-                                                const video = videoRefs.current[`${currentMediaIndexRef.current}-${currentRelatedIndexRef.current}`];
-
-                                                if (video) {
-                                                    if (video.paused) { 
-                                                        video.play().catch(console.error); 
+                                                // Use current video ref
+                                                if (currentVideoRef.current) {
+                                                    if (currentVideoRef.current.paused) { 
+                                                        currentVideoRef.current.play().catch(console.error); 
                                                     } else { 
-                                                        video.pause(); 
+                                                        currentVideoRef.current.pause(); 
                                                     }
                                                 }
                                             }}
@@ -818,7 +820,7 @@ const RecommendedPageContent = () => {
                                         {allContentInPost.length > 1 && (
                                             <>
                                                 <button
-                                                    onClick={() => handleHorizontalScrollRef('left')}
+                                                    onClick={() => handleHorizontalScroll('left')}
                                                     className="pointer-events-auto ml-2 p-4 text-white transition-opacity hover:opacity-100 opacity-70 h-32 flex items-center"
                                                     title="Previous content in this post"
                                                 >
@@ -827,7 +829,7 @@ const RecommendedPageContent = () => {
                                                     </svg>
                                                 </button>
                                                 <button
-                                                    onClick={() => handleHorizontalScrollRef('right')}
+                                                    onClick={() => handleHorizontalScroll('right')}
                                                     className="pointer-events-auto mr-2 p-4 text-white transition-opacity hover:opacity-100 opacity-70 h-32 flex items-center"
                                                     title="Next content in this post"
                                                 >
