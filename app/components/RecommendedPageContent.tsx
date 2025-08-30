@@ -59,7 +59,7 @@ const RecommendedPageContent = () => {
     const [resumeProgress, setResumeProgress] = useState<number | null>(null);
     
     // Fetch media data from API (use recommendations for consistency)
-    const fetchMedia = async () => {
+    const fetchMedia = useCallback(async () => {
         try {
             setLoading(true);
             // Respect deep link to a specific mediaId
@@ -157,7 +157,7 @@ const RecommendedPageContent = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [mediaData]);
 
     // Check if page was preloaded from home page
     useEffect(() => {
@@ -172,7 +172,7 @@ const RecommendedPageContent = () => {
             // Normal loading if no preloaded data
             fetchMedia();
         }
-    }, []);
+    }, [fetchMedia]);
 
 
     
@@ -273,7 +273,7 @@ const RecommendedPageContent = () => {
         } finally {
             setIsPreloading(false);
         }
-    }, [mediaData, preloadedVideos, isPreloading]);
+    }, [mediaData]);
 
 
 
@@ -574,8 +574,16 @@ const RecommendedPageContent = () => {
                 };
 
                 // Add event listeners for this specific video
-                const handlePause = () => trackProgress(currentVideoRef.current!, currentContent.id);
-                const handleEnded = () => trackProgress(currentVideoRef.current!, currentContent.id);
+                const handlePause = () => {
+                    if (currentVideoRef.current) {
+                        trackProgress(currentVideoRef.current, currentContent.id);
+                    }
+                };
+                const handleEnded = () => {
+                    if (currentVideoRef.current) {
+                        trackProgress(currentVideoRef.current, currentContent.id);
+                    }
+                };
                 
                 currentVideoRef.current?.addEventListener('pause', handlePause);
                 currentVideoRef.current?.addEventListener('ended', handleEnded);
