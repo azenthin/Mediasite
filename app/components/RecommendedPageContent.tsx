@@ -172,7 +172,7 @@ const RecommendedPageContent = () => {
             // Normal loading if no preloaded data
             fetchMedia();
         }
-    }, [fetchMedia]);
+    }, []);
 
 
     
