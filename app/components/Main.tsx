@@ -32,7 +32,7 @@ const App = ({ children }: AppProps) => {
     return (
         <>
             <div className="flex flex-col min-h-screen h-auto" style={{ backgroundColor: colors.siteBgColor }}>
-                <div className="sticky top-0 z-30">
+                <div className="sticky top-0 z-30 md:block" id="navbar-container">
                   <Navbar
                     navbarBgColor={colors.navbarBgColor}
                     buttonTextColor={colors.buttonTextColor}

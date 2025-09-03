@@ -497,7 +497,44 @@ const RecommendedPageContent = () => {
 
 
 
-    // No scroll-based exit for immersive mode - only controlled by zoom gestures
+    // Hide browser UI and navbar on mobile when in immersive mode (YouTube Shorts style)
+    useEffect(() => {
+        if (isImmersiveMode && window.innerWidth < 768) { // Mobile only
+            // Hide browser UI
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
+            
+            // Hide navbar on mobile
+            const navbarContainer = document.getElementById('navbar-container');
+            if (navbarContainer) {
+                navbarContainer.style.display = 'none';
+            }
+            
+            // Try to hide browser chrome (works on some browsers)
+            if ('standalone' in window.navigator) {
+                // iOS Safari
+                document.documentElement.style.webkitAppearance = 'none';
+            }
+            
+            return () => {
+                // Restore browser UI when exiting immersive mode
+                document.documentElement.style.overflow = '';
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                document.body.style.height = '';
+                document.documentElement.style.webkitAppearance = '';
+                
+                // Restore navbar
+                if (navbarContainer) {
+                    navbarContainer.style.display = '';
+                }
+            };
+        }
+    }, [isImmersiveMode]);
     
     // No auto-exit for immersive mode - controlled by zoom gestures
     
@@ -773,7 +810,7 @@ const RecommendedPageContent = () => {
     const allContentInPost = [currentMedia, ...(currentMedia.relatedMedia || [])];
     const currentRelatedMedia = allContentInPost[currentRelatedIndex];
 
-    return (
+        return (
         <div 
             className={`flex-1 w-full recommended-container relative z-[200] transition-all duration-300 ${
                 isImmersiveMode ? 'fixed inset-0 z-[99999] bg-black' : ''
@@ -782,7 +819,7 @@ const RecommendedPageContent = () => {
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
-                            style={{ 
+            style={{ 
                 touchAction: 'manipulation',
                 ...(isImmersiveMode && {
                     top: 0,
@@ -790,7 +827,10 @@ const RecommendedPageContent = () => {
                     right: 0,
                     bottom: 0,
                     width: '100vw',
-                    height: '100vh'
+                    height: '100vh',
+                    // Hide browser UI on mobile
+                    position: 'fixed',
+                    overflow: 'hidden'
                 })
             }}
         >
@@ -801,7 +841,7 @@ const RecommendedPageContent = () => {
             }`}>
                 <div ref={playerContainerRef} className={`h-full w-full overflow-hidden bg-[#0b0b0b] relative z-[500] transition-all duration-300 ${
                     isImmersiveMode 
-                        ? 'max-w-none rounded-none h-[100vh] w-[100vw]' 
+                        ? 'max-w-none rounded-none h-[100vh] w-[100vw] md:max-w-[30rem] md:max-w-[30rem] md:sm:max-w-[28rem] md:rounded-2xl md:rounded-3xl' 
                         : 'max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl'
                 }`}>
                     {/* Glow tied to the player box (not the full page) - Hidden in immersive mode */}
