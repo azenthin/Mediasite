@@ -219,7 +219,7 @@ const RecommendedPageContent = () => {
         const isLeftSwipe = distanceX > minSwipeDistance;
         const isRightSwipe = distanceX < -minSwipeDistance;
         
-        // Different behavior for mobile vs desktop
+                // Different behavior for mobile vs desktop
         if (isImmersiveMode) {
             // Mobile: YouTube Shorts style - only vertical swipes for video navigation
             if (Math.abs(distanceY) > Math.abs(distanceX)) {
@@ -234,12 +234,12 @@ const RecommendedPageContent = () => {
                 }
             }
         } else {
-            // Desktop: Allow both vertical and horizontal navigation
+            // Desktop: Full functionality - both vertical and horizontal navigation
             if (Math.abs(distanceY) > Math.abs(distanceX)) {
                 // Vertical swipes - video navigation
                 if (isUpSwipe && currentMediaIndex < mediaData.length - 1) {
                     setCurrentMediaIndex(currentMediaIndex + 1);
-                        setCurrentRelatedIndex(0);
+                    setCurrentRelatedIndex(0);
                 } else if (isDownSwipe && currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
                     setCurrentRelatedIndex(0);
@@ -786,12 +786,14 @@ const RecommendedPageContent = () => {
                     >
                         {/* Current Video - Full Height */}
                         <div className="h-full w-full relative">
-                            {/* Swipe Indicator - Show on mobile */}
-                            <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
-                                <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
-                                    ↑ Swipe up for next video ↓
+                            {/* Swipe Indicator - Show on mobile only */}
+                            {isImmersiveMode && (
+                                <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                                    <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
+                                        ↑ Swipe up for next video ↓
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                             {/* Video Content */}
                             {(() => {
                                 const currentMedia = mediaData[currentMediaIndex];
