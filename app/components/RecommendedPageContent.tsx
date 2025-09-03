@@ -770,7 +770,7 @@ const RecommendedPageContent = () => {
     return (
         <div 
             className={`flex-1 w-full recommended-container relative z-[200] transition-all duration-300 ${
-                isImmersiveMode ? 'fixed inset-0 z-[999]' : ''
+                isImmersiveMode ? 'fixed inset-0 z-[9999] bg-black' : ''
             }`}
             tabIndex={0}
             onTouchStart={handleContainerTouchStart}
@@ -785,11 +785,13 @@ const RecommendedPageContent = () => {
             }`}>
                 <div ref={playerContainerRef} className={`h-full w-full overflow-hidden bg-[#0b0b0b] relative z-[500] transition-all duration-300 ${
                     isImmersiveMode 
-                        ? 'max-w-none rounded-none' 
+                        ? 'max-w-none rounded-none h-screen w-screen' 
                         : 'max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl'
                 }`}>
-                    {/* Glow tied to the player box (not the full page) */}
-                    <div className="pointer-events-none absolute inset-1 rounded-[1rem] md:rounded-[1.5rem] bg-white/12 blur-[12px] md:blur-[18px] z-0" />
+                    {/* Glow tied to the player box (not the full page) - Hidden in immersive mode */}
+                    {!isImmersiveMode && (
+                        <div className="pointer-events-none absolute inset-1 rounded-[1rem] md:rounded-[1.5rem] bg-white/12 blur-[12px] md:blur-[18px] z-0" />
+                    )}
                     
                     {/* Scrollable Video Container */}
                     <div 
