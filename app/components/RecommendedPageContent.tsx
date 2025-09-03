@@ -188,11 +188,18 @@ const RecommendedPageContent = () => {
     
     // Immersive mode state
     const [isImmersiveMode, setIsImmersiveMode] = useState(false);
-    const [isSwiping, setIsSwiping] = useState(false);
+    const [initialDistance, setInitialDistance] = useState<number | null>(null);
     
     // Minimum swipe distance (in pixels) - reduced for better sensitivity
     const minSwipeDistance = 30;
     const videoTapThreshold = 200; // Max time for tap vs hold (ms)
+    
+    // Calculate distance between two touch points for zoom detection
+    const getDistance = (touch1: Touch, touch2: Touch) => {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    };
     
     // Handle touch start
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -201,6 +208,14 @@ const RecommendedPageContent = () => {
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
+        
+        // Initialize zoom distance if two fingers
+        if (e.targetTouches.length === 2) {
+            const distance = getDistance(e.targetTouches[0], e.targetTouches[1]);
+            setInitialDistance(distance);
+        } else {
+            setInitialDistance(null);
+        }
     };
     
     // Handle touch move
@@ -209,6 +224,27 @@ const RecommendedPageContent = () => {
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
+        
+        // Handle zoom gesture
+        if (e.targetTouches.length === 2 && initialDistance !== null) {
+            const currentDistance = getDistance(e.targetTouches[0], e.targetTouches[1]);
+            const zoomThreshold = 50; // Minimum distance change to trigger zoom
+            
+            if (Math.abs(currentDistance - initialDistance) > zoomThreshold) {
+                if (currentDistance > initialDistance) {
+                    // Zoom in - enter full screen
+                    if (!isImmersiveMode) {
+                        setIsImmersiveMode(true);
+                    }
+                } else {
+                    // Zoom out - exit full screen
+                    if (isImmersiveMode) {
+                        setIsImmersiveMode(false);
+                    }
+                }
+                setInitialDistance(currentDistance); // Update for continuous zoom
+            }
+        }
     };
     
     // Handle touch end and detect swipe direction
@@ -247,6 +283,8 @@ const RecommendedPageContent = () => {
                 window.scrollBy({ top: -100, behavior: 'smooth' });
             }
         }
+        
+        setInitialDistance(null);
     };
     
     // Mobile video-specific touch handlers
@@ -472,28 +510,9 @@ const RecommendedPageContent = () => {
 
 
 
-    // Handle scroll to bring back navbar from immersive mode
-    useEffect(() => {
-        const handleScroll = () => {
-            if (isImmersiveMode && window.scrollY > 50) {
-                setIsImmersiveMode(false);
-            }
-        };
-        
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [isImmersiveMode]);
+    // No scroll-based exit for immersive mode - only controlled by zoom gestures
     
-    // Auto-exit immersive mode after 3 seconds
-    useEffect(() => {
-        if (isImmersiveMode) {
-            const timer = setTimeout(() => {
-                setIsImmersiveMode(false);
-            }, 3000);
-            
-            return () => clearTimeout(timer);
-        }
-    }, [isImmersiveMode]);
+    // No auto-exit for immersive mode - controlled by zoom gestures
     
     // Simplified video observer to ensure play/pause logic is robust
     useEffect(() => {
@@ -770,7 +789,7 @@ const RecommendedPageContent = () => {
     return (
         <div 
             className={`flex-1 w-full recommended-container relative z-[200] transition-all duration-300 ${
-                isImmersiveMode ? 'fixed inset-0 z-[9999] bg-black' : ''
+                isImmersiveMode ? 'fixed inset-0 z-[99999] bg-black' : ''
             }`}
             tabIndex={0}
             onTouchStart={handleContainerTouchStart}
