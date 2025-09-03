@@ -57,106 +57,106 @@ const RecommendedPageContent = () => {
     const [currentRelatedIndex, setCurrentRelatedIndex] = useState(0);
     const [verticalSlideDirection, setVerticalSlideDirection] = useState<'up' | 'down'>('down');
     const [resumeProgress, setResumeProgress] = useState<number | null>(null);
-    
+
     // Fetch media data from API (use recommendations for consistency)
     const fetchMedia = useCallback(async () => {
-        try {
-            setLoading(true);
-            // Respect deep link to a specific mediaId
-            const url = new URL(window.location.href);
-            const mediaId = url.searchParams.get('v');
-            const resumeTime = url.searchParams.get('t'); // Resume time as percentage
-            // Generate a new seed each time for variety, or use existing one if deep-linked
-            const existingSeed = url.searchParams.get('seed') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('rec_seed') : null);
-            const seedParam = existingSeed || Math.floor(Math.random() * 1000000).toString();
-            
-            // Store the seed for this session
-            if (typeof window !== 'undefined') {
-                window.sessionStorage.setItem('rec_seed', seedParam);
-            }
-            const categoryParam = url.searchParams.get('category');
-            
-            // Store resume progress for later use
-            if (resumeTime) {
-                setResumeProgress(parseInt(resumeTime, 10) / 100); // Convert percentage to decimal
-            }
-            const params = new URLSearchParams();
-            params.set('limit', '500'); // Increased to maximum for more variety
-            if (seedParam) params.set('seed', seedParam);
-            if (categoryParam) params.set('category', categoryParam);
-            
-            // Exclude recently seen content to avoid repetition
+            try {
+                setLoading(true);
+                // Respect deep link to a specific mediaId
+                const url = new URL(window.location.href);
+                const mediaId = url.searchParams.get('v');
+                const resumeTime = url.searchParams.get('t'); // Resume time as percentage
+                // Generate a new seed each time for variety, or use existing one if deep-linked
+                const existingSeed = url.searchParams.get('seed') || (typeof window !== 'undefined' ? window.sessionStorage.getItem('rec_seed') : null);
+                const seedParam = existingSeed || Math.floor(Math.random() * 1000000).toString();
+                
+                // Store the seed for this session
+                if (typeof window !== 'undefined') {
+                    window.sessionStorage.setItem('rec_seed', seedParam);
+                }
+                const categoryParam = url.searchParams.get('category');
+                
+                // Store resume progress for later use
+                if (resumeTime) {
+                    setResumeProgress(parseInt(resumeTime, 10) / 100); // Convert percentage to decimal
+                }
+                const params = new URLSearchParams();
+                params.set('limit', '500'); // Increased to maximum for more variety
+                if (seedParam) params.set('seed', seedParam);
+                if (categoryParam) params.set('category', categoryParam);
+                
+                // Exclude recently seen content to avoid repetition
             const recentlySeen = mediaData.slice(0, 10).map((m: MediaData) => m.id);
-            if (recentlySeen.length > 0) {
-                params.set('exclude', recentlySeen.join(','));
-            }
-            const response = await fetch(`/api/media/recommendations?${params.toString()}`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch media');
-            }
-            const data = await response.json();
-            
+                if (recentlySeen.length > 0) {
+                    params.set('exclude', recentlySeen.join(','));
+                }
+                const response = await fetch(`/api/media/recommendations?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch media');
+                }
+                const data = await response.json();
+                
             // YouTube-style: Use only API data, no mock processing
             const apiMediaData = (data.media || []).map((m: any) => ({
-                id: m.id,
-                type: m.type,
-                url: m.url,
-                title: m.title,
-                description: m.description,
-                thumbnailUrl: m.thumbnailUrl,
-                uploader: m.uploader,
-                views: m.views,
-                likes: m.likes,
-                _count: m._count,
-            }));
-            
-            // Shuffle the content for variety (Fisher-Yates shuffle)
+                    id: m.id,
+                    type: m.type,
+                    url: m.url,
+                    title: m.title,
+                    description: m.description,
+                    thumbnailUrl: m.thumbnailUrl,
+                    uploader: m.uploader,
+                    views: m.views,
+                    likes: m.likes,
+                    _count: m._count,
+                }));
+                
+                // Shuffle the content for variety (Fisher-Yates shuffle)
             for (let i = apiMediaData.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                    const j = Math.floor(Math.random() * (i + 1));
                 [apiMediaData[i], apiMediaData[j]] = [apiMediaData[j], apiMediaData[i]];
-            }
+                }
 
-            // If a mediaId is present, ensure it's in the list
+                // If a mediaId is present, ensure it's in the list
             if (mediaId && !apiMediaData.some((m: any) => m.id === mediaId)) {
-                try {
-                    const res = await fetch(`/api/media/${mediaId}`);
-                    if (res.ok) {
-                        const item = await res.json();
-                        const normalized = {
-                            id: item.id,
-                            type: item.type,
-                            url: item.url,
-                            title: item.title,
-                            description: item.description,
-                            thumbnailUrl: item.thumbnailUrl,
-                            uploader: item.uploader,
-                            views: item.views,
-                            likes: item.likes,
-                            _count: item._count,
-                        } as MediaData;
+                    try {
+                        const res = await fetch(`/api/media/${mediaId}`);
+                        if (res.ok) {
+                            const item = await res.json();
+                            const normalized = {
+                                id: item.id,
+                                type: item.type,
+                                url: item.url,
+                                title: item.title,
+                                description: item.description,
+                                thumbnailUrl: item.thumbnailUrl,
+                                uploader: item.uploader,
+                                views: item.views,
+                                likes: item.likes,
+                                _count: item._count,
+                            } as MediaData;
                         apiMediaData.unshift(normalized);
-                    }
+                        }
                 } catch (error) {
                     console.error('Failed to fetch specific media:', error);
                 }
-            }
+                    }
 
             setMediaData(apiMediaData);
 
-            // If a mediaId is present, jump to it if found
-            if (mediaId) {
+                // If a mediaId is present, jump to it if found
+                if (mediaId) {
                 const idx = apiMediaData.findIndex((m: any) => m.id === mediaId);
-                if (idx >= 0) {
-                    setCurrentMediaIndex(idx);
-                    setCurrentRelatedIndex(0);
+                    if (idx >= 0) {
+                        setCurrentMediaIndex(idx);
+                        setCurrentRelatedIndex(0);
+                    }
                 }
+            } catch (err) {
+                console.error('Error fetching media:', err);
+                setError('Failed to load media');
+            } finally {
+                setLoading(false);
             }
-        } catch (err) {
-            console.error('Error fetching media:', err);
-            setError('Failed to load media');
-        } finally {
-            setLoading(false);
-        }
     }, [mediaData]);
 
     // Check if page was preloaded from home page
@@ -170,7 +170,7 @@ const RecommendedPageContent = () => {
             pagePreloader.clearPreloadedData('recommended');
         } else {
             // Normal loading if no preloaded data
-            fetchMedia();
+        fetchMedia();
         }
     }, []);
 
@@ -230,7 +230,7 @@ const RecommendedPageContent = () => {
                 // Swipe right - previous video
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
-                    setCurrentRelatedIndex(0);
+                        setCurrentRelatedIndex(0);
                 }
             }
         } else {
@@ -274,7 +274,7 @@ const RecommendedPageContent = () => {
             if (currentVideoRef.current) {
                 if (currentVideoRef.current.paused) {
                     currentVideoRef.current.play().catch(() => {});
-                } else {
+                                } else {
                     currentVideoRef.current.pause();
                 }
             }
@@ -316,7 +316,7 @@ const RecommendedPageContent = () => {
         if (Math.abs(distanceY) > Math.abs(distanceX)) {
             if (isUpSwipe) {
                 // Swipe up - next video
-                e.preventDefault();
+            e.preventDefault();
                 console.log('Swipe up detected - going to next video');
                 if (mediaData.length > currentMediaIndex + 1) {
                     setCurrentMediaIndex(currentMediaIndex + 1);
@@ -328,10 +328,10 @@ const RecommendedPageContent = () => {
                 console.log('Swipe down detected - going to previous video');
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
-                    setCurrentRelatedIndex(0);
-                }
-            }
-        } else {
+                            setCurrentRelatedIndex(0);
+                            }
+                        }
+                    } else {
             // Horizontal swipes - scroll the page or related content
             if (isLeftSwipe) {
                 // Swipe left - scroll right
@@ -692,7 +692,7 @@ const RecommendedPageContent = () => {
     };
 
     const handleVerticalScroll = (direction: 'up' | 'down') => {
-        let nextIndex = currentMediaIndex; 
+        let nextIndex = currentMediaIndex;
         if (direction === 'down' && currentMediaIndex < mediaData.length - 1) {
             nextIndex = currentMediaIndex + 1;
         } else if (direction === 'up' && currentMediaIndex > 0) {
@@ -756,12 +756,12 @@ const RecommendedPageContent = () => {
                         className="h-full overflow-y-auto scrollbar-hide"
                         style={{ touchAction: 'pan-y' }}
                     >
-                        {/* Current Video */}
+                        {/* Current Video - Full Height */}
                         <div className="h-full w-full relative">
                             {/* Mobile Swipe Indicator */}
                             <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
                                 <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
-                                    ↑ Swipe to navigate ↓
+                                    ↑ Swipe for next video ↓
                                 </div>
                             </div>
                             {/* Video Content */}
@@ -773,41 +773,41 @@ const RecommendedPageContent = () => {
                                     <>
                                         {/* Video/Image Content */}
                                         {currentMedia.type === 'VIDEO' ? (
-                                            <video
+                                        <video
                                                 ref={currentVideoRef}
                                                 className="w-full h-full object-cover touch-none select-none"
                                                 src={currentMedia.url}
-                                                preload="metadata"
+                                             preload="metadata"
                                                 poster={currentMedia.thumbnailUrl}
-                                                loop
-                                                muted
-                                                playsInline
+                                            loop
+                                            muted
+                                            playsInline
                                                 controls={false}
                                                 onTouchStart={handleVideoTouchStart}
                                                 onTouchEnd={handleVideoTouchEnd}
                                                 onClick={(e: React.MouseEvent) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
+                                                e.preventDefault();
+                                                e.stopPropagation();
                                                     
                                                     if (currentVideoRef.current) {
                                                         if (currentVideoRef.current.paused) {
                                                             currentVideoRef.current.play().catch(console.error);
-                                                        } else {
+                                                    } else { 
                                                             currentVideoRef.current.pause(); 
-                                                        }
                                                     }
-                                                }}
-                                            />
-                                        ) : (
-                                            <img
+                                                }
+                                            }}
+                                        />
+                                    ) : (
+                                        <img
                                                 src={currentMedia.url}
                                                 alt={currentMedia.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        )}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
 
-                                        {/* Gradient Overlay */}
-                                        <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                                    {/* Gradient Overlay */}
+                                    <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
                                         
                                         {/* Mobile Play/Pause Overlay */}
                                         {isVideoTouched && currentMedia.type === 'VIDEO' && (
@@ -825,35 +825,35 @@ const RecommendedPageContent = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        
-                                        {/* Media Info */}
+                                    
+                                    {/* Media Info */}
                                         <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 flex justify-between items-end z-20">
                                             <div className="flex-1 space-y-1 pr-2">
                                                 <h3 className="text-sm md:text-lg font-semibold text-white line-clamp-2">{currentMedia.title}</h3>
-                                                <div className="flex items-center space-x-2">
-                                                    <img 
+                                            <div className="flex items-center space-x-2">
+                                                <img 
                                                         src={currentMedia.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${currentMedia.uploader.username.charAt(0).toUpperCase()}`} 
-                                                        alt="Channel profile" 
+                                                    alt="Channel profile" 
                                                         className="w-6 h-6 md:w-8 md:h-8 rounded-full" 
-                                                    />
+                                                />
                                                     <p className="text-gray-200 text-xs md:text-sm">{currentMedia.uploader.displayName || currentMedia.uploader.username}</p>
-                                                </div>
                                             </div>
+                                        </div>
                                             <div className="flex flex-col space-y-2 md:space-y-4">
-                                                <ActionButton
+                                            <ActionButton
                                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
                                                     label={currentMedia.likes?.toString() || '0'}
-                                                />
-                                                <ActionButton
+                                            />
+                                            <ActionButton
                                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
                                                     label={currentMedia._count?.comments?.toString() || '0'}
-                                                />
-                                                <ActionButton
+                                            />
+                                            <ActionButton
                                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
-                                                    label="Share"
-                                                />
+                                                label="Share"
+                                            />
                                                 {currentMedia.type === 'VIDEO' && (
-                                                    <button
+                                                <button
                                                         className="flex flex-col items-center justify-center p-1 md:p-2 text-white/90 hover:text-white transition-colors duration-200"
                                                         title={currentVideoRef.current?.paused ? "Play" : "Pause"}
                                                         onClick={() => {
@@ -871,48 +871,16 @@ const RecommendedPageContent = () => {
                                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                                                         }
                                                         <span className="text-xs mt-1 hidden md:block">{currentVideoRef.current?.paused ? "Play" : "Pause"}</span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
+                                                </button>
+                                        )}
+                                    </div>
+                                </div>
                                     </>
                                 );
                             })()}
                         </div>
-                        
-                                                {/* Next Video Preview Peek - Now swipeable */}
-                        {mediaData.length > currentMediaIndex + 1 && (
-                            <div 
-                                className="w-full h-24 md:h-32 relative mt-2 md:mt-4 cursor-pointer"
-                                onClick={() => {
-                                    setCurrentMediaIndex(currentMediaIndex + 1);
-                                    setCurrentRelatedIndex(0);
-                                }}
-                            >
-                                <div className="w-full h-full rounded-lg md:rounded-xl overflow-hidden bg-black">
-                                    <video
-                                        src={mediaData[currentMediaIndex + 1]?.url}
-                                        className="w-full h-full object-cover"
-                                        muted
-                                        playsInline
-                                        preload="metadata"
-                                        poster={mediaData[currentMediaIndex + 1]?.thumbnailUrl}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                    <div className="absolute bottom-1 md:bottom-2 left-1 md:left-2 right-1 md:right-2">
-                                        <div className="flex items-center justify-between text-white text-xs">
-                                            <span className="font-medium truncate text-xs md:text-sm">
-                                                {mediaData[currentMediaIndex + 1]?.title || 'Next Video'}
-                                            </span>
-                                            <div className="px-1 md:px-2 py-0.5 md:py-1 bg-red-600 text-white text-xs rounded-full font-medium">
-                                                <span className="hidden md:inline">Swipe up or tap</span>
-                                                <span className="md:hidden">↑</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                
+                                                {/* No preview - pure TikTok-style instant swiping */}
                     </div>
                 </div>
             </div>
