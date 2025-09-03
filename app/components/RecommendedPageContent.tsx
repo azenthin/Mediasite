@@ -186,14 +186,14 @@ const RecommendedPageContent = () => {
     const [isVideoTouched, setIsVideoTouched] = useState(false);
     const [videoTouchStart, setVideoTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
     
-    // Immersive mode state - always true for YouTube Shorts experience
-    const [isImmersiveMode, setIsImmersiveMode] = useState(true);
+    // Immersive mode state - true on mobile for YouTube Shorts experience, false on desktop
+    const [isImmersiveMode, setIsImmersiveMode] = useState(false);
     
     // Minimum swipe distance (in pixels) - reduced for better sensitivity
     const minSwipeDistance = 30;
     const videoTapThreshold = 200; // Max time for tap vs hold (ms)
     
-    // YouTube Shorts style touch handling - simplified and consolidated
+    // Touch handling - different behavior for desktop vs mobile
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchEnd(null);
         setTouchStart({
@@ -216,20 +216,43 @@ const RecommendedPageContent = () => {
         const distanceY = touchStart.y - touchEnd.y;
         const isUpSwipe = distanceY > minSwipeDistance;
         const isDownSwipe = distanceY < -minSwipeDistance;
+        const isLeftSwipe = distanceX > minSwipeDistance;
+        const isRightSwipe = distanceX < -minSwipeDistance;
         
-        // YouTube Shorts style: Only vertical swipes for video navigation
-        if (Math.abs(distanceY) > Math.abs(distanceX)) {
-            if (isUpSwipe && currentMediaIndex < mediaData.length - 1) {
-                // Swipe up - next video
-                setCurrentMediaIndex(currentMediaIndex + 1);
-                setCurrentRelatedIndex(0);
-            } else if (isDownSwipe && currentMediaIndex > 0) {
-                // Swipe down - previous video
-                setCurrentMediaIndex(currentMediaIndex - 1);
-                setCurrentRelatedIndex(0);
+        // Different behavior for mobile vs desktop
+        if (isImmersiveMode) {
+            // Mobile: YouTube Shorts style - only vertical swipes for video navigation
+            if (Math.abs(distanceY) > Math.abs(distanceX)) {
+                if (isUpSwipe && currentMediaIndex < mediaData.length - 1) {
+                    // Swipe up - next video
+                    setCurrentMediaIndex(currentMediaIndex + 1);
+                    setCurrentRelatedIndex(0);
+                } else if (isDownSwipe && currentMediaIndex > 0) {
+                    // Swipe down - previous video
+                    setCurrentMediaIndex(currentMediaIndex - 1);
+                    setCurrentRelatedIndex(0);
+                }
+            }
+        } else {
+            // Desktop: Allow both vertical and horizontal navigation
+            if (Math.abs(distanceY) > Math.abs(distanceX)) {
+                // Vertical swipes - video navigation
+                if (isUpSwipe && currentMediaIndex < mediaData.length - 1) {
+                    setCurrentMediaIndex(currentMediaIndex + 1);
+                        setCurrentRelatedIndex(0);
+                } else if (isDownSwipe && currentMediaIndex > 0) {
+                    setCurrentMediaIndex(currentMediaIndex - 1);
+                    setCurrentRelatedIndex(0);
+                }
+            } else {
+                // Horizontal swipes - related content navigation
+                if (isLeftSwipe) {
+                    handleHorizontalScroll('right');
+                } else if (isRightSwipe) {
+                    handleHorizontalScroll('left');
+                }
             }
         }
-        // No horizontal scrolling - YouTube Shorts style
     };
     
     // Mobile video-specific touch handlers
@@ -386,9 +409,27 @@ const RecommendedPageContent = () => {
 
 
 
-    // Always hide browser UI and navbar on mobile (YouTube Shorts style)
+    // Detect screen size and set immersive mode appropriately
     useEffect(() => {
-        if (window.innerWidth < 768) { // Mobile only
+        const handleResize = () => {
+            const isMobile = window.innerWidth < 768;
+            setIsImmersiveMode(isMobile);
+        };
+        
+        // Set initial state
+        handleResize();
+        
+        // Listen for resize events
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+    
+    // Hide browser UI and navbar on mobile when in immersive mode (YouTube Shorts style)
+    useEffect(() => {
+        if (isImmersiveMode && window.innerWidth < 768) { // Mobile only
             // Hide browser UI
             document.documentElement.style.overflow = 'hidden';
             document.body.style.overflow = 'hidden';
@@ -409,7 +450,7 @@ const RecommendedPageContent = () => {
             }
             
             return () => {
-                // Restore browser UI when component unmounts
+                // Restore browser UI when exiting immersive mode
                 document.documentElement.style.overflow = '';
                 document.body.style.overflow = '';
                 document.body.style.position = '';
@@ -423,7 +464,7 @@ const RecommendedPageContent = () => {
                 }
             };
         }
-    }, []);
+    }, [isImmersiveMode]);
     
     // No auto-exit for immersive mode - controlled by zoom gestures
     
@@ -745,14 +786,12 @@ const RecommendedPageContent = () => {
                     >
                         {/* Current Video - Full Height */}
                         <div className="h-full w-full relative">
-                            {/* Mobile Swipe Indicator - YouTube Shorts style */}
-                            {!isImmersiveMode && (
-                                <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
-                                    <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
-                                        ↑ Swipe up for next video ↓
-                                    </div>
+                            {/* Swipe Indicator - Show on mobile */}
+                            <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                                <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
+                                    ↑ Swipe up for next video ↓
                                 </div>
-                            )}
+                            </div>
                             {/* Video Content */}
                             {(() => {
                                 const currentMedia = mediaData[currentMediaIndex];
