@@ -43,27 +43,27 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
     return (
         <>
             {/* The navbar is a fixed element at the very top. */}
-            <nav className="text-gray-100 px-6 py-2 w-full z-30 backdrop-blur-sm bg-[#0f0f0f]/60 flex items-center justify-between relative">
+            <nav className="text-gray-100 px-3 md:px-6 py-2 w-full z-30 backdrop-blur-sm bg-[#0f0f0f]/60 flex items-center justify-between relative">
                 {/* Left: Logo */}
-                <div className="flex items-center space-x-4 shrink-0">
-                    <div className="font-bold text-lg sm:text-2xl" style={{ color: linkColor }}>
+                <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
+                    <div className="font-bold text-lg md:text-2xl" style={{ color: linkColor }}>
                         MediaSite
                     </div>
                 </div>
-                {/* Center: Search Bar (absolute true-center; size unchanged) */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-3 min-w-0 w-[40rem]">
+                {/* Center: Search Bar (absolute true-center; responsive size) */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-2 md:px-3 min-w-0 w-[20rem] md:w-[40rem]">
                     {/* Full input visible until very narrow (<440px) */}
-                    <div className="flex w-full h-10 rounded-full overflow-hidden border backdrop-blur-sm max-[440px]:hidden" style={{ borderColor: 'var(--light-up-color)', backgroundColor: 'rgba(20,20,20,0.9)' }}>
+                    <div className="flex w-full h-8 md:h-10 rounded-full overflow-hidden border backdrop-blur-sm max-[440px]:hidden" style={{ borderColor: 'var(--light-up-color)', backgroundColor: 'rgba(20,20,20,0.9)' }}>
                         <input
                             type="search"
                             id="navbar-search"
                             name="search"
                             placeholder="Search"
-                            className="search-input w-full h-full px-4 py-0 outline-none placeholder-white/60 caret-white text-sm text-white bg-transparent"
+                            className="search-input w-full h-full px-2 md:px-4 py-0 outline-none placeholder-white/60 caret-white text-xs md:text-sm text-white bg-transparent"
                             style={{ color: linkColor }}
                         />
-                        <button aria-label="Search" className="text-white px-4 h-full font-semibold outline-none flex items-center bg-transparent hover:bg-white/10 transition-colors duration-200 focus:outline-none" style={{ color: linkColor }}>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                        <button aria-label="Search" className="text-white px-2 md:px-4 h-full font-semibold outline-none flex items-center bg-transparent hover:bg-white/10 transition-colors duration-200 focus:outline-none" style={{ color: linkColor }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </button>
@@ -76,14 +76,15 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                     </button>
                 </div>
                 {/* Right: Auth Buttons */}
-                <div className="flex items-center space-x-2 shrink-0">
+                <div className="flex items-center space-x-1 md:space-x-2 shrink-0">
                     {session ? (
                         <>
                             <button 
                                 onClick={() => window.location.href = '/upload'}
-                                className="px-4 py-1.5 rounded-full font-semibold shadow transition-colors duration-200 focus:outline-none bg-blue-600 hover:bg-blue-700 text-sm text-white"
+                                className="px-2 md:px-4 py-1 md:py-1.5 rounded-full font-semibold shadow transition-colors duration-200 focus:outline-none bg-blue-600 hover:bg-blue-700 text-xs md:text-sm text-white"
                             >
-                                Upload
+                                <span className="hidden md:inline">Upload</span>
+                                <span className="md:hidden">+</span>
                             </button>
                             
                             {/* Profile Picture Dropdown */}

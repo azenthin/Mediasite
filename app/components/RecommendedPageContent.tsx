@@ -180,6 +180,68 @@ const RecommendedPageContent = () => {
     const [preloadedVideos, setPreloadedVideos] = useState<Set<string>>(new Set());
     const [isPreloading, setIsPreloading] = useState(false);
     
+    // Mobile touch/swipe handling
+    const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+    const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
+    
+    // Minimum swipe distance (in pixels)
+    const minSwipeDistance = 50;
+    
+    // Handle touch start
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+    
+    // Handle touch move
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+    
+    // Handle touch end and detect swipe direction
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        
+        const distanceX = touchStart.x - touchEnd.x;
+        const distanceY = touchStart.y - touchEnd.y;
+        const isLeftSwipe = distanceX > minSwipeDistance;
+        const isRightSwipe = distanceX < -minSwipeDistance;
+        const isUpSwipe = distanceY > minSwipeDistance;
+        const isDownSwipe = distanceY < -minSwipeDistance;
+        
+        // Only handle swipes if they're more horizontal than vertical
+        if (Math.abs(distanceX) > Math.abs(distanceY)) {
+            if (isLeftSwipe) {
+                // Swipe left - next video
+                if (mediaData.length > currentMediaIndex + 1) {
+                    setCurrentMediaIndex(currentMediaIndex + 1);
+                    setCurrentRelatedIndex(0);
+                }
+            } else if (isRightSwipe) {
+                // Swipe right - previous video
+                if (currentMediaIndex > 0) {
+                    setCurrentMediaIndex(currentMediaIndex - 1);
+                    setCurrentRelatedIndex(0);
+                }
+            }
+        } else {
+            // Vertical swipes - scroll the page
+            if (isUpSwipe) {
+                // Swipe up - scroll down to see next video preview
+                window.scrollBy({ top: 100, behavior: 'smooth' });
+            } else if (isDownSwipe) {
+                // Swipe down - scroll up
+                window.scrollBy({ top: -100, behavior: 'smooth' });
+            }
+        }
+    };
+    
 
 
     // Animation variants for horizontal sliding
@@ -788,13 +850,18 @@ const RecommendedPageContent = () => {
 
     return (
         <div className="flex-1 w-full recommended-container relative z-[200]" tabIndex={0}>
-            <div className="sticky top-14 z-[300] relative h-[calc(100vh-100px)] w-full flex items-center justify-center overflow-visible pt-4">
-                <div ref={playerContainerRef} className="h-full w-full max-w-[30rem] rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
+            <div className="sticky top-14 z-[300] relative h-[calc(100vh-100px)] w-full flex items-center justify-center overflow-visible pt-2 md:pt-4">
+                <div ref={playerContainerRef} className="h-full w-full max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
                     {/* Glow tied to the player box (not the full page) */}
-                    <div className="pointer-events-none absolute inset-1 rounded-[1.5rem] bg-white/12 blur-[18px] z-0" />
+                    <div className="pointer-events-none absolute inset-1 rounded-[1rem] md:rounded-[1.5rem] bg-white/12 blur-[12px] md:blur-[18px] z-0" />
                     
                     {/* Scrollable Video Container */}
-                    <div className="h-full overflow-y-auto scrollbar-hide">
+                    <div 
+                        className="h-full overflow-y-auto scrollbar-hide"
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                    >
                         {/* Current Video */}
                         <div className="h-full w-full relative">
                             {/* Video Content */}
@@ -840,34 +907,34 @@ const RecommendedPageContent = () => {
                                         <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
                                         
                                         {/* Media Info */}
-                                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-20">
-                                            <div className="flex-1 space-y-1">
-                                                <h3 className="text-lg font-semibold text-white line-clamp-2">{currentMedia.title}</h3>
+                                        <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 flex justify-between items-end z-20">
+                                            <div className="flex-1 space-y-1 pr-2">
+                                                <h3 className="text-sm md:text-lg font-semibold text-white line-clamp-2">{currentMedia.title}</h3>
                                                 <div className="flex items-center space-x-2">
                                                     <img 
                                                         src={currentMedia.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${currentMedia.uploader.username.charAt(0).toUpperCase()}`} 
                                                         alt="Channel profile" 
-                                                        className="w-8 h-8 rounded-full" 
+                                                        className="w-6 h-6 md:w-8 md:h-8 rounded-full" 
                                                     />
-                                                    <p className="text-gray-200 text-sm">{currentMedia.uploader.displayName || currentMedia.uploader.username}</p>
+                                                    <p className="text-gray-200 text-xs md:text-sm">{currentMedia.uploader.displayName || currentMedia.uploader.username}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-col space-y-4">
+                                            <div className="flex flex-col space-y-2 md:space-y-4">
                                                 <ActionButton
-                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
+                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
                                                     label={currentMedia.likes?.toString() || '0'}
                                                 />
                                                 <ActionButton
-                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
+                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
                                                     label={currentMedia._count?.comments?.toString() || '0'}
                                                 />
                                                 <ActionButton
-                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
+                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
                                                     label="Share"
                                                 />
                                                 {currentMedia.type === 'VIDEO' && (
                                                     <button
-                                                        className="flex flex-col items-center justify-center p-2 text-white/90 hover:text-white transition-colors duration-200"
+                                                        className="flex flex-col items-center justify-center p-1 md:p-2 text-white/90 hover:text-white transition-colors duration-200"
                                                         title={currentVideoRef.current?.paused ? "Play" : "Pause"}
                                                         onClick={() => {
                                                             if (currentVideoRef.current) {
@@ -880,10 +947,10 @@ const RecommendedPageContent = () => {
                                                         }}
                                                     >
                                                         {currentVideoRef.current?.paused ? 
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> : 
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> : 
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                                                         }
-                                                        <span className="text-xs mt-1">{currentVideoRef.current?.paused ? "Play" : "Pause"}</span>
+                                                        <span className="text-xs mt-1 hidden md:block">{currentVideoRef.current?.paused ? "Play" : "Pause"}</span>
                                                     </button>
                                                 )}
                                             </div>
@@ -895,8 +962,8 @@ const RecommendedPageContent = () => {
                         
                         {/* Next Video Preview Peek */}
                         {mediaData.length > currentMediaIndex + 1 && (
-                            <div className="w-full h-32 relative mt-4">
-                                <div className="w-full h-full rounded-xl overflow-hidden bg-black">
+                            <div className="w-full h-24 md:h-32 relative mt-2 md:mt-4">
+                                <div className="w-full h-full rounded-lg md:rounded-xl overflow-hidden bg-black">
                                     <video
                                         src={mediaData[currentMediaIndex + 1]?.url}
                                         className="w-full h-full object-cover"
@@ -906,19 +973,20 @@ const RecommendedPageContent = () => {
                                         poster={mediaData[currentMediaIndex + 1]?.thumbnailUrl}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                                    <div className="absolute bottom-2 left-2 right-2">
+                                    <div className="absolute bottom-1 md:bottom-2 left-1 md:left-2 right-1 md:right-2">
                                         <div className="flex items-center justify-between text-white text-xs">
-                                            <span className="font-medium truncate">
+                                            <span className="font-medium truncate text-xs md:text-sm">
                                                 {mediaData[currentMediaIndex + 1]?.title || 'Next Video'}
                                             </span>
                                             <button 
-                                                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-full font-medium transition-colors"
+                                                className="px-1 md:px-2 py-0.5 md:py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-full font-medium transition-colors"
                                                 onClick={() => {
                                                     setCurrentMediaIndex(currentMediaIndex + 1);
                                                     setCurrentRelatedIndex(0);
                                                 }}
                                             >
-                                                Watch
+                                                <span className="hidden md:inline">Watch</span>
+                                                <span className="md:hidden">▶</span>
                                             </button>
                                         </div>
                                     </div>
