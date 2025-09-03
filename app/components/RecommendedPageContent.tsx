@@ -301,18 +301,6 @@ const RecommendedPageContent = () => {
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
-        
-        // Enable immersive mode when swiping starts
-        if (touchStart && !isSwiping) {
-            const distanceX = Math.abs(touchStart.x - e.targetTouches[0].clientX);
-            const distanceY = Math.abs(touchStart.y - e.targetTouches[0].clientY);
-            
-            // If user is swiping vertically, enable immersive mode
-            if (distanceY > 10 && distanceY > distanceX) {
-                setIsSwiping(true);
-                setIsImmersiveMode(true);
-            }
-        }
     };
     
         const handleContainerTouchEnd = (e: React.TouchEvent) => {
@@ -340,6 +328,8 @@ const RecommendedPageContent = () => {
                 if (mediaData.length > currentMediaIndex + 1) {
                     setCurrentMediaIndex(currentMediaIndex + 1);
                     setCurrentRelatedIndex(0);
+                    // Activate immersive mode when actually changing videos
+                    setIsImmersiveMode(true);
                 }
             } else if (isDownSwipe) {
                 // Swipe down - previous video
@@ -348,6 +338,8 @@ const RecommendedPageContent = () => {
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
                     setCurrentRelatedIndex(0);
+                    // Activate immersive mode when actually changing videos
+                    setIsImmersiveMode(true);
                 }
             }
         } else {
@@ -490,6 +482,17 @@ const RecommendedPageContent = () => {
         
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, [isImmersiveMode]);
+    
+    // Auto-exit immersive mode after 3 seconds
+    useEffect(() => {
+        if (isImmersiveMode) {
+            const timer = setTimeout(() => {
+                setIsImmersiveMode(false);
+            }, 3000);
+            
+            return () => clearTimeout(timer);
+        }
     }, [isImmersiveMode]);
     
     // Simplified video observer to ensure play/pause logic is robust
