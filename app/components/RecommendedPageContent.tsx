@@ -186,75 +186,34 @@ const RecommendedPageContent = () => {
     const [isVideoTouched, setIsVideoTouched] = useState(false);
     const [videoTouchStart, setVideoTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
     
-    // Immersive mode state
-    const [isImmersiveMode, setIsImmersiveMode] = useState(false);
-    const [initialDistance, setInitialDistance] = useState<number | null>(null);
+    // Immersive mode state - always true for YouTube Shorts experience
+    const [isImmersiveMode, setIsImmersiveMode] = useState(true);
     
     // Minimum swipe distance (in pixels) - reduced for better sensitivity
     const minSwipeDistance = 30;
     const videoTapThreshold = 200; // Max time for tap vs hold (ms)
     
-    // Calculate distance between two touch points for zoom detection
-    const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
-        const dx = touch1.clientX - touch2.clientX;
-        const dy = touch1.clientY - touch2.clientY;
-        return Math.sqrt(dx * dx + dy * dy);
-    };
-    
-    // Handle touch start - YouTube Shorts style
+    // YouTube Shorts style touch handling - simplified and consolidated
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchEnd(null);
         setTouchStart({
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
-        
-        // Initialize zoom distance if two fingers (for fullscreen toggle)
-        if (e.targetTouches.length === 2) {
-            const distance = getDistance(e.targetTouches[0], e.targetTouches[1]);
-            setInitialDistance(distance);
-        } else {
-            setInitialDistance(null);
-        }
     };
     
-    // Handle touch move - YouTube Shorts style (zoom gestures only)
     const handleTouchMove = (e: React.TouchEvent) => {
         setTouchEnd({
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
-        
-        // Handle zoom gesture for fullscreen toggle
-        if (e.targetTouches.length === 2 && initialDistance !== null) {
-            const currentDistance = getDistance(e.targetTouches[0], e.targetTouches[1]);
-            const zoomThreshold = 50; // Minimum distance change to trigger zoom
-            
-            if (Math.abs(currentDistance - initialDistance) > zoomThreshold) {
-                if (currentDistance > initialDistance) {
-                    // Zoom in - enter full screen
-                    if (!isImmersiveMode) {
-                        setIsImmersiveMode(true);
-                    }
-                } else {
-                    // Zoom out - exit full screen
-                    if (isImmersiveMode) {
-                        setIsImmersiveMode(false);
-                    }
-                }
-                setInitialDistance(currentDistance); // Update for continuous zoom
-            }
-        }
     };
     
-    // Handle touch end and detect swipe direction
     const handleTouchEnd = () => {
         if (!touchStart || !touchEnd) return;
         
         const distanceX = touchStart.x - touchEnd.x;
         const distanceY = touchStart.y - touchEnd.y;
-        const isLeftSwipe = distanceX > minSwipeDistance;
-        const isRightSwipe = distanceX < -minSwipeDistance;
         const isUpSwipe = distanceY > minSwipeDistance;
         const isDownSwipe = distanceY < -minSwipeDistance;
         
@@ -271,8 +230,6 @@ const RecommendedPageContent = () => {
             }
         }
         // No horizontal scrolling - YouTube Shorts style
-        
-        setInitialDistance(null);
     };
     
     // Mobile video-specific touch handlers
@@ -313,75 +270,7 @@ const RecommendedPageContent = () => {
         setVideoTouchStart(null);
     };
     
-    // Simplified and more reliable touch handling with immersive mode
-    const handleContainerTouchStart = (e: React.TouchEvent) => {
-        setTouchEnd(null);
-        setTouchStart({
-            x: e.targetTouches[0].clientX,
-            y: e.targetTouches[0].clientY
-        });
-    };
-    
-    const handleContainerTouchMove = (e: React.TouchEvent) => {
-        setTouchEnd({
-            x: e.targetTouches[0].clientX,
-            y: e.targetTouches[0].clientY
-        });
-    };
-    
-        const handleContainerTouchEnd = (e: React.TouchEvent) => {
-        if (!touchStart || !touchEnd) return;
-        
-        const distanceX = touchStart.x - touchEnd.x;
-        const distanceY = touchStart.y - touchEnd.y;
-        const isLeftSwipe = distanceX > minSwipeDistance;
-        const isRightSwipe = distanceX < -minSwipeDistance;
-        const isUpSwipe = distanceY > minSwipeDistance;
-        const isDownSwipe = distanceY < -minSwipeDistance;
-        
-        // Reset swiping state
-        
-        // Debug logging for mobile
-        console.log('Touch end:', { distanceX, distanceY, isLeftSwipe, isRightSwipe, isUpSwipe, isDownSwipe });
-        
-        // Only handle swipes if they're more vertical than horizontal (like TikTok/YouTube Shorts)
-        if (Math.abs(distanceY) > Math.abs(distanceX)) {
-            if (isUpSwipe) {
-                // Swipe up - next video
-                e.preventDefault();
-                console.log('Swipe up detected - going to next video');
-                if (mediaData.length > currentMediaIndex + 1) {
-                    setCurrentMediaIndex(currentMediaIndex + 1);
-                    setCurrentRelatedIndex(0);
-                    // Activate immersive mode when actually changing videos
-                    setIsImmersiveMode(true);
-                }
-            } else if (isDownSwipe) {
-                // Swipe down - previous video
-                e.preventDefault();
-                console.log('Swipe down detected - going to previous video');
-                if (currentMediaIndex > 0) {
-                    setCurrentMediaIndex(currentMediaIndex - 1);
-                            setCurrentRelatedIndex(0);
-                    // Activate immersive mode when actually changing videos
-                    setIsImmersiveMode(true);
-                            }
-                        }
-                    } else {
-            // Horizontal swipes - scroll the page or related content
-            if (isLeftSwipe) {
-                // Swipe left - scroll right
-                e.preventDefault();
-                console.log('Swipe left detected - scrolling right');
-                window.scrollBy({ left: 100, behavior: 'smooth' });
-            } else if (isRightSwipe) {
-                // Swipe right - scroll left
-                e.preventDefault();
-                console.log('Swipe right detected - scrolling left');
-                window.scrollBy({ left: -100, behavior: 'smooth' });
-            }
-        }
-    };
+        // Removed duplicate container touch handlers - using consolidated handlers above
     
 
 
@@ -497,9 +386,9 @@ const RecommendedPageContent = () => {
 
 
 
-    // Hide browser UI and navbar on mobile when in immersive mode (YouTube Shorts style)
+    // Always hide browser UI and navbar on mobile (YouTube Shorts style)
     useEffect(() => {
-        if (isImmersiveMode && window.innerWidth < 768) { // Mobile only
+        if (window.innerWidth < 768) { // Mobile only
             // Hide browser UI
             document.documentElement.style.overflow = 'hidden';
             document.body.style.overflow = 'hidden';
@@ -520,7 +409,7 @@ const RecommendedPageContent = () => {
             }
             
             return () => {
-                // Restore browser UI when exiting immersive mode
+                // Restore browser UI when component unmounts
                 document.documentElement.style.overflow = '';
                 document.body.style.overflow = '';
                 document.body.style.position = '';
@@ -534,7 +423,7 @@ const RecommendedPageContent = () => {
                 }
             };
         }
-    }, [isImmersiveMode]);
+    }, []);
     
     // No auto-exit for immersive mode - controlled by zoom gestures
     
@@ -810,16 +699,16 @@ const RecommendedPageContent = () => {
     const allContentInPost = [currentMedia, ...(currentMedia.relatedMedia || [])];
     const currentRelatedMedia = allContentInPost[currentRelatedIndex];
 
-        return (
+    return (
         <div 
             className={`flex-1 w-full recommended-container relative z-[200] transition-all duration-300 ${
                 isImmersiveMode ? 'fixed inset-0 z-[99999] bg-black' : ''
             }`}
             tabIndex={0}
-            onTouchStart={handleContainerTouchStart}
-            onTouchMove={handleContainerTouchMove}
-            onTouchEnd={handleContainerTouchEnd}
-            style={{ 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+                            style={{ 
                 touchAction: 'manipulation',
                 ...(isImmersiveMode && {
                     top: 0,
