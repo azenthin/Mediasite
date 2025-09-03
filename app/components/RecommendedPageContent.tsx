@@ -201,7 +201,7 @@ const RecommendedPageContent = () => {
         return Math.sqrt(dx * dx + dy * dy);
     };
     
-    // Handle touch start
+    // Handle touch start - YouTube Shorts style
     const handleTouchStart = (e: React.TouchEvent) => {
         setTouchEnd(null);
         setTouchStart({
@@ -209,7 +209,7 @@ const RecommendedPageContent = () => {
             y: e.targetTouches[0].clientY
         });
         
-        // Initialize zoom distance if two fingers
+        // Initialize zoom distance if two fingers (for fullscreen toggle)
         if (e.targetTouches.length === 2) {
             const distance = getDistance(e.targetTouches[0], e.targetTouches[1]);
             setInitialDistance(distance);
@@ -218,14 +218,14 @@ const RecommendedPageContent = () => {
         }
     };
     
-    // Handle touch move
+    // Handle touch move - YouTube Shorts style (zoom gestures only)
     const handleTouchMove = (e: React.TouchEvent) => {
         setTouchEnd({
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
         
-        // Handle zoom gesture
+        // Handle zoom gesture for fullscreen toggle
         if (e.targetTouches.length === 2 && initialDistance !== null) {
             const currentDistance = getDistance(e.targetTouches[0], e.targetTouches[1]);
             const zoomThreshold = 50; // Minimum distance change to trigger zoom
@@ -258,31 +258,19 @@ const RecommendedPageContent = () => {
         const isUpSwipe = distanceY > minSwipeDistance;
         const isDownSwipe = distanceY < -minSwipeDistance;
         
-        // Only handle swipes if they're more horizontal than vertical
-        if (Math.abs(distanceX) > Math.abs(distanceY)) {
-            if (isLeftSwipe) {
-                // Swipe left - next video
-                if (mediaData.length > currentMediaIndex + 1) {
-                    setCurrentMediaIndex(currentMediaIndex + 1);
-                    setCurrentRelatedIndex(0);
-                }
-            } else if (isRightSwipe) {
-                // Swipe right - previous video
-                if (currentMediaIndex > 0) {
-                    setCurrentMediaIndex(currentMediaIndex - 1);
-                        setCurrentRelatedIndex(0);
-                }
-            }
-        } else {
-            // Vertical swipes - scroll the page
-            if (isUpSwipe) {
-                // Swipe up - scroll down to see next video preview
-                window.scrollBy({ top: 100, behavior: 'smooth' });
-            } else if (isDownSwipe) {
-                // Swipe down - scroll up
-                window.scrollBy({ top: -100, behavior: 'smooth' });
+        // YouTube Shorts style: Only vertical swipes for video navigation
+        if (Math.abs(distanceY) > Math.abs(distanceX)) {
+            if (isUpSwipe && currentMediaIndex < mediaData.length - 1) {
+                // Swipe up - next video
+                setCurrentMediaIndex(currentMediaIndex + 1);
+                setCurrentRelatedIndex(0);
+            } else if (isDownSwipe && currentMediaIndex > 0) {
+                // Swipe down - previous video
+                setCurrentMediaIndex(currentMediaIndex - 1);
+                setCurrentRelatedIndex(0);
             }
         }
+        // No horizontal scrolling - YouTube Shorts style
         
         setInitialDistance(null);
     };
@@ -828,11 +816,11 @@ const RecommendedPageContent = () => {
                     >
                         {/* Current Video - Full Height */}
                         <div className="h-full w-full relative">
-                            {/* Mobile Swipe Indicator - Hidden in immersive mode */}
+                            {/* Mobile Swipe Indicator - YouTube Shorts style */}
                             {!isImmersiveMode && (
                                 <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
                                     <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
-                                        ↑ Swipe for next video ↓
+                                        ↑ Swipe up for next video ↓
                                     </div>
                                 </div>
                             )}
