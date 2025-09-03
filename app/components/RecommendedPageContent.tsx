@@ -183,9 +183,12 @@ const RecommendedPageContent = () => {
     // Mobile touch/swipe handling
     const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
     const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
+    const [isVideoTouched, setIsVideoTouched] = useState(false);
+    const [videoTouchStart, setVideoTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
     
     // Minimum swipe distance (in pixels)
     const minSwipeDistance = 50;
+    const videoTapThreshold = 200; // Max time for tap vs hold (ms)
     
     // Handle touch start
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -206,6 +209,106 @@ const RecommendedPageContent = () => {
     
     // Handle touch end and detect swipe direction
     const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        
+        const distanceX = touchStart.x - touchEnd.x;
+        const distanceY = touchStart.y - touchEnd.y;
+        const isLeftSwipe = distanceX > minSwipeDistance;
+        const isRightSwipe = distanceX < -minSwipeDistance;
+        const isUpSwipe = distanceY > minSwipeDistance;
+        const isDownSwipe = distanceY < -minSwipeDistance;
+        
+        // Only handle swipes if they're more horizontal than vertical
+        if (Math.abs(distanceX) > Math.abs(distanceY)) {
+            if (isLeftSwipe) {
+                // Swipe left - next video
+                if (mediaData.length > currentMediaIndex + 1) {
+                    setCurrentMediaIndex(currentMediaIndex + 1);
+                    setCurrentRelatedIndex(0);
+                }
+            } else if (isRightSwipe) {
+                // Swipe right - previous video
+                if (currentMediaIndex > 0) {
+                    setCurrentMediaIndex(currentMediaIndex - 1);
+                    setCurrentRelatedIndex(0);
+                }
+            }
+        } else {
+            // Vertical swipes - scroll the page
+            if (isUpSwipe) {
+                // Swipe up - scroll down to see next video preview
+                window.scrollBy({ top: 100, behavior: 'smooth' });
+            } else if (isDownSwipe) {
+                // Swipe down - scroll up
+                window.scrollBy({ top: -100, behavior: 'smooth' });
+            }
+        }
+    };
+    
+    // Mobile video-specific touch handlers
+    const handleVideoTouchStart = (e: React.TouchEvent) => {
+        e.stopPropagation();
+        setIsVideoTouched(true);
+        setVideoTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY,
+            time: Date.now()
+        });
+    };
+    
+    const handleVideoTouchEnd = (e: React.TouchEvent) => {
+        e.stopPropagation();
+        setIsVideoTouched(false);
+        
+        if (!videoTouchStart) return;
+        
+        const touchDuration = Date.now() - videoTouchStart.time;
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const distanceX = Math.abs(videoTouchStart.x - touchEndX);
+        const distanceY = Math.abs(videoTouchStart.y - touchEndY);
+        
+        // If it's a quick tap (not a swipe)
+        if (touchDuration < videoTapThreshold && distanceX < 10 && distanceY < 10) {
+            // Toggle play/pause
+            if (currentVideoRef.current) {
+                if (currentVideoRef.current.paused) {
+                    currentVideoRef.current.play().catch(() => {});
+                } else {
+                    currentVideoRef.current.pause();
+                }
+            }
+        }
+        
+        setVideoTouchStart(null);
+    };
+    
+    // Enhanced touch handling for better mobile experience
+    const handleContainerTouchStart = (e: React.TouchEvent) => {
+        // Don't interfere with video touch events
+        if (isVideoTouched) return;
+        
+        setTouchEnd(null);
+        setTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+    
+    const handleContainerTouchMove = (e: React.TouchEvent) => {
+        // Don't interfere with video touch events
+        if (isVideoTouched) return;
+        
+        setTouchEnd({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+    
+    const handleContainerTouchEnd = () => {
+        // Don't interfere with video touch events
+        if (isVideoTouched) return;
+        
         if (!touchStart || !touchEnd) return;
         
         const distanceX = touchStart.x - touchEnd.x;
@@ -860,12 +963,19 @@ const RecommendedPageContent = () => {
                     {/* Scrollable Video Container */}
                     <div 
                         className="h-full overflow-y-auto scrollbar-hide"
-                        onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
+                        onTouchStart={handleContainerTouchStart}
+                        onTouchMove={handleContainerTouchMove}
+                        onTouchEnd={handleContainerTouchEnd}
+                        style={{ touchAction: 'pan-y' }}
                     >
                         {/* Current Video */}
                         <div className="h-full w-full relative">
+                            {/* Mobile Swipe Indicator */}
+                            <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                                <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
+                                    ← Swipe to navigate →
+                                </div>
+                            </div>
                             {/* Video Content */}
                             {(() => {
                                 const currentMedia = mediaData[currentMediaIndex];
@@ -877,13 +987,16 @@ const RecommendedPageContent = () => {
                                         {currentMedia.type === 'VIDEO' ? (
                                             <video
                                                 ref={currentVideoRef}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover touch-none select-none"
                                                 src={currentMedia.url}
                                                 preload="metadata"
                                                 poster={currentMedia.thumbnailUrl}
                                                 loop
                                                 muted
                                                 playsInline
+                                                controls={false}
+                                                onTouchStart={handleVideoTouchStart}
+                                                onTouchEnd={handleVideoTouchEnd}
                                                 onClick={(e: React.MouseEvent) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
@@ -907,6 +1020,23 @@ const RecommendedPageContent = () => {
 
                                         {/* Gradient Overlay */}
                                         <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                                        
+                                        {/* Mobile Play/Pause Overlay */}
+                                        {isVideoTouched && currentMedia.type === 'VIDEO' && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                                                <div className="bg-black/50 rounded-full p-4 md:p-6">
+                                                    {currentVideoRef.current?.paused ? (
+                                                        <svg className="w-8 h-8 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M8 5v14l11-7z"/>
+                                                        </svg>
+                                                    ) : (
+                                                        <svg className="w-8 h-8 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                         
                                         {/* Media Info */}
                                         <div className="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 flex justify-between items-end z-20">
