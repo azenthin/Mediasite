@@ -776,16 +776,26 @@ const RecommendedPageContent = () => {
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
-            style={{ touchAction: 'manipulation' }}
+            style={{ 
+                touchAction: 'manipulation',
+                ...(isImmersiveMode && {
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    width: '100vw',
+                    height: '100vh'
+                })
+            }}
         >
             <div className={`sticky z-[300] relative w-full flex items-center justify-center overflow-visible transition-all duration-300 ${
                 isImmersiveMode 
-                    ? 'top-0 h-screen pt-0' 
+                    ? 'top-0 h-screen pt-0 pb-0' 
                     : 'top-14 h-[calc(100vh-100px)] pt-2 md:pt-4'
             }`}>
                 <div ref={playerContainerRef} className={`h-full w-full overflow-hidden bg-[#0b0b0b] relative z-[500] transition-all duration-300 ${
                     isImmersiveMode 
-                        ? 'max-w-none rounded-none h-screen w-screen' 
+                        ? 'max-w-none rounded-none h-[100vh] w-[100vw]' 
                         : 'max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl'
                 }`}>
                     {/* Glow tied to the player box (not the full page) - Hidden in immersive mode */}
