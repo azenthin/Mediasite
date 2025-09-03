@@ -352,7 +352,6 @@ const RecommendedPageContent = () => {
         const isDownSwipe = distanceY < -minSwipeDistance;
         
         // Reset swiping state
-        setIsSwiping(false);
         
         // Debug logging for mobile
         console.log('Touch end:', { distanceX, distanceY, isLeftSwipe, isRightSwipe, isUpSwipe, isDownSwipe });
