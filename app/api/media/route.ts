@@ -38,13 +38,93 @@ const mockMedia = [
   },
   {
     id: '2',
+    type: 'VIDEO',
+    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    title: 'For Bigger Blazes',
+    description: 'Fire and excitement',
+    thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Video+2',
+    uploader: {
+      id: '2',
+      username: 'Epic Videos',
+      displayName: 'Epic Videos',
+      avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=EV'
+    },
+    views: 950,
+    likes: 120,
+    _count: {
+      likeRecords: 120,
+      comments: 34
+    }
+  },
+  {
+    id: '3',
+    type: 'VIDEO',
+    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    title: 'For Bigger Escapes',
+    description: 'Thrilling escape sequences',
+    thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Video+3',
+    uploader: {
+      id: '3',
+      username: 'Thrill Seekers',
+      displayName: 'Thrill Seekers',
+      avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=TS'
+    },
+    views: 1500,
+    likes: 200,
+    _count: {
+      likeRecords: 200,
+      comments: 67
+    }
+  },
+  {
+    id: '4',
+    type: 'VIDEO',
+    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+    title: 'For Bigger Fun',
+    description: 'Pure entertainment and fun',
+    thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Video+4',
+    uploader: {
+      id: '4',
+      username: 'Fun Times',
+      displayName: 'Fun Times',
+      avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=FT'
+    },
+    views: 900,
+    likes: 120,
+    _count: {
+      likeRecords: 120,
+      comments: 34
+    }
+  },
+  {
+    id: '5',
+    type: 'VIDEO',
+    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+    title: 'For Bigger Meltdowns',
+    description: 'Intense action sequences',
+    thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Video+5',
+    uploader: {
+      id: '5',
+      username: 'Action Central',
+      displayName: 'Action Central',
+      avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=AC'
+    },
+    views: 1100,
+    likes: 180,
+    _count: {
+      likeRecords: 180,
+      comments: 56
+    }
+  },
+  {
+    id: '6',
     type: 'IMAGE',
     url: "https://placehold.co/720x1280/282828/ffffff?text=Image+1",
     title: "Sunset Over the City",
     description: "Beautiful cityscape at golden hour",
     thumbnailUrl: "https://placehold.co/720x1280/282828/ffffff?text=Image+1",
     uploader: {
-      id: '2',
+      id: '6',
       username: 'City Adventures',
       displayName: 'City Adventures',
       avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=CA'
@@ -54,26 +134,6 @@ const mockMedia = [
     _count: {
       likeRecords: 89,
       comments: 23
-    }
-  },
-  {
-    id: '3',
-    type: 'VIDEO',
-    url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    title: 'For Bigger Blazes',
-    description: 'Fire and excitement',
-    thumbnailUrl: 'https://placehold.co/720x1280/282828/ffffff?text=Video+2',
-    uploader: {
-      id: '1',
-      username: 'Sample Videos',
-      displayName: 'Sample Videos',
-      avatarUrl: 'https://placehold.co/40x40/555555/ffffff?text=SV'
-    },
-    views: 950,
-    likes: 120,
-    _count: {
-      likeRecords: 120,
-      comments: 34
     }
   }
 ];
@@ -192,7 +252,9 @@ export async function GET(request: NextRequest) {
       });
 
     } catch (dbError) {
-      console.log('Database not available, using mock data:', dbError);
+      console.error('Database not available, using mock data:', dbError);
+      console.error('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+      console.error('Node ENV:', process.env.NODE_ENV);
       
       // Return mock data when database is not available
       return NextResponse.json({
