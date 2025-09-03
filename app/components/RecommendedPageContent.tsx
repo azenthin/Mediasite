@@ -186,6 +186,10 @@ const RecommendedPageContent = () => {
     const [isVideoTouched, setIsVideoTouched] = useState(false);
     const [videoTouchStart, setVideoTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
     
+    // Immersive mode state
+    const [isImmersiveMode, setIsImmersiveMode] = useState(false);
+    const [isSwiping, setIsSwiping] = useState(false);
+    
     // Minimum swipe distance (in pixels) - reduced for better sensitivity
     const minSwipeDistance = 30;
     const videoTapThreshold = 200; // Max time for tap vs hold (ms)
@@ -283,7 +287,7 @@ const RecommendedPageContent = () => {
         setVideoTouchStart(null);
     };
     
-    // Simplified and more reliable touch handling
+    // Simplified and more reliable touch handling with immersive mode
     const handleContainerTouchStart = (e: React.TouchEvent) => {
         setTouchEnd(null);
         setTouchStart({
@@ -297,9 +301,21 @@ const RecommendedPageContent = () => {
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
+        
+        // Enable immersive mode when swiping starts
+        if (touchStart && !isSwiping) {
+            const distanceX = Math.abs(touchStart.x - e.targetTouches[0].clientX);
+            const distanceY = Math.abs(touchStart.y - e.targetTouches[0].clientY);
+            
+            // If user is swiping vertically, enable immersive mode
+            if (distanceY > 10 && distanceY > distanceX) {
+                setIsSwiping(true);
+                setIsImmersiveMode(true);
+            }
+        }
     };
     
-    const handleContainerTouchEnd = (e: React.TouchEvent) => {
+        const handleContainerTouchEnd = (e: React.TouchEvent) => {
         if (!touchStart || !touchEnd) return;
         
         const distanceX = touchStart.x - touchEnd.x;
@@ -309,6 +325,9 @@ const RecommendedPageContent = () => {
         const isUpSwipe = distanceY > minSwipeDistance;
         const isDownSwipe = distanceY < -minSwipeDistance;
         
+        // Reset swiping state
+        setIsSwiping(false);
+        
         // Debug logging for mobile
         console.log('Touch end:', { distanceX, distanceY, isLeftSwipe, isRightSwipe, isUpSwipe, isDownSwipe });
         
@@ -316,7 +335,7 @@ const RecommendedPageContent = () => {
         if (Math.abs(distanceY) > Math.abs(distanceX)) {
             if (isUpSwipe) {
                 // Swipe up - next video
-            e.preventDefault();
+                e.preventDefault();
                 console.log('Swipe up detected - going to next video');
                 if (mediaData.length > currentMediaIndex + 1) {
                     setCurrentMediaIndex(currentMediaIndex + 1);
@@ -328,10 +347,10 @@ const RecommendedPageContent = () => {
                 console.log('Swipe down detected - going to previous video');
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
-                            setCurrentRelatedIndex(0);
-                            }
-                        }
-                    } else {
+                    setCurrentRelatedIndex(0);
+                }
+            }
+        } else {
             // Horizontal swipes - scroll the page or related content
             if (isLeftSwipe) {
                 // Swipe left - scroll right
@@ -461,9 +480,17 @@ const RecommendedPageContent = () => {
 
 
 
-    // Removed wheel event listeners - they were interfering with mobile touch events
-    
-    // Removed second wheel event listener - was also interfering with mobile touch events
+    // Handle scroll to bring back navbar from immersive mode
+    useEffect(() => {
+        const handleScroll = () => {
+            if (isImmersiveMode && window.scrollY > 50) {
+                setIsImmersiveMode(false);
+            }
+        };
+        
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [isImmersiveMode]);
     
     // Simplified video observer to ensure play/pause logic is robust
     useEffect(() => {
@@ -739,15 +766,25 @@ const RecommendedPageContent = () => {
 
     return (
         <div 
-            className="flex-1 w-full recommended-container relative z-[200]" 
+            className={`flex-1 w-full recommended-container relative z-[200] transition-all duration-300 ${
+                isImmersiveMode ? 'fixed inset-0 z-[999]' : ''
+            }`}
             tabIndex={0}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
             style={{ touchAction: 'manipulation' }}
         >
-            <div className="sticky top-14 z-[300] relative h-[calc(100vh-100px)] w-full flex items-center justify-center overflow-visible pt-2 md:pt-4">
-                <div ref={playerContainerRef} className="h-full w-full max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
+            <div className={`sticky z-[300] relative w-full flex items-center justify-center overflow-visible transition-all duration-300 ${
+                isImmersiveMode 
+                    ? 'top-0 h-screen pt-0' 
+                    : 'top-14 h-[calc(100vh-100px)] pt-2 md:pt-4'
+            }`}>
+                <div ref={playerContainerRef} className={`h-full w-full overflow-hidden bg-[#0b0b0b] relative z-[500] transition-all duration-300 ${
+                    isImmersiveMode 
+                        ? 'max-w-none rounded-none' 
+                        : 'max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl'
+                }`}>
                     {/* Glow tied to the player box (not the full page) */}
                     <div className="pointer-events-none absolute inset-1 rounded-[1rem] md:rounded-[1.5rem] bg-white/12 blur-[12px] md:blur-[18px] z-0" />
                     
@@ -758,12 +795,14 @@ const RecommendedPageContent = () => {
                     >
                         {/* Current Video - Full Height */}
                         <div className="h-full w-full relative">
-                            {/* Mobile Swipe Indicator */}
-                            <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
-                                <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
-                                    ↑ Swipe for next video ↓
+                            {/* Mobile Swipe Indicator - Hidden in immersive mode */}
+                            {!isImmersiveMode && (
+                                <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
+                                    <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
+                                        ↑ Swipe for next video ↓
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                             {/* Video Content */}
                             {(() => {
                                 const currentMedia = mediaData[currentMediaIndex];
