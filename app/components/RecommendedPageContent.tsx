@@ -86,7 +86,7 @@ const RecommendedPageContent = () => {
             if (categoryParam) params.set('category', categoryParam);
             
             // Exclude recently seen content to avoid repetition
-            const recentlySeen = mediaData.slice(0, 10).map(m => m.id);
+            const recentlySeen = mediaData.slice(0, 10).map((m: MediaData) => m.id);
             if (recentlySeen.length > 0) {
                 params.set('exclude', recentlySeen.join(','));
             }
@@ -359,24 +359,25 @@ const RecommendedPageContent = () => {
     // Handle mouse wheel scrolling
     useEffect(() => {
 
-        let scrollTimeout: NodeJS.Timeout | null = null;
+        let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
         let isThrottled = false;
 
         const SCROLL_THRESHOLD = 80; // Adjust based on your needs
 
-        const handleWheel = (e: any) => {
+        const handleWheel = (e: Event) => {
             e.preventDefault();
+            const wheelEvent = e as WheelEvent;
 
             // Prevent over-scrolling
             if (isThrottled) {
                 return;
             }
 
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                if (Math.abs(e.deltaY) > SCROLL_THRESHOLD) {
+            if (Math.abs(wheelEvent.deltaY) > Math.abs(wheelEvent.deltaX)) {
+                if (Math.abs(wheelEvent.deltaY) > SCROLL_THRESHOLD) {
                     isThrottled = true;
 
-                    if (e.deltaY > 0) {
+                    if (wheelEvent.deltaY > 0) {
                         // Go to next video
                         if (currentMediaIndex < mediaData.length - 1) {
                             pauseAllVideos();
@@ -425,10 +426,10 @@ const RecommendedPageContent = () => {
                         }
                     }, 600); // Should match or exceed your animation duration
                 }
-            } else if (Math.abs(e.deltaX) > SCROLL_THRESHOLD) {
+            } else if (Math.abs(wheelEvent.deltaX) > SCROLL_THRESHOLD) {
                 isThrottled = true;
 
-                if (e.deltaX > 0) {
+                if (wheelEvent.deltaX > 0) {
                     // Go to next related content
                     const currentMedia = mediaData[currentMediaIndex];
                     if (currentMedia) {
@@ -500,12 +501,13 @@ const RecommendedPageContent = () => {
     useEffect(() => {
         const container = document.querySelector('.recommended-container');
         if (container) {
-            const handleWheel = (e: any) => {
+            const handleWheel = (e: Event) => {
                 e.preventDefault();
+                const wheelEvent = e as WheelEvent;
 
-                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                    if (Math.abs(e.deltaY) > 80) {
-                        if (e.deltaY > 0) {
+                if (Math.abs(wheelEvent.deltaY) > Math.abs(wheelEvent.deltaX)) {
+                    if (Math.abs(wheelEvent.deltaY) > 80) {
+                        if (wheelEvent.deltaY > 0) {
                             // Go to next video
                             if (currentMediaIndex < mediaData.length - 1) {
                                 pauseAllVideos();
@@ -541,8 +543,8 @@ const RecommendedPageContent = () => {
                             }
                         }
                     }
-                } else if (Math.abs(e.deltaX) > 80) {
-                    if (e.deltaX > 0) {
+                } else if (Math.abs(wheelEvent.deltaX) > 80) {
+                    if (wheelEvent.deltaX > 0) {
                         // Go to next related content
                         const currentMedia = mediaData[currentMediaIndex];
                         if (currentMedia) {
@@ -803,7 +805,7 @@ const RecommendedPageContent = () => {
     };
 
     const handleVerticalScroll = (direction: 'up' | 'down') => {
-        let nextIndex = currentMediaIndex;
+        let nextIndex = currentMediaIndex; 
         if (direction === 'down' && currentMediaIndex < mediaData.length - 1) {
             nextIndex = currentMediaIndex + 1;
         } else if (direction === 'up' && currentMediaIndex > 0) {
@@ -882,7 +884,7 @@ const RecommendedPageContent = () => {
                                                 loop
                                                 muted
                                                 playsInline
-                                                onClick={(e) => {
+                                                onClick={(e: React.MouseEvent) => {
                                                     e.preventDefault();
                                                     e.stopPropagation();
                                                     
