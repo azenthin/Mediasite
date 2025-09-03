@@ -195,7 +195,7 @@ const RecommendedPageContent = () => {
     const videoTapThreshold = 200; // Max time for tap vs hold (ms)
     
     // Calculate distance between two touch points for zoom detection
-    const getDistance = (touch1: Touch, touch2: Touch) => {
+    const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
         const dx = touch1.clientX - touch2.clientX;
         const dy = touch1.clientY - touch2.clientY;
         return Math.sqrt(dx * dx + dy * dy);
@@ -375,12 +375,12 @@ const RecommendedPageContent = () => {
                 console.log('Swipe down detected - going to previous video');
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
-                    setCurrentRelatedIndex(0);
+                            setCurrentRelatedIndex(0);
                     // Activate immersive mode when actually changing videos
                     setIsImmersiveMode(true);
-                }
-            }
-        } else {
+                            }
+                        }
+                    } else {
             // Horizontal swipes - scroll the page or related content
             if (isLeftSwipe) {
                 // Swipe left - scroll right
@@ -795,7 +795,7 @@ const RecommendedPageContent = () => {
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
-            style={{ 
+                            style={{ 
                 touchAction: 'manipulation',
                 ...(isImmersiveMode && {
                     top: 0,
