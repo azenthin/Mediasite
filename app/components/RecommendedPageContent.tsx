@@ -461,227 +461,9 @@ const RecommendedPageContent = () => {
 
 
 
-    // Handle mouse wheel scrolling
-    useEffect(() => {
-
-        let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
-        let isThrottled = false;
-
-        const SCROLL_THRESHOLD = 80; // Adjust based on your needs
-
-        const handleWheel = (e: Event) => {
-            e.preventDefault();
-            const wheelEvent = e as WheelEvent;
-
-            // Prevent over-scrolling
-            if (isThrottled) {
-                return;
-            }
-
-            if (Math.abs(wheelEvent.deltaY) > Math.abs(wheelEvent.deltaX)) {
-                if (Math.abs(wheelEvent.deltaY) > SCROLL_THRESHOLD) {
-                    isThrottled = true;
-
-                    if (wheelEvent.deltaY > 0) {
-                        // Go to next video
-                        if (currentMediaIndex < mediaData.length - 1) {
-                            pauseAllVideos();
-                            setVerticalSlideDirection('down');
-                            setCurrentMediaIndex(currentMediaIndex + 1);
-                            setCurrentRelatedIndex(0);
-                            
-                            // Update URL to reflect current video
-                            const nextIndex = currentMediaIndex + 1;
-                            const currentVideo = mediaData[nextIndex];
-                            if (currentVideo) {
-                                const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
-                                window.location.href = newUrl;
-                                
-                                // Preload next few videos for smooth navigation
-                                preloadNextVideos(nextIndex, 3);
-                            }
-                        }
-                    } else {
-                        // Go to previous video
-                        if (currentMediaIndex > 0) {
-                            pauseAllVideos();
-                            setVerticalSlideDirection('up');
-                            const prevIndex = currentMediaIndex - 1;
-                            setCurrentMediaIndex(prevIndex);
-                            setCurrentRelatedIndex(0);
-                            
-                            // Update URL to reflect current video
-                            const currentVideo = mediaData[prevIndex];
-                            if (currentVideo) {
-                                const newUrl = window.location.origin + '/recommended?v=' + currentVideo.id;
-                                window.location.href = newUrl;
-                                
-                                // Preload next few videos for smooth navigation
-                                preloadNextVideos(prevIndex, 3);
-                            }
-                        }
-                    }
-
-                    scrollTimeout = setTimeout(() => {
-                        isThrottled = false;
-                        // Re-focus container after scroll for keyboard controls
-                        const container = document.querySelector('.recommended-container');
-                        if (container) {
-                            (container as HTMLElement).focus();
-                        }
-                    }, 600); // Should match or exceed your animation duration
-                }
-            } else if (Math.abs(wheelEvent.deltaX) > SCROLL_THRESHOLD) {
-                isThrottled = true;
-
-                if (wheelEvent.deltaX > 0) {
-                    // Go to next related content
-                    const currentMedia = mediaData[currentMediaIndex];
-                    if (currentMedia) {
-                        const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
-                        if (allContent.length > 1) {
-                            const nextIndex = (currentRelatedIndex + 1) % allContent.length;
-                            pauseAllVideos();
-                            setCurrentRelatedIndex(nextIndex);
-                            
-                            // Update URL with timestamp for related content
-                            const url = new URL(window.location.href);
-                            url.searchParams.set('t', Date.now().toString());
-                            window.history.replaceState({}, '', url.toString());
-                        }
-                    }
-                } else {
-                    // Go to previous related content
-                    const currentMedia = mediaData[currentMediaIndex];
-                    if (currentMedia) {
-                        const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
-                        if (allContent.length > 1) {
-                            const nextIndex = (currentRelatedIndex - 1 + allContent.length) % allContent.length;
-                            pauseAllVideos();
-                            setCurrentRelatedIndex(nextIndex);
-                            
-                            // Update URL with timestamp for related content
-                            const url = new URL(window.location.href);
-                            url.searchParams.set('t', Date.now().toString());
-                            window.history.replaceState({}, '', url.toString());
-                        }
-                    }
-                }
-
-                scrollTimeout = setTimeout(() => {
-                    isThrottled = false;
-                }, 600);
-            }
-        };
-
-        // Wait for DOM to be ready, then add wheel listener
-        const setupWheelListener = () => {
-            const container = document.querySelector('.recommended-container');
-            if (container) {
-                container.addEventListener('wheel', handleWheel, { passive: false });
-                return container;
-            } else {
-                return null;
-            }
-        };
-
-        // Try immediately, then retry if needed
-        let container = setupWheelListener();
-        if (!container) {
-            // Retry after a short delay
-            setTimeout(() => {
-                container = setupWheelListener();
-            }, 100);
-        }
-
-        return () => {
-            if (container) {
-                container.removeEventListener('wheel', handleWheel);
-            }
-            if (scrollTimeout) clearTimeout(scrollTimeout);
-        };
-    }, []); // No dependencies needed - uses refs
+    // Removed wheel event listeners - they were interfering with mobile touch events
     
-    // Add wheel listener when container renders
-    useEffect(() => {
-        const container = document.querySelector('.recommended-container');
-        if (container) {
-            const handleWheel = (e: Event) => {
-                e.preventDefault();
-                const wheelEvent = e as WheelEvent;
-
-                if (Math.abs(wheelEvent.deltaY) > Math.abs(wheelEvent.deltaX)) {
-                    if (Math.abs(wheelEvent.deltaY) > 80) {
-                        if (wheelEvent.deltaY > 0) {
-                            // Go to next video
-                            if (currentMediaIndex < mediaData.length - 1) {
-                                pauseAllVideos();
-                                setVerticalSlideDirection('down');
-                                const nextIndex = currentMediaIndex + 1;
-                                setCurrentMediaIndex(nextIndex);
-                                setCurrentRelatedIndex(0);
-                                
-                                // Update URL to reflect current video
-                                const currentVideo = mediaData[nextIndex];
-                                if (currentVideo) {
-                                    const url = new URL(window.location.href);
-                                    url.searchParams.set('v', currentVideo.id);
-                                    window.history.replaceState({}, '', url.toString());
-                                }
-                            }
-                        } else {
-                            // Go to previous video
-                            if (currentMediaIndex > 0) {
-                                pauseAllVideos();
-                                setVerticalSlideDirection('up');
-                                const prevIndex = currentMediaIndex - 1;
-                                setCurrentMediaIndex(prevIndex);
-                                setCurrentRelatedIndex(0);
-                                
-                                // Update URL to reflect current video
-                                const currentVideo = mediaData[prevIndex];
-                                if (currentVideo) {
-                                    const url = new URL(window.location.href);
-                                    url.searchParams.set('v', currentVideo.id);
-                                    window.history.replaceState({}, '', url.toString());
-                                }
-                            }
-                        }
-                    }
-                } else if (Math.abs(wheelEvent.deltaX) > 80) {
-                    if (wheelEvent.deltaX > 0) {
-                        // Go to next related content
-                        const currentMedia = mediaData[currentMediaIndex];
-                        if (currentMedia) {
-                            const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
-                            if (allContent.length > 1) {
-                                const nextIndex = (currentRelatedIndex + 1) % allContent.length;
-                                pauseAllVideos();
-                                setCurrentRelatedIndex(nextIndex);
-                            }
-                        }
-                    } else {
-                        // Go to previous related content
-                        const currentMedia = mediaData[currentMediaIndex];
-                        if (currentMedia) {
-                            const allContent = [currentMedia, ...(currentMedia.relatedMedia || [])];
-                            if (allContent.length > 1) {
-                                const nextIndex = (currentRelatedIndex - 1 + allContent.length) % allContent.length;
-                                pauseAllVideos();
-                                setCurrentRelatedIndex(nextIndex);
-                            }
-                        }
-                    }
-                }
-            };
-
-            container.addEventListener('wheel', handleWheel, { passive: false });
-            
-            return () => {
-                container.removeEventListener('wheel', handleWheel);
-            };
-        }
-    }, [currentMediaIndex, currentRelatedIndex, mediaData]);
+    // Removed second wheel event listener - was also interfering with mobile touch events
     
     // Simplified video observer to ensure play/pause logic is robust
     useEffect(() => {
@@ -972,9 +754,6 @@ const RecommendedPageContent = () => {
                     {/* Scrollable Video Container */}
                     <div 
                         className="h-full overflow-y-auto scrollbar-hide"
-                        onTouchStart={handleContainerTouchStart}
-                        onTouchMove={handleContainerTouchMove}
-                        onTouchEnd={handleContainerTouchEnd}
                         style={{ touchAction: 'pan-y' }}
                     >
                         {/* Current Video */}
@@ -1101,9 +880,15 @@ const RecommendedPageContent = () => {
                             })()}
                         </div>
                         
-                        {/* Next Video Preview Peek */}
+                                                {/* Next Video Preview Peek - Now swipeable */}
                         {mediaData.length > currentMediaIndex + 1 && (
-                            <div className="w-full h-24 md:h-32 relative mt-2 md:mt-4">
+                            <div 
+                                className="w-full h-24 md:h-32 relative mt-2 md:mt-4 cursor-pointer"
+                                onClick={() => {
+                                    setCurrentMediaIndex(currentMediaIndex + 1);
+                                    setCurrentRelatedIndex(0);
+                                }}
+                            >
                                 <div className="w-full h-full rounded-lg md:rounded-xl overflow-hidden bg-black">
                                     <video
                                         src={mediaData[currentMediaIndex + 1]?.url}
@@ -1119,16 +904,10 @@ const RecommendedPageContent = () => {
                                             <span className="font-medium truncate text-xs md:text-sm">
                                                 {mediaData[currentMediaIndex + 1]?.title || 'Next Video'}
                                             </span>
-                                            <button 
-                                                className="px-1 md:px-2 py-0.5 md:py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-full font-medium transition-colors"
-                                                onClick={() => {
-                                                    setCurrentMediaIndex(currentMediaIndex + 1);
-                                                    setCurrentRelatedIndex(0);
-                                                }}
-                                            >
-                                                <span className="hidden md:inline">Watch</span>
-                                                <span className="md:hidden">▶</span>
-                                            </button>
+                                            <div className="px-1 md:px-2 py-0.5 md:py-1 bg-red-600 text-white text-xs rounded-full font-medium">
+                                                <span className="hidden md:inline">Swipe up or tap</span>
+                                                <span className="md:hidden">↑</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
