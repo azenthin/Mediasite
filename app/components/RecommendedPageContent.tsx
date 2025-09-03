@@ -186,8 +186,8 @@ const RecommendedPageContent = () => {
     const [isVideoTouched, setIsVideoTouched] = useState(false);
     const [videoTouchStart, setVideoTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
     
-    // Minimum swipe distance (in pixels)
-    const minSwipeDistance = 50;
+    // Minimum swipe distance (in pixels) - reduced for better sensitivity
+    const minSwipeDistance = 30;
     const videoTapThreshold = 200; // Max time for tap vs hold (ms)
     
     // Handle touch start
@@ -283,11 +283,8 @@ const RecommendedPageContent = () => {
         setVideoTouchStart(null);
     };
     
-    // Enhanced touch handling for better mobile experience
+    // Simplified and more reliable touch handling
     const handleContainerTouchStart = (e: React.TouchEvent) => {
-        // Don't interfere with video touch events
-        if (isVideoTouched) return;
-        
         setTouchEnd(null);
         setTouchStart({
             x: e.targetTouches[0].clientX,
@@ -296,19 +293,13 @@ const RecommendedPageContent = () => {
     };
     
     const handleContainerTouchMove = (e: React.TouchEvent) => {
-        // Don't interfere with video touch events
-        if (isVideoTouched) return;
-        
         setTouchEnd({
             x: e.targetTouches[0].clientX,
             y: e.targetTouches[0].clientY
         });
     };
     
-    const handleContainerTouchEnd = () => {
-        // Don't interfere with video touch events
-        if (isVideoTouched) return;
-        
+    const handleContainerTouchEnd = (e: React.TouchEvent) => {
         if (!touchStart || !touchEnd) return;
         
         const distanceX = touchStart.x - touchEnd.x;
@@ -318,16 +309,23 @@ const RecommendedPageContent = () => {
         const isUpSwipe = distanceY > minSwipeDistance;
         const isDownSwipe = distanceY < -minSwipeDistance;
         
+        // Debug logging for mobile
+        console.log('Touch end:', { distanceX, distanceY, isLeftSwipe, isRightSwipe, isUpSwipe, isDownSwipe });
+        
         // Only handle swipes if they're more horizontal than vertical
         if (Math.abs(distanceX) > Math.abs(distanceY)) {
             if (isLeftSwipe) {
                 // Swipe left - next video
+                e.preventDefault();
+                console.log('Swipe left detected - going to next video');
                 if (mediaData.length > currentMediaIndex + 1) {
                     setCurrentMediaIndex(currentMediaIndex + 1);
                     setCurrentRelatedIndex(0);
                 }
             } else if (isRightSwipe) {
                 // Swipe right - previous video
+                e.preventDefault();
+                console.log('Swipe right detected - going to previous video');
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
                     setCurrentRelatedIndex(0);
@@ -337,9 +335,13 @@ const RecommendedPageContent = () => {
             // Vertical swipes - scroll the page
             if (isUpSwipe) {
                 // Swipe up - scroll down to see next video preview
+                e.preventDefault();
+                console.log('Swipe up detected - scrolling down');
                 window.scrollBy({ top: 100, behavior: 'smooth' });
             } else if (isDownSwipe) {
                 // Swipe down - scroll up
+                e.preventDefault();
+                console.log('Swipe down detected - scrolling up');
                 window.scrollBy({ top: -100, behavior: 'smooth' });
             }
         }
@@ -954,7 +956,14 @@ const RecommendedPageContent = () => {
     const currentRelatedMedia = allContentInPost[currentRelatedIndex];
 
     return (
-        <div className="flex-1 w-full recommended-container relative z-[200]" tabIndex={0}>
+        <div 
+            className="flex-1 w-full recommended-container relative z-[200]" 
+            tabIndex={0}
+            onTouchStart={handleContainerTouchStart}
+            onTouchMove={handleContainerTouchMove}
+            onTouchEnd={handleContainerTouchEnd}
+            style={{ touchAction: 'manipulation' }}
+        >
             <div className="sticky top-14 z-[300] relative h-[calc(100vh-100px)] w-full flex items-center justify-center overflow-visible pt-2 md:pt-4">
                 <div ref={playerContainerRef} className="h-full w-full max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-2xl md:rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
                     {/* Glow tied to the player box (not the full page) */}
