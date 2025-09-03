@@ -788,175 +788,144 @@ const RecommendedPageContent = () => {
 
     return (
         <div className="flex-1 w-full recommended-container relative z-[200]" tabIndex={0}>
-            <div className="sticky top-14 z-[300] relative h-[calc(100vh-56px)] w-full flex items-center justify-center overflow-visible">
-                <div ref={playerContainerRef} className="h-full w-full max-w-md rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
+            <div className="sticky top-14 z-[300] relative h-[calc(100vh-100px)] w-full flex items-center justify-center overflow-visible pt-4">
+                <div ref={playerContainerRef} className="h-full w-full max-w-[30rem] rounded-3xl overflow-hidden bg-[#0b0b0b] relative z-[500]">
                     {/* Glow tied to the player box (not the full page) */}
                     <div className="pointer-events-none absolute inset-1 rounded-[1.5rem] bg-white/12 blur-[18px] z-0" />
                     
-                    {/* Preloading indicator (YouTube Shorts style) */}
-                    {isPreloading && (
-                        <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded z-50">
-                            ⚡ Preloading...
-                        </div>
-                    )}
-                {/* Main Media Display Container using AnimatePresence for vertical transitions */}
-                <AnimatePresence 
-                    initial={false} 
-                    custom={verticalSlideDirection}
-                >
-                    <motion.div
-                        key={currentMedia.id} // This is the key that tells Framer Motion when to animate a new item
-                        custom={verticalSlideDirection}
-                        variants={verticalSlideVariants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        transition={{
-                            y: { type: 'spring', stiffness: 300, damping: 30 },
-                            opacity: { duration: 0.2 }
-                        }}
-                        className="absolute inset-0 w-full h-full flex justify-center items-center"
-                    >
-                        {/* Horizontal Scroll Container */}
-                        <div
-                            className="relative w-full h-full flex transition-transform duration-500 ease-in-out"
-                            style={{ 
-                                transform: `translateX(-${currentRelatedIndex * 100}%)` 
-                            }}
-                        >
-                            {allContentInPost.map((media, index) => (
-                                <div key={media.id} className="w-full h-full flex-shrink-0 relative" data-media-id={media.id}>
-                                    {/* Media Content */}
-                                    {media.type === 'VIDEO' ? (
-                                        <video
-                                            ref={index === currentRelatedIndex ? currentVideoRef : null}
-                                            className="w-full h-full object-cover"
-                                            src={media.url}
-                                             preload="metadata"
-                                             poster={media.thumbnailUrl || 'https://placehold.co/720x1280/111111/ffffff?text=Loading...'}
-                                            loop
-                                            muted
-                                            playsInline
-                                              controls
-                                            onClick={(e) => {
-
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                // Use current video ref
-                                                if (currentVideoRef.current) {
-                                                    if (currentVideoRef.current.paused) { 
-                                                        currentVideoRef.current.play().catch(console.error); 
-                                                    } else { 
-                                                        currentVideoRef.current.pause(); 
+                    {/* Scrollable Video Container */}
+                    <div className="h-full overflow-y-auto scrollbar-hide">
+                        {/* Current Video */}
+                        <div className="h-full w-full relative">
+                            {/* Video Content */}
+                            {(() => {
+                                const currentMedia = mediaData[currentMediaIndex];
+                                if (!currentMedia) return null;
+                                
+                                return (
+                                    <>
+                                        {/* Video/Image Content */}
+                                        {currentMedia.type === 'VIDEO' ? (
+                                            <video
+                                                ref={currentVideoRef}
+                                                className="w-full h-full object-cover"
+                                                src={currentMedia.url}
+                                                preload="metadata"
+                                                poster={currentMedia.thumbnailUrl}
+                                                loop
+                                                muted
+                                                playsInline
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    
+                                                    if (currentVideoRef.current) {
+                                                        if (currentVideoRef.current.paused) {
+                                                            currentVideoRef.current.play().catch(console.error);
+                                                        } else {
+                                                            currentVideoRef.current.pause(); 
+                                                        }
                                                     }
-                                                }
-                                            }}
-                                        />
-                                    ) : media.type === 'AUDIO' ? (
-                                        <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                                            <div className="text-center text-white">
-                                                <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                                    <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.793L4.5 13.5H2a1 1 0 01-1-1v-5a1 1 0 011-1h2.5l3.883-3.293zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </div>
-                                                <h2 className="text-xl font-semibold">{media.title}</h2>
-                                                <audio controls className="mt-4 w-full max-w-xs">
-                                                    <source src={media.url} type="audio/mpeg" />
-                                                    Your browser does not support the audio tag.
-                                                </audio>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <img
-                                            src={media.url}
-                                            alt={media.title}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.onerror = null;
-                                                e.currentTarget.src = "https://placehold.co/720x1280/282828/ffffff?text=Image+Error";
-                                            }}
-                                        />
-                                    )}
-
-                                    {/* Gradient Overlay */}
-                                    <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-                                    
-                                    {/* Media Info */}
-                                    <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-20">
-                                        <div className="flex-1 space-y-1">
-                                            <h3 className="text-lg font-semibold text-white line-clamp-2">{media.title}</h3>
-                                            <div className="flex items-center space-x-2">
-                                                <img 
-                                                    src={media.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${media.uploader.username.charAt(0).toUpperCase()}`} 
-                                                    alt="Channel profile" 
-                                                    className="w-8 h-8 rounded-full" 
-                                                />
-                                                <p className="text-gray-200 text-sm">{media.uploader.displayName || media.uploader.username}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col space-y-4">
-                                            <ActionButton
-                                                icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
-                                                label={media._count?.likeRecords?.toString() || '0'}
+                                                }}
                                             />
-                                            <ActionButton
-                                                icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
-                                                label={media._count?.comments?.toString() || '0'}
+                                        ) : (
+                                            <img
+                                                src={currentMedia.url}
+                                                alt={currentMedia.title}
+                                                className="w-full h-full object-cover"
                                             />
-                                            <ActionButton
-                                                icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
-                                                label="Share"
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Horizontal Scroll Indicators */}
-                                    {allContentInPost.length > 1 && (
-                                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-1 z-20">
-                                            {allContentInPost.map((_, index) => (
-                                                <div
-                                                    key={index}
-                                                    className={`w-2 h-2 rounded-full ${
-                                                        index === currentRelatedIndex ? 'bg-white' : 'bg-white/50'
-                                                    }`}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Horizontal Navigation Buttons */}
-                                    <div className="absolute inset-0 flex items-center justify-between pointer-events-none z-20">
-                                        {allContentInPost.length > 1 && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleHorizontalScroll('left')}
-                                                    className="pointer-events-auto ml-2 p-4 text-white transition-opacity hover:opacity-100 opacity-70 h-32 flex items-center"
-                                                    title="Previous content in this post"
-                                                >
-                                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleHorizontalScroll('right')}
-                                                    className="pointer-events-auto mr-2 p-4 text-white transition-opacity hover:opacity-100 opacity-70 h-32 flex items-center"
-                                                    title="Next content in this post"
-                                                >
-                                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                                    </svg>
-                                                </button>
-                                            </>
                                         )}
+
+                                        {/* Gradient Overlay */}
+                                        <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                                        
+                                        {/* Media Info */}
+                                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-20">
+                                            <div className="flex-1 space-y-1">
+                                                <h3 className="text-lg font-semibold text-white line-clamp-2">{currentMedia.title}</h3>
+                                                <div className="flex items-center space-x-2">
+                                                    <img 
+                                                        src={currentMedia.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${currentMedia.uploader.username.charAt(0).toUpperCase()}`} 
+                                                        alt="Channel profile" 
+                                                        className="w-8 h-8 rounded-full" 
+                                                    />
+                                                    <p className="text-gray-200 text-sm">{currentMedia.uploader.displayName || currentMedia.uploader.username}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col space-y-4">
+                                                <ActionButton
+                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
+                                                    label={currentMedia.likes?.toString() || '0'}
+                                                />
+                                                <ActionButton
+                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
+                                                    label={currentMedia._count?.comments?.toString() || '0'}
+                                                />
+                                                <ActionButton
+                                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
+                                                    label="Share"
+                                                />
+                                                {currentMedia.type === 'VIDEO' && (
+                                                    <button
+                                                        className="flex flex-col items-center justify-center p-2 text-white/90 hover:text-white transition-colors duration-200"
+                                                        title={currentVideoRef.current?.paused ? "Play" : "Pause"}
+                                                        onClick={() => {
+                                                            if (currentVideoRef.current) {
+                                                                if (currentVideoRef.current.paused) {
+                                                                    currentVideoRef.current.play().catch(console.error);
+                                                                } else {
+                                                                    currentVideoRef.current.pause();
+                                                                }
+                                                            }
+                                                        }}
+                                                    >
+                                                        {currentVideoRef.current?.paused ? 
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> : 
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                                                        }
+                                                        <span className="text-xs mt-1">{currentVideoRef.current?.paused ? "Play" : "Pause"}</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                        
+                        {/* Next Video Preview Peek */}
+                        {mediaData.length > currentMediaIndex + 1 && (
+                            <div className="w-full h-32 relative mt-4">
+                                <div className="w-full h-full rounded-xl overflow-hidden bg-black">
+                                    <video
+                                        src={mediaData[currentMediaIndex + 1]?.url}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        playsInline
+                                        preload="metadata"
+                                        poster={mediaData[currentMediaIndex + 1]?.thumbnailUrl}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                    <div className="absolute bottom-2 left-2 right-2">
+                                        <div className="flex items-center justify-between text-white text-xs">
+                                            <span className="font-medium truncate">
+                                                {mediaData[currentMediaIndex + 1]?.title || 'Next Video'}
+                                            </span>
+                                            <button 
+                                                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-full font-medium transition-colors"
+                                                onClick={() => {
+                                                    setCurrentMediaIndex(currentMediaIndex + 1);
+                                                    setCurrentRelatedIndex(0);
+                                                }}
+                                            >
+                                                Watch
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
-                
-                
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
