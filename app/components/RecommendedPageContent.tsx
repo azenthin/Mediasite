@@ -312,37 +312,37 @@ const RecommendedPageContent = () => {
         // Debug logging for mobile
         console.log('Touch end:', { distanceX, distanceY, isLeftSwipe, isRightSwipe, isUpSwipe, isDownSwipe });
         
-        // Only handle swipes if they're more horizontal than vertical
-        if (Math.abs(distanceX) > Math.abs(distanceY)) {
-            if (isLeftSwipe) {
-                // Swipe left - next video
+        // Only handle swipes if they're more vertical than horizontal (like TikTok/YouTube Shorts)
+        if (Math.abs(distanceY) > Math.abs(distanceX)) {
+            if (isUpSwipe) {
+                // Swipe up - next video
                 e.preventDefault();
-                console.log('Swipe left detected - going to next video');
+                console.log('Swipe up detected - going to next video');
                 if (mediaData.length > currentMediaIndex + 1) {
                     setCurrentMediaIndex(currentMediaIndex + 1);
                     setCurrentRelatedIndex(0);
                 }
-            } else if (isRightSwipe) {
-                // Swipe right - previous video
+            } else if (isDownSwipe) {
+                // Swipe down - previous video
                 e.preventDefault();
-                console.log('Swipe right detected - going to previous video');
+                console.log('Swipe down detected - going to previous video');
                 if (currentMediaIndex > 0) {
                     setCurrentMediaIndex(currentMediaIndex - 1);
                     setCurrentRelatedIndex(0);
                 }
             }
         } else {
-            // Vertical swipes - scroll the page
-            if (isUpSwipe) {
-                // Swipe up - scroll down to see next video preview
+            // Horizontal swipes - scroll the page or related content
+            if (isLeftSwipe) {
+                // Swipe left - scroll right
                 e.preventDefault();
-                console.log('Swipe up detected - scrolling down');
-                window.scrollBy({ top: 100, behavior: 'smooth' });
-            } else if (isDownSwipe) {
-                // Swipe down - scroll up
+                console.log('Swipe left detected - scrolling right');
+                window.scrollBy({ left: 100, behavior: 'smooth' });
+            } else if (isRightSwipe) {
+                // Swipe right - scroll left
                 e.preventDefault();
-                console.log('Swipe down detected - scrolling up');
-                window.scrollBy({ top: -100, behavior: 'smooth' });
+                console.log('Swipe right detected - scrolling left');
+                window.scrollBy({ left: -100, behavior: 'smooth' });
             }
         }
     };
@@ -982,7 +982,7 @@ const RecommendedPageContent = () => {
                             {/* Mobile Swipe Indicator */}
                             <div className="md:hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-40 pointer-events-none">
                                 <div className="bg-black/50 rounded-full px-3 py-1 text-white text-xs">
-                                    ← Swipe to navigate →
+                                    ↑ Swipe to navigate ↓
                                 </div>
                             </div>
                             {/* Video Content */}
