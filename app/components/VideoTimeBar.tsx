@@ -26,7 +26,7 @@ const VideoTimeBar: React.FC<VideoTimeBarProps> = ({
   if (!isVisible || duration === 0) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 px-4 pb-2">
+    <div className="absolute bottom-0 left-0 right-0 z-30 px-8 pb-2">
       {/* Time Bar Container */}
       <div 
         className="relative w-full h-1 bg-white/20 rounded-full cursor-pointer group hover:h-2 transition-all duration-200"
@@ -35,7 +35,7 @@ const VideoTimeBar: React.FC<VideoTimeBarProps> = ({
       >
         {/* Progress Fill */}
         <div 
-          className="absolute top-0 left-0 h-full bg-white rounded-full transition-all duration-75 ease-out"
+          className="absolute top-0 left-0 h-full bg-blue-500 rounded-full transition-all duration-75 ease-out"
           style={{ 
             width: `${Math.min(100, Math.max(0, progress))}%`,
             transform: isSeeking ? 'scaleY(1.2)' : 'scaleY(1)',
@@ -43,7 +43,7 @@ const VideoTimeBar: React.FC<VideoTimeBarProps> = ({
         >
           {/* Progress Handle */}
           <div 
-            className="absolute right-0 top-1/2 w-3 h-3 bg-white rounded-full transform -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+            className="absolute right-0 top-1/2 w-3 h-3 bg-blue-500 rounded-full transform -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
             style={{ 
               transform: `translateY(-50%) translateX(50%) ${isSeeking ? 'scale(1.2)' : 'scale(1)'}`,
             }}
@@ -51,7 +51,7 @@ const VideoTimeBar: React.FC<VideoTimeBarProps> = ({
         </div>
         
         {/* Hover Preview */}
-        <div className="absolute top-0 left-0 h-full bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        <div className="absolute top-0 left-0 h-full bg-blue-500/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
       </div>
       
       {/* Time Display - Only show on hover */}

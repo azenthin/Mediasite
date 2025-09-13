@@ -13,54 +13,40 @@ export const useVideoProgress = ({ videoRef, isPlaying }: UseVideoProgressProps)
   const [progress, setProgress] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekTime, setSeekTime] = useState(0);
-  
-  const animationFrameRef = useRef<number>();
-  const lastUpdateTime = useRef<number>(0);
 
-  // Smooth progress update using requestAnimationFrame
-  const updateProgress = useCallback(() => {
-    if (!videoRef.current || isSeeking) return;
-
-    const now = performance.now();
-    // Throttle updates to 60fps for smooth animation
-    if (now - lastUpdateTime.current < 16) {
-      animationFrameRef.current = requestAnimationFrame(updateProgress);
-      return;
-    }
-    lastUpdateTime.current = now;
-
-    const video = videoRef.current;
-    if (video.duration && !isNaN(video.duration)) {
-      const current = video.currentTime;
-      const total = video.duration;
-      const progressValue = (current / total) * 100;
-
-      setCurrentTime(current);
-      setDuration(total);
-      setProgress(progressValue);
-    }
-
-    if (isPlaying) {
-      animationFrameRef.current = requestAnimationFrame(updateProgress);
-    }
-  }, [videoRef, isPlaying, isSeeking]);
-
-  // Start/stop progress tracking based on play state
+  // Update progress using video timeupdate event for real-time updates
   useEffect(() => {
-    if (isPlaying && !isSeeking) {
-      updateProgress();
-    } else {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    }
+    const video = videoRef.current;
+    if (!video) return;
 
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+    const handleTimeUpdate = () => {
+      if (isSeeking) return; // Don't update during seeking animation
+      
+      if (video.duration && !isNaN(video.duration)) {
+        const current = video.currentTime;
+        const total = video.duration;
+        const progressValue = (current / total) * 100;
+
+        setCurrentTime(current);
+        setDuration(total);
+        setProgress(progressValue);
       }
     };
-  }, [isPlaying, isSeeking, updateProgress]);
+
+    const handleLoadedMetadata = () => {
+      if (video.duration && !isNaN(video.duration)) {
+        setDuration(video.duration);
+      }
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [videoRef, isSeeking]);
 
   // Handle seeking
   const handleSeek = useCallback((clickX: number, barWidth: number) => {
