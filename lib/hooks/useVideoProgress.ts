@@ -93,7 +93,9 @@ export const useVideoProgress = ({ videoRef, isPlaying }: UseVideoProgressProps)
         requestAnimationFrame(animateSeek);
       } else {
         // Final seek to exact position
-        videoRef.current.currentTime = newTime;
+        if (videoRef.current) {
+          videoRef.current.currentTime = newTime;
+        }
         setIsSeeking(false);
         setSeekTime(0);
       }
