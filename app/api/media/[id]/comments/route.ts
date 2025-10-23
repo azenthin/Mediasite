@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/database';
 
 interface RouteParams {
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // POST - Create a new comment or reply
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     
     if (!userId) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/database';
 
 interface RouteParams {
@@ -11,7 +12,7 @@ interface RouteParams {
 // POST - Toggle like on a comment
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     
     if (!userId) {
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 // GET - Get like status for a comment
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     const commentId = params.id;
 
