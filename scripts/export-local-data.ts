@@ -35,8 +35,16 @@ async function exportLocalData() {
     const likes = await prisma.like.findMany();
     console.log(`❤️ Found ${likes.length} likes`);
     
-    // Export comments
-    const comments = await prisma.comment.findMany();
+    // Export comments - use raw query to handle old schema with userId column
+    const comments = await prisma.$queryRaw<Array<{
+      id: string;
+      content: string;
+      userId: string;
+      mediaId: string;
+      parentId: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    }>>`SELECT * FROM Comment`;
     console.log(`💬 Found ${comments.length} comments`);
     
     // Create export data
