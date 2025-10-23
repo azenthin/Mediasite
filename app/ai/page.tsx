@@ -145,7 +145,7 @@ const AIPageContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white">
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
       <div className="max-w-2xl mx-auto h-[90vh] flex flex-col px-4">
         {/* Header */}
         <div className="p-4 border-b border-white/10">
