@@ -78,8 +78,10 @@ export async function GET(request: NextRequest) {
     
     // Import media
     console.log('🖼️ Importing media...');
+    const mediaMap = new Map(); // Map old media IDs to new IDs
+    
     for (const media of exportData.media) {
-      await prisma.media.create({
+      const newMedia = await prisma.media.create({
         data: {
           title: media.title,
           description: media.description,
@@ -96,6 +98,7 @@ export async function GET(request: NextRequest) {
           uploaderId: userMap.get(media.uploaderId),
         }
       });
+      mediaMap.set(media.id, newMedia.id);
     }
     console.log(`✅ Imported ${exportData.media.length} media items`);
     
@@ -114,25 +117,40 @@ export async function GET(request: NextRequest) {
     // Import likes
     console.log('❤️ Importing likes...');
     for (const like of exportData.likes) {
-      await prisma.like.create({
-        data: {
-          userId: userMap.get(like.userId),
-          mediaId: like.mediaId, // We'll need to map media IDs too
-        }
-      });
+      const mappedMediaId = mediaMap.get(like.mediaId);
+      const mappedUserId = userMap.get(like.userId);
+      
+      if (mappedMediaId && mappedUserId) {
+        await prisma.like.create({
+          data: {
+            userId: mappedUserId,
+            mediaId: mappedMediaId,
+          }
+        });
+      } else {
+        console.log(`⚠️ Skipping like - missing media or user mapping`);
+      }
     }
     console.log(`✅ Imported ${exportData.likes.length} likes`);
     
     // Import comments
     console.log('💬 Importing comments...');
     for (const comment of exportData.comments) {
-      await prisma.comment.create({
-        data: {
-          content: comment.content,
-          authorId: userMap.get(comment.userId) || comment.userId,
-          mediaId: comment.mediaId, // We'll need to map media IDs too
-        }
-      });
+      const mappedMediaId = mediaMap.get(comment.mediaId);
+      const mappedUserId = userMap.get(comment.userId);
+      
+      if (mappedMediaId && mappedUserId) {
+        await prisma.comment.create({
+          data: {
+            content: comment.content,
+            authorId: mappedUserId,
+            mediaId: mappedMediaId,
+            parentId: comment.parentId, // TODO: might need to map this too if we have nested comments
+          }
+        });
+      } else {
+        console.log(`⚠️ Skipping comment - missing media or user mapping`);
+      }
     }
     console.log(`✅ Imported ${exportData.comments.length} comments`);
     
