@@ -438,7 +438,7 @@ export async function seedDatabase() {
       await prisma.comment.create({
         data: {
           content: pick(comments),
-          userId: testUser.id,
+          authorId: testUser.id,
           mediaId: m.id
         }
       });
