@@ -14,6 +14,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
     
+    console.log('🔐 Checking authorization...', {
+      hasSecret: !!secret,
+      hasEnvSecret: !!process.env.SEED_SECRET,
+      nodeEnv: process.env.NODE_ENV
+    });
+    
     if (process.env.NODE_ENV === 'production' && secret !== process.env.SEED_SECRET) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
