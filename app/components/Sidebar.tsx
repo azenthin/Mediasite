@@ -52,7 +52,7 @@ const Sidebar = ({ onNavigate, currentPath, sidebarBgColor, linkColor }: Sidebar
         ), label: 'Likes' },
         { path: '/ai', icon: (
             <div className="w-5 h-5 flex items-center justify-center">
-                <span className="text-sm font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">AI</span>
+                <span className="text-base font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">AI</span>
             </div>
         ), label: 'AI' },
     ];
