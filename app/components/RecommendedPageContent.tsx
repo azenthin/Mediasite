@@ -25,7 +25,7 @@ interface MediaData {
     description?: string;
     thumbnailUrl?: string;
     uploader: {
-        id?: string;
+        id?: string; // User ID for subscription functionality
         username: string;
         displayName?: string;
         avatarUrl?: string;
