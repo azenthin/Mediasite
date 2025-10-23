@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 export async function POST(request: NextRequest) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'OpenAI API key not configured' },
-      { status: 500 }
-    );
-  }
+  const apiKey = "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";
   
   const openai = new OpenAI({
     apiKey: apiKey,
