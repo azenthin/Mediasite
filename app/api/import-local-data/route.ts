@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
       await prisma.comment.create({
         data: {
           content: comment.content,
-          userId: userMap.get(comment.userId),
+          authorId: userMap.get(comment.userId) || comment.userId,
           mediaId: comment.mediaId, // We'll need to map media IDs too
         }
       });
