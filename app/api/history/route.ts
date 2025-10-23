@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/safe-auth';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('📋 History API: Starting request...');
     
-    const session = await auth();
+    const session = await safeAuth();
     const userId = session?.user?.id;
     
     console.log('👤 History API: User session:', { userId: userId || 'not authenticated' });
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await safeAuth();
     const userId = session?.user?.id;
     if (!userId) return NextResponse.json({ ok: true });
 
@@ -88,7 +88,7 @@ export async function DELETE(request: NextRequest) {
   try {
     console.log('🗑️ History DELETE: Starting request...');
     
-    const session = await auth();
+    const session = await safeAuth();
     const userId = session?.user?.id;
     
     console.log('👤 History DELETE: User session:', { userId: userId || 'not authenticated' });

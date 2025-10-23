@@ -28,6 +28,7 @@ model User {
   playlists   Playlist[]
   likes       Like[]
   comments    Comment[]
+  commentLikes CommentLike[]
   subscriptions Subscription[] @relation("Subscriber")
   subscribers  Subscription[] @relation("SubscribedTo")
   watchHistory WatchHistory[]
@@ -59,6 +60,14 @@ model Media {
   comments    Comment[]
   watchHistory WatchHistory[]
   analyticsEvents AnalyticsEvent[]
+  
+  // Optimized indexes for common queries
+  @@index([uploaderId, createdAt])
+  @@index([type, isPublic, createdAt])
+  @@index([category, isPublic, createdAt])
+  @@index([createdAt(sort: Desc)])
+  @@index([views(sort: Desc)])
+  @@index([likes(sort: Desc)])
 }
 
 model Playlist {
@@ -109,10 +118,49 @@ model Comment {
   updatedAt DateTime @updatedAt
 
   // Relations
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   mediaId   String
   media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  
+  // Nested comments (replies)
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  
+  // Comment likes
+  likes     CommentLike[]
+  
+  // Counts
+  counts    CommentCount?
+  
+  // Optimized indexes
+  @@index([mediaId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+}
+
+model CommentCount {
+  id        String   @id @default(cuid())
+  likes     Int      @default(0)
+  replies   Int      @default(0)
+  
+  // Relations
+  commentId String   @unique
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {

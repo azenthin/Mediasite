@@ -157,6 +157,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
     const type = searchParams.get('type') as 'VIDEO' | 'IMAGE' | undefined;
+    const uploaderId = searchParams.get('uploaderId');
 
     // Try to connect to database, fallback to mock data if it fails
     try {
@@ -173,6 +174,10 @@ export async function GET(request: NextRequest) {
 
       if (type) {
         where.type = type;
+      }
+
+      if (uploaderId) {
+        where.uploaderId = uploaderId;
       }
 
       if (search) {

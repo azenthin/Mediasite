@@ -52,7 +52,12 @@ const App = ({ children }: AppProps) => {
                     </div>
 
                     {/* Content area with left margin to avoid overlap on desktop */}
-                    <div className="flex-1 md:ml-16 overflow-x-hidden pb-16 md:pb-0">
+                    <div 
+                        id="main-content" 
+                        className="flex-1 md:ml-16 overflow-x-hidden pb-16 md:pb-0"
+                        role="main"
+                        aria-label="Main content"
+                    >
                         {children}
                     </div>
                 </div>
@@ -98,6 +103,16 @@ const App = ({ children }: AppProps) => {
                                 <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                             </svg>
                             <span className="text-xs mt-1">Liked</span>
+                        </button>
+                        
+                        <button 
+                            onClick={() => handleNavigate('/ai')}
+                            className={`flex flex-col items-center p-2 ${pathname === '/ai' ? 'text-white' : 'text-gray-400'}`}
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <span className="text-xs mt-1">AI</span>
                         </button>
                         
                         <button 

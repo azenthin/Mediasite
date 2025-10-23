@@ -43,7 +43,7 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
     return (
         <>
             {/* The navbar is a fixed element at the very top. */}
-            <nav className="text-gray-100 px-3 md:px-6 py-2 w-full z-30 backdrop-blur-sm bg-[#0f0f0f]/60 flex items-center justify-between relative">
+            <nav className="text-gray-100 px-3 md:px-6 py-2 w-full z-30 backdrop-blur-sm bg-[#0f0f0f]/60 flex items-center justify-between relative" role="navigation" aria-label="Main navigation">
                 {/* Left: Logo */}
                 <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
                     <div className="font-bold text-lg md:text-2xl" style={{ color: linkColor }}>
@@ -59,50 +59,55 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                             id="navbar-search"
                             name="search"
                             placeholder="Search"
+                            aria-label="Search for videos, images, and audio content"
                             className="search-input w-full h-full px-2 md:px-4 py-0 outline-none placeholder-white/60 caret-white text-xs md:text-sm text-white bg-transparent"
                             style={{ color: linkColor }}
                         />
-                        <button aria-label="Search" className="text-white px-2 md:px-4 h-full font-semibold outline-none flex items-center bg-transparent hover:bg-white/10 transition-colors duration-200 focus:outline-none" style={{ color: linkColor }}>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                        <button aria-label="Search" className="text-white px-2 md:px-4 h-full font-semibold outline-none flex items-center bg-transparent hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" style={{ color: linkColor }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </button>
                     </div>
                     {/* Compact icon when < 440px */}
-                    <button aria-label="Open search" className="hidden max-[440px]:inline-flex p-2 rounded-full hover:bg-white/10 text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button aria-label="Open search" className="hidden max-[440px]:inline-flex p-2 rounded-full hover:bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </button>
                 </div>
                 {/* Right: Auth Buttons */}
-                <div className="flex items-center space-x-1 md:space-x-2 shrink-0">
+                <div className="flex items-center space-x-1 md:space-x-2 shrink-0" role="group" aria-label="Authentication">
                     {session ? (
                         <>
                             <button 
                                 onClick={() => window.location.href = '/upload'}
-                                className="px-2 md:px-4 py-1 md:py-1.5 rounded-full font-semibold shadow transition-colors duration-200 focus:outline-none bg-blue-600 hover:bg-blue-700 text-xs md:text-sm text-white"
+                                aria-label="Upload new content"
+                                className="px-2 md:px-4 py-1 md:py-1.5 rounded-full font-semibold shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-600 hover:bg-blue-700 text-xs md:text-sm text-white"
                             >
                                 <span className="hidden md:inline">Upload</span>
-                                <span className="md:hidden">+</span>
+                                <span className="md:hidden" aria-hidden="true">+</span>
                             </button>
                             
                             {/* Profile Picture Dropdown */}
                             <div className="relative mt-0.5" ref={profileMenuRef}>
                                 <button
                                     onClick={() => setShowProfileMenu(!showProfileMenu)}
-                                    className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-600 hover:border-white transition-colors focus:outline-none"
+                                    aria-label={`${session.user?.displayName || session.user?.username}'s profile menu`}
+                                    aria-expanded={showProfileMenu}
+                                    aria-haspopup="true"
+                                    className="w-8 h-8 rounded-full overflow-hidden border-2 border-gray-600 hover:border-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <img
                                         src={session.user?.avatarUrl || `https://placehold.co/32x32/555555/ffffff?text=${(session.user?.displayName || session.user?.username || 'U').charAt(0).toUpperCase()}`}
-                                        alt="Profile"
+                                        alt={`${session.user?.displayName || session.user?.username}'s avatar`}
                                         className="w-full h-full object-cover"
                                     />
                                 </button>
                                 
                                 {/* Dropdown Menu */}
                                 {showProfileMenu && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-[#282828] rounded-md shadow-lg border border-gray-600 z-50">
+                                    <div className="absolute right-0 mt-2 w-48 bg-[#282828] rounded-md shadow-lg border border-gray-600 z-50" role="menu" aria-label="Profile menu">
                                         <div className="py-1">
                                             <div className="px-4 py-2 border-b border-gray-600">
                                                 <div className="text-sm font-medium text-white">{session.user?.displayName || session.user?.username}</div>
@@ -114,9 +119,10 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                                                     window.location.href = '/profile';
                                                     setShowProfileMenu(false);
                                                 }}
-                                                className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#383838] hover:text-white"
+                                                role="menuitem"
+                                                className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#383838] hover:text-white focus:outline-none focus:bg-[#383838]"
                                             >
-                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                                 </svg>
                                                 Your Uploads

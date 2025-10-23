@@ -277,21 +277,19 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
     return (
         <div 
             ref={cardRef}
-            className={`group relative flex flex-col overflow-hidden rounded-md shadow-sm transition-transform duration-200 transform hover:scale-102 cursor-pointer ${showTopSeparator ? 'border-t border-white/10' : ''}`}
+            className={`group relative flex flex-col overflow-hidden rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 cursor-pointer border border-transparent hover:border-white/10 ${showTopSeparator ? 'border-t border-white/10' : ''}`}
             style={{ aspectRatio: '3/4' }}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
+            {/* Thumbnail/Video */}
             <img
                 src={getThumbnailSource()}
                 alt={video.title}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && video.type === 'VIDEO' ? 'opacity-0' : 'opacity-100'}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${isHovered && video.type === 'VIDEO' ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}
                 onError={(e) => {
-                    // Image load error: e.currentTarget.src
                     e.currentTarget.onerror = null;
-                    
-                    // Layer 3: Final fallback - "Image not found" placeholder
                     const fallbackUrl = `/api/placeholder?text=Image%20not%20found&size=600x800&color=ffffff&bg=6b7280`;
                     e.currentTarget.src = fallbackUrl;
                 }}
@@ -302,7 +300,7 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
                     ref={videoRef}
                     src={video.url}
                     crossOrigin="anonymous"
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
                     muted
                     loop
                     playsInline
@@ -311,13 +309,24 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
                 />
             )}
             
-            <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent"></div>
+            {/* Enhanced gradient overlay - deeper and more cinematic */}
+            <div className="absolute inset-x-0 bottom-0 top-1/3 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-            {/* View count - top left */}
+            {/* Watch progress bar (if partially watched) */}
+            {video.watchProgress && video.watchProgress > 0.05 && video.watchProgress < 0.95 && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-30">
+                    <div 
+                        className="h-full bg-red-600 transition-all duration-300"
+                        style={{ width: `${video.watchProgress * 100}%` }}
+                    />
+                </div>
+            )}
+
+            {/* View count - enhanced glassmorphism badge */}
             {(video.views || 0) > 0 && (
-                <div className="absolute top-2 left-2 z-20 bg-black/60 backdrop-blur-sm rounded px-2 py-1">
-                    <p className="text-white text-xs flex items-center">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="absolute top-2.5 left-2.5 z-20 bg-black/70 backdrop-blur-md rounded-lg px-2.5 py-1.5 shadow-lg border border-white/10">
+                    <p className="text-white text-xs font-medium flex items-center">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
@@ -326,14 +335,14 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
                 </div>
             )}
 
-            {/* Like button - top right - show only on card hover */}
-            <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Enhanced like button with animation */}
+            <div className="absolute top-2.5 right-2.5 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-90">
                 <button
                     onClick={handleLike}
-                    className="p-2 rounded-full backdrop-blur-sm transition-all duration-200 bg-black/20 text-gray-300 hover:bg-black/40 hover:text-white"
+                    className="p-2.5 rounded-full backdrop-blur-md transition-all duration-200 bg-black/70 text-gray-300 hover:bg-red-600 hover:text-white shadow-lg border border-white/10 hover:scale-110 active:scale-95"
                 >
                     <svg
-                        className="w-4 h-4"
+                        className="w-4 h-4 transition-transform duration-200 hover:scale-110"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -348,21 +357,25 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
                 </button>
             </div>
 
-            <div className="absolute bottom-0 left-0 w-full p-3 flex items-start space-x-3 z-10">
+            {/* Enhanced bottom info section */}
+            <div className="absolute bottom-0 left-0 w-full p-3.5 flex items-start space-x-3 z-10">
                 <img
                     src={video.uploader?.avatarUrl || video.profilePicUrl || generateAvatarSvg(video.uploader?.username || video.channel || 'U')}
                     alt="Channel profile"
-                    className="w-8 h-8 rounded-full"
+                    className="w-9 h-9 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-200"
                 />
-                <div className="flex-1">
-                    <h3 className="font-semibold text-white text-sm line-clamp-2">
+                <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-white text-sm line-clamp-2 leading-snug group-hover:text-white/95 transition-colors duration-200">
                         {video.title}
                     </h3>
-                    <p className="text-gray-400 text-xs mt-1">
+                    <p className="text-gray-300 text-xs mt-1.5 font-medium group-hover:text-white/80 transition-colors duration-200">
                         {video.uploader?.displayName || video.uploader?.username || video.channel || 'Unknown'}
                     </p>
                 </div>
             </div>
+
+            {/* Subtle glow effect on hover */}
+            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-[inset_0_0_20px_rgba(255,255,255,0.1)]" />
         </div>
     );
 };

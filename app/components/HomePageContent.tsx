@@ -469,14 +469,24 @@ const HomePageContent = () => {
 
     if (loading) {
         return (
-            <div className="flex-1 overflow-y-auto p-6">
-                <CategoryBar 
-                    categories={categories}
-                    activeCategory={activeCategory} 
-                    onSelectCategory={handleSelectCategory} 
-                />
-                <div className="mt-1 flex justify-center items-center h-64">
-                    <div className="text-white text-lg">Loading media...</div>
+            <div className="flex-1">
+                <div className="sticky top-0 z-20 bg-[#0f0f0f] shadow-lg">
+                    <CategoryBar 
+                        categories={categories}
+                        activeCategory={activeCategory} 
+                        onSelectCategory={handleSelectCategory} 
+                    />
+                </div>
+                <div className="mt-2 pt-4 px-6 pb-8">
+                    {/* Skeleton loader grid */}
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4 gap-y-6 w-full">
+                        {[...Array(20)].map((_, i) => (
+                            <div key={i} className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '3/4' }}>
+                                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 animate-pulse" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -484,14 +494,27 @@ const HomePageContent = () => {
 
     if (error) {
         return (
-            <div className="flex-1 overflow-y-auto p-6">
-                <CategoryBar 
-                    categories={categories}
-                    activeCategory={activeCategory} 
-                    onSelectCategory={handleSelectCategory} 
-                />
-                <div className="mt-1 flex justify-center items-center h-64">
-                    <div className="text-red-400 text-lg">{error}</div>
+            <div className="flex-1">
+                <div className="sticky top-0 z-20 bg-[#0f0f0f] shadow-lg">
+                    <CategoryBar 
+                        categories={categories}
+                        activeCategory={activeCategory} 
+                        onSelectCategory={handleSelectCategory} 
+                    />
+                </div>
+                <div className="mt-2 pt-4 px-6 pb-8">
+                    <div className="flex flex-col justify-center items-center h-64 space-y-4">
+                        <svg className="w-16 h-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="text-red-400 text-lg font-medium">{error}</div>
+                        <button 
+                            onClick={() => window.location.reload()} 
+                            className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors duration-200 font-medium"
+                        >
+                            Try Again
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -499,7 +522,7 @@ const HomePageContent = () => {
 
     return (
         <div className="flex-1">
-            <div className="sticky top-0 z-20 bg-[#0f0f0f]">
+            <div className="sticky top-0 z-20 bg-[#0f0f0f] shadow-lg">
             <CategoryBar 
                 categories={categories}
                 activeCategory={activeCategory} 
@@ -507,18 +530,22 @@ const HomePageContent = () => {
             />
             </div>
 
-            <div className="mt-1 pt-1 px-4 pb-6">
-                {/* Preloading indicator for recommended page */}
+            <div className="mt-2 pt-4 px-6 pb-8">
+                {/* Preloading indicator for recommended page - enhanced design */}
                 {isPreloadingRecommended && (
-                    <div className="mb-4 p-3 bg-black/20 rounded-lg border border-white/10">
-                        <div className="flex items-center gap-2 text-white/80 text-sm">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>Preloading recommended page for instant navigation...</span>
+                    <div className="mb-6 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-500/20 backdrop-blur-sm">
+                        <div className="flex items-center gap-3 text-white/90 text-sm">
+                            <div className="relative">
+                                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
+                                <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-pulse"></div>
+                            </div>
+                            <span className="font-medium">Preloading recommended page for instant navigation...</span>
                         </div>
                     </div>
                 )}
                 
-                <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-10 gap-2 gap-y-3 w-full">
+                {/* Enhanced grid with better responsiveness and spacing */}
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-4 gap-y-6 w-full">
                     {videoData.map((video, index) => {
                         const isRowStart = index % gridCols === 0;
                         const showTopSeparator = index >= gridCols && isRowStart;

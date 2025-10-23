@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { createRateLimit } from '@/lib/rate-limit';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/safe-auth';
+import { logger } from '@/lib/logger';
 
 // Rate limiting: 80 requests per minute for recommendations
 const recsRateLimit = createRateLimit({
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
   if (limited) return limited;
 
   try {
-    const session = await auth();
+    const session = await safeAuth();
     const userId = session?.user?.id;
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
@@ -209,11 +210,34 @@ export async function GET(request: NextRequest) {
       const pageItems = merged.slice(startIndex, startIndex + limit);
       const nextCursor = pageItems.length === limit ? pageItems[pageItems.length - 1].id : null;
 
-      return NextResponse.json({ media: pageItems, pagination: { limit, nextCursor, seed } });
+      // Add user like status for each media item - OPTIMIZED: Single query instead of N+1
+      let mediaWithUserLikes = pageItems;
+      if (userId && pageItems.length > 0) {
+        const mediaIds = pageItems.map(item => item.id);
+        const userLikes = await prisma.like.findMany({
+          where: {
+            userId,
+            mediaId: { in: mediaIds }
+          },
+          select: { mediaId: true }
+        });
+        
+        const likedMediaIds = new Set(userLikes.map(like => like.mediaId));
+        mediaWithUserLikes = pageItems.map(item => ({
+          ...item,
+          userLiked: likedMediaIds.has(item.id)
+        }));
+      } else {
+        mediaWithUserLikes = pageItems.map(item => ({ ...item, userLiked: false }));
+      }
+
+      return NextResponse.json({ media: mediaWithUserLikes, pagination: { limit, nextCursor, seed } });
     } catch (dbError) {
-      console.error('Recommendations DB error, serving mock:', dbError);
-      console.error('Database URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
-      console.error('Node ENV:', process.env.NODE_ENV);
+      logger.error('Recommendations DB error, serving fallback mock data', dbError instanceof Error ? dbError : undefined, {
+        component: 'recommendations-api',
+        databaseUrl: process.env.DATABASE_URL ? 'Set' : 'Not set',
+        nodeEnv: process.env.NODE_ENV
+      });
       // Minimal mock fallback (reuse a subset similar to /api/media)
       const mock = [
         {
@@ -282,7 +306,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ media: mock, pagination: { limit: mock.length } });
     }
   } catch (error) {
-    console.error('Recommendations error:', error);
+    logger.error('Recommendations endpoint error', error instanceof Error ? error : undefined, {
+      component: 'recommendations-api'
+    });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

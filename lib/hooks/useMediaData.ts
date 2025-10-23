@@ -21,6 +21,7 @@ interface MediaData {
     likeRecords: number;
     comments: number;
   };
+  userLiked?: boolean; // Whether the current user has liked this media
   relatedMedia?: MediaData[];
 }
 
@@ -80,6 +81,7 @@ export const useMediaData = () => {
         views: m.views,
         likes: m.likes,
         _count: m._count,
+        userLiked: m.userLiked || false,
       }));
       
       // Shuffle the content for variety (Fisher-Yates shuffle)
@@ -105,6 +107,7 @@ export const useMediaData = () => {
               views: item.views,
               likes: item.likes,
               _count: item._count,
+              userLiked: item.userLiked || false,
             } as MediaData;
             apiMediaData.unshift(normalized);
           }

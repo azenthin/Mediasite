@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/safe-auth';
 import { prisma } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('📊 Profile Stats API: Starting request...');
     
-    const session = await auth();
+    const session = await safeAuth();
     const userId = session?.user?.id;
     
     console.log('👤 Profile Stats API: User session:', { userId: userId || 'not authenticated' });
@@ -43,8 +43,12 @@ export async function GET(request: NextRequest) {
         }
       }),
       
-      // Count of subscribers (placeholder - we'll implement subscriptions later)
-      Promise.resolve(0)
+      // Count of subscribers
+      prisma.subscription.count({
+        where: {
+          subscribedToId: userId
+        }
+      })
     ]);
 
     const stats = {

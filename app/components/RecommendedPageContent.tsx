@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ActionButton from './ActionButton';
+import SubscribeButton from './SubscribeButton';
 import { useMediaData } from '@/lib/hooks/useMediaData';
 import { useVideoControls } from '@/lib/hooks/useVideoControls';
 import { useVideoProgress } from '@/lib/hooks/useVideoProgress';
@@ -14,6 +15,7 @@ import { useNavigation } from '@/lib/hooks/useNavigation';
 import { useAnimations } from '@/lib/hooks/useAnimations';
 import VideoTimeBar from './VideoTimeBar';
 import VideoPlayPauseOverlay from './VideoPlayPauseOverlay';
+import CommentSection from './CommentSection';
 
 interface MediaData {
     id: string;
@@ -23,6 +25,7 @@ interface MediaData {
     description?: string;
     thumbnailUrl?: string;
     uploader: {
+        id?: string;
         username: string;
         displayName?: string;
         avatarUrl?: string;
@@ -33,6 +36,7 @@ interface MediaData {
         likeRecords: number;
         comments: number;
     };
+    userLiked?: boolean; // Whether the current user has liked this media
     relatedMedia?: MediaData[];
 }
 
@@ -103,6 +107,112 @@ const RecommendedPageContent = () => {
     // Hover state for media info
     const [isHovering, setIsHovering] = useState(false);
     
+    // Like state management
+    const [likeStates, setLikeStates] = useState<{ [mediaId: string]: { liked: boolean; count: number; pending: boolean } }>({});
+    const pendingRequests = useRef<Set<string>>(new Set());
+    
+    // Comment section state
+    const [isCommentSectionOpen, setIsCommentSectionOpen] = useState(false);
+    
+    // Initialize like states when media data changes
+    React.useEffect(() => {
+        const newLikeStates: { [mediaId: string]: { liked: boolean; count: number; pending: boolean } } = {};
+        mediaData.forEach(media => {
+            newLikeStates[media.id] = {
+                liked: media.userLiked || false,
+                count: media.likes || 0,
+                pending: false
+                    };
+                });
+        setLikeStates(newLikeStates);
+    }, [mediaData]);
+    
+    // Handle like/unlike functionality with YouTube-style instant updates
+    const handleLike = async (mediaId: string) => {
+        const currentState = likeStates[mediaId];
+        const currentLiked = currentState?.liked || false;
+        const currentCount = currentState?.count || 0;
+        
+        const newLiked = !currentLiked;
+        const newCount = currentLiked ? Math.max(0, currentCount - 1) : currentCount + 1;
+        
+        // YouTube-style: Update UI immediately, no pending state
+        setLikeStates(prev => ({
+            ...prev,
+            [mediaId]: {
+                liked: newLiked,
+                count: newCount,
+                pending: false
+            }
+        }));
+        
+        // Debounced API call - only make one API call per 300ms
+        if (pendingRequests.current.has(mediaId)) {
+            return; // Already queued
+        }
+        
+        pendingRequests.current.add(mediaId);
+        
+        // Debounce API calls
+        setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/media/${mediaId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Only update if the server response differs from current state
+                    setLikeStates(prev => {
+                        const current = prev[mediaId];
+                        if (current && (current.liked !== data.liked || current.count !== data.likeCount)) {
+                            return {
+                                ...prev,
+                                [mediaId]: {
+                                    liked: data.liked,
+                                    count: data.likeCount,
+                                    pending: false
+                                }
+                            };
+                        }
+                        return prev;
+                    });
+                    } else {
+                    // Revert on error
+                    setLikeStates(prev => ({
+                        ...prev,
+                        [mediaId]: {
+                            liked: currentLiked,
+                            count: currentCount,
+                            pending: false
+                        }
+                    }));
+                }
+            } catch (error) {
+                // Revert on error
+                setLikeStates(prev => ({
+                    ...prev,
+                    [mediaId]: {
+                        liked: currentLiked,
+                        count: currentCount,
+                        pending: false
+                    }
+                }));
+                console.error('Error toggling like:', error);
+            } finally {
+                pendingRequests.current.delete(mediaId);
+            }
+        }, 300); // 300ms debounce
+    };
+    
+    // Handle comment button click
+    const handleCommentClick = () => {
+        setIsCommentSectionOpen(true);
+    };
+    
     // Reset animation state when video changes
     React.useEffect(() => {
         setAnimationState({ show: false, isPlaying: false });
@@ -149,14 +259,14 @@ const RecommendedPageContent = () => {
         onVerticalNavigation: handleVerticalScroll,
         onHorizontalNavigation: handleHorizontalScroll,
         onVideoSeek: (direction) => {
-            const currentMedia = mediaData[currentMediaIndex];
+                        const currentMedia = mediaData[currentMediaIndex];
                         const allContent = currentMedia ? [currentMedia, ...(currentMedia.relatedMedia || [])] : [];
             const currentContent = allContent[currentRelatedIndex];
             if (currentContent?.type === 'VIDEO' && currentVideoRef.current) {
                 const seekAmount = currentVideoRef.current.duration * 0.1;
                 if (direction === 'left') {
                     currentVideoRef.current.currentTime = Math.max(0, currentVideoRef.current.currentTime - seekAmount);
-                } else {
+                    } else {
                     currentVideoRef.current.currentTime = Math.min(currentVideoRef.current.duration || 0, currentVideoRef.current.currentTime + seekAmount);
                 }
             }
@@ -323,7 +433,7 @@ const RecommendedPageContent = () => {
                                     <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
                                     
                                     {/* Bottom Shadow Overlay for Media Info - Show on hover */}
-                                    <div className={`absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 via-black/15 to-transparent z-50 transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`}></div>
+                                    <div className={`absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 via-black/15 to-transparent z-50 transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`}></div>
                                     
                                     {/* YouTube-style Play/Pause Animation - Only show for user clicks on VIDEO content */}
                                     {currentMedia.type === 'VIDEO' && (
@@ -339,10 +449,10 @@ const RecommendedPageContent = () => {
                                     </div>
                                     
                         {/* Media Info - Show for all media types, positioned above progress bar */}
-                        <div className="absolute bottom-0 left-0 right-0 h-32 flex justify-between items-end z-60 px-2 md:px-4 pb-8">
+                        <div className="absolute bottom-0 left-0 right-0 h-32 flex justify-between items-end z-60 px-3 md:px-4 pb-10 md:pb-8">
                             {/* Video Time Bar - Positioned alongside media info */}
                             {currentMedia.type === 'VIDEO' && (
-                                <div className="absolute bottom-0 left-0 right-0 z-60">
+                                <div className="absolute bottom-0 left-0 right-0 z-60 px-2 md:px-0">
                                     <VideoTimeBar
                                         currentTime={currentTime}
                                         duration={duration}
@@ -355,8 +465,8 @@ const RecommendedPageContent = () => {
                                     />
                                 </div>
                             )}
-                            {/* Title and Creator Info - Show on hover */}
-                            <div className={`flex-1 space-y-1 pr-2 transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`} style={{ transform: 'translateY(-20px)' }}>
+                            {/* Title and Creator Info - Show on hover desktop, always on mobile */}
+                            <div className={`flex-1 space-y-1 pr-2 md:transition-opacity md:duration-300 ${isHovering ? 'md:opacity-100' : 'md:opacity-0'}`} style={{ transform: 'translateY(-24px)' }}>
                                 <h3 className="text-sm md:text-lg font-semibold text-white line-clamp-2" style={{ textShadow: '0 0 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,0,0,0.4)' }}>{currentMedia.title}</h3>
                                 <div className="flex items-center space-x-2">
                                     <img 
@@ -368,18 +478,34 @@ const RecommendedPageContent = () => {
                                     <p className="text-gray-200 text-xs md:text-sm" style={{ textShadow: '0 0 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,0,0,0.4)' }}>{currentMedia.uploader.displayName || currentMedia.uploader.username}</p>
                                 </div>
                             </div>
-                            {/* Action Buttons - Always visible */}
-                            <div className="flex flex-col space-y-2 md:space-y-4" style={{ transform: 'translateY(-16px)' }}>
+                            {/* Action Buttons - Always visible, optimized for mobile */}
+                            <div className="flex flex-col space-y-1 md:space-y-3" style={{ transform: 'translateY(-20px)' }}>
+                                {/* Subscribe Button */}
+                                {currentMedia.uploader.id && (
+                                    <div className="mb-1 md:mb-2">
+                                        <SubscribeButton
+                                            userId={currentMedia.uploader.id}
+                                            username={currentMedia.uploader.username}
+                                            variant="compact"
+                                            className="w-full text-[10px]"
+                                        />
+                                    </div>
+                                )}
+                                
                                 <ActionButton
-                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
-                                    label={currentMedia.likes?.toString() || '0'}
+                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
+                                    label={likeStates[currentMedia.id]?.count?.toString() || currentMedia.likes?.toString() || '0'}
+                                    onClick={() => handleLike(currentMedia.id)}
+                                    isActive={likeStates[currentMedia.id]?.liked || false}
+                                    activeColor="text-red-500"
                                 />
                                 <ActionButton
-                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
+                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>}
                                     label={currentMedia._count?.comments?.toString() || '0'}
+                                    onClick={handleCommentClick}
                                 />
                                 <ActionButton
-                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
+                                    icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.48 1.25.79 2.04.79 2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4c0 .24.04.47.09.7L7.05 11.23c-.54-.48-1.25-.79-2.04-.79-2.21 0-4 1.79-4 4s1.79 4 4 4c.79 0 1.5-.31 2.04-.79l7.05 4.11c-.05.23-.09.46-.09.7 0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4zM18 4c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm-12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm12 9c1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>}
                                     label="Share"
                                 />
                             </div>
@@ -389,6 +515,15 @@ const RecommendedPageContent = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Comment Section */}
+            <CommentSection
+                isOpen={isCommentSectionOpen}
+                onClose={() => setIsCommentSectionOpen(false)}
+                mediaId={currentMedia.id}
+                mediaTitle={currentMedia.title}
+                commentCount={currentMedia._count?.comments || 0}
+            />
         </div>
     );
 };

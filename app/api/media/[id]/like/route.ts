@@ -45,41 +45,67 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (existingLike) {
       // Unlike - remove the like
-      await prisma.like.delete({
-        where: {
-          id: existingLike.id
-        }
-      });
-      console.log('💔 Like API: Unliked media');
+      try {
+        await prisma.like.delete({
+          where: {
+            id: existingLike.id
+          }
+        });
+        console.log('💔 Like API: Unliked media');
+      } catch (deleteError) {
+        console.log('⚠️ Like API: Like record already deleted, continuing...');
+        // Record might have been deleted by another request, continue as if unliked
+      }
       
-      // Get updated count
-      const likeCount = await prisma.like.count({
-        where: { mediaId }
+      // Decrement the media's likes count
+      const updatedMedia = await prisma.media.update({
+        where: { id: mediaId },
+        data: {
+          likes: {
+            decrement: 1
+          }
+        },
+        select: { likes: true }
       });
 
       return NextResponse.json({ 
         liked: false, 
-        likeCount,
+        likeCount: updatedMedia.likes,
         message: 'Media unliked' 
       });
     } else {
       // Like - add new like
-      await prisma.like.create({
-        data: {
-          userId,
-          mediaId
+      try {
+        await prisma.like.create({
+          data: {
+            userId,
+            mediaId
+          }
+        });
+        console.log('❤️ Like API: Liked media');
+      } catch (createError: any) {
+        // Handle unique constraint violation (user already liked this media)
+        if (createError.code === 'P2002') {
+          console.log('⚠️ Like API: Like already exists, continuing...');
+        } else {
+          throw createError; // Re-throw other errors
         }
-      });
-      console.log('❤️ Like API: Liked media');
+      }
 
-      // Get updated count
-      const likeCount = await prisma.like.count({
-        where: { mediaId }
+      // Increment the media's likes count
+      const updatedMedia = await prisma.media.update({
+        where: { id: mediaId },
+        data: {
+          likes: {
+            increment: 1
+          }
+        },
+        select: { likes: true }
       });
 
       return NextResponse.json({ 
         liked: true, 
-        likeCount,
+        likeCount: updatedMedia.likes,
         message: 'Media liked' 
       });
     }

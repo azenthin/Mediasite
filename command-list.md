@@ -7,6 +7,21 @@
 npm run dev
 ```
 
+**Run Tests**
+```bash
+npm test
+```
+
+**Run Tests Once**
+```bash
+npm run test:ci
+```
+
+**Check Test Coverage**
+```bash
+npm run test:coverage
+```
+
 **Kill All Servers**
 ```bash
 taskkill /f /im node.exe

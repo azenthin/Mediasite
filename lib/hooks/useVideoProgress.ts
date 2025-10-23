@@ -13,40 +13,54 @@ export const useVideoProgress = ({ videoRef, isPlaying }: UseVideoProgressProps)
   const [progress, setProgress] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   const [seekTime, setSeekTime] = useState(0);
+  
+  const animationFrameRef = useRef<number>();
+  const lastUpdateTime = useRef<number>(0);
 
-  // Update progress using video timeupdate event for real-time updates
-  useEffect(() => {
+  // Smooth progress update using requestAnimationFrame with throttling
+  const updateProgress = useCallback(() => {
+    if (!videoRef.current || isSeeking) return;
+
+    const now = performance.now();
+    // Throttle updates to 60fps for smooth animation
+    if (now - lastUpdateTime.current < 50) {
+      animationFrameRef.current = requestAnimationFrame(updateProgress);
+      return;
+    }
+    lastUpdateTime.current = now;
+
     const video = videoRef.current;
-    if (!video) return;
+    if (video.duration && !isNaN(video.duration)) {
+      const current = video.currentTime;
+      const total = video.duration;
+      const progressValue = (current / total) * 100;
 
-    const handleTimeUpdate = () => {
-      if (isSeeking) return; // Don't update during seeking animation
-      
-      if (video.duration && !isNaN(video.duration)) {
-        const current = video.currentTime;
-        const total = video.duration;
-        const progressValue = (current / total) * 100;
+      setCurrentTime(current);
+      setDuration(total);
+      setProgress(progressValue);
+    }
 
-        setCurrentTime(current);
-        setDuration(total);
-        setProgress(progressValue);
+    if (isPlaying) {
+      animationFrameRef.current = requestAnimationFrame(updateProgress);
+    }
+  }, [videoRef, isPlaying, isSeeking]);
+
+  // Start/stop progress tracking based on play state
+  useEffect(() => {
+    if (isPlaying && !isSeeking) {
+      updateProgress();
+    } else {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
-    };
-
-    const handleLoadedMetadata = () => {
-      if (video.duration && !isNaN(video.duration)) {
-        setDuration(video.duration);
-      }
-    };
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    }
 
     return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
-  }, [videoRef, isSeeking]);
+  }, [isPlaying, isSeeking, updateProgress]);
 
   // Handle seeking
   const handleSeek = useCallback((clickX: number, barWidth: number) => {
@@ -58,36 +72,14 @@ export const useVideoProgress = ({ videoRef, isPlaying }: UseVideoProgressProps)
     setIsSeeking(true);
     setSeekTime(newTime);
     
-    // Smooth seek animation
-    const startTime = currentTime;
-    const endTime = newTime;
-    const duration_ms = 200; // 200ms smooth seek animation
-    const startTimestamp = performance.now();
-
-    const animateSeek = (timestamp: number) => {
-      const elapsed = timestamp - startTimestamp;
-      const progress = Math.min(elapsed / duration_ms, 1);
-      
-      // Easing function for smooth animation
-      const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-      const currentSeekTime = startTime + (endTime - startTime) * easeOutCubic;
-      
-      setCurrentTime(currentSeekTime);
-      setProgress((currentSeekTime / duration) * 100);
-      
-      if (progress < 1) {
-        requestAnimationFrame(animateSeek);
-      } else {
-        // Final seek to exact position
-        if (videoRef.current) {
-          videoRef.current.currentTime = newTime;
-        }
-        setIsSeeking(false);
-        setSeekTime(0);
-      }
-    };
-    
-    requestAnimationFrame(animateSeek);
+    // Instant seek like YouTube
+    if (videoRef.current) {
+      videoRef.current.currentTime = newTime;
+    }
+    setCurrentTime(newTime);
+    setProgress((newTime / duration) * 100);
+    setIsSeeking(false);
+    setSeekTime(0);
   }, [videoRef, duration, currentTime]);
 
   // Handle mouse/touch events for seeking

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/safe-auth';
 import { prisma } from '@/lib/database';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('❤️ Profile Liked API: Starting request...');
     
-    const session = await auth();
+    const session = await safeAuth();
     const userId = session?.user?.id;
     
     console.log('👤 Profile Liked API: User session:', { userId: userId || 'not authenticated' });

@@ -1,0 +1,5 @@
+[33m816ee8a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix progress bar updates and improve styling
+[33m7a08cbb[m Fix TypeScript error: Add null check for videoRef.current in useVideoProgress
+[33m932e36b[m Implement hover-based media info with improved visibility and styling
+[33m9cece9b[m Restore desktop functionality: ensure full desktop experience with horizontal/vertical navigation, hide mobile indicators on desktop
+[33meb5b207[m Fix touch system for desktop and mobile: responsive behavior, different functionality for each platform

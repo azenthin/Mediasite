@@ -1,4 +1,4 @@
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
@@ -29,7 +29,7 @@ declare module "next-auth" {
 
 
 
-export const authOptions: NextAuthConfig = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -113,38 +113,67 @@ export const authOptions: NextAuthConfig = {
       }
       return true;
     },
-    async jwt({ token, user, account }: any) {
-      if (user) {
-        token.id = user.id;
-        token.username = user.username;
-        token.displayName = user.displayName;
-        token.avatarUrl = user.avatarUrl;
+    async jwt({ token, user, account, trigger }: any) {
+      // Handle JWT decryption errors gracefully
+      try {
+        if (user) {
+          token.id = user.id;
+          token.username = user.username;
+          token.displayName = user.displayName;
+          token.avatarUrl = user.avatarUrl;
+        }
+        return token;
+      } catch (error: any) {
+        // If JWT decryption fails, return null to clear invalid session
+        if (error.message?.includes('decryption')) {
+          return null;
+        }
+        throw error;
       }
-      return token;
     },
     async session({ session, token }: any) {
-      if (token) {
-        // Always fetch fresh user data to get updated avatarUrl
-        const freshUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { id: true, email: true, username: true, displayName: true, avatarUrl: true }
-        });
-        
-        if (freshUser) {
-          session.user.id = freshUser.id;
-          session.user.email = freshUser.email;
-          session.user.username = freshUser.username;
-          session.user.displayName = freshUser.displayName;
-          session.user.avatarUrl = freshUser.avatarUrl;
-        } else {
-          // Fallback to token data
-          session.user.id = token.id as string;
-          session.user.username = token.username as string;
-          session.user.displayName = token.displayName as string;
-          session.user.avatarUrl = token.avatarUrl as string;
-        }
+      // Handle missing/invalid token gracefully
+      if (!token || !token.id) {
+        return session; // Return empty session instead of null
       }
-      return session;
+      
+      try {
+        if (token) {
+          // Always fetch fresh user data to get updated avatarUrl
+          const freshUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { id: true, email: true, username: true, displayName: true, avatarUrl: true }
+          });
+          
+          if (freshUser) {
+            session.user = {
+              id: freshUser.id,
+              email: freshUser.email,
+              username: freshUser.username,
+              displayName: freshUser.displayName || undefined,
+              avatarUrl: freshUser.avatarUrl || undefined,
+            };
+          } else {
+            // Fallback to token data
+            session.user = {
+              id: token.id as string,
+              email: token.email as string,
+              username: token.username as string,
+              displayName: token.displayName as string,
+              avatarUrl: token.avatarUrl as string,
+            };
+          }
+        }
+        return session;
+      } catch (error) {
+        // Return session as-is on any error
+        return session;
+      }
+    }
+  },
+  events: {
+    async signOut() {
+      // Clear any cached data on sign out
     }
   },
   pages: {
@@ -161,4 +190,4 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return bcrypt.compare(password, hashedPassword);
 }
 
-export const { auth, handlers: { GET, POST } } = NextAuth(authOptions); 
+export default NextAuth(authOptions); 

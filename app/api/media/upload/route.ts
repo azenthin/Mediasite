@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/safe-auth';
 import { prisma } from '@/lib/database';
 import { z } from 'zod';
 import { sanitizeForDisplay } from '@/lib/sanitize';
+import { validateFile, validateFileHeader, sanitizeFilename } from '@/lib/file-validation';
+import { validateCSRFMiddleware, csrfErrorResponse } from '@/lib/csrf';
+import { logger } from '@/lib/logger';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
@@ -32,14 +35,23 @@ async function saveFileLocally(file: Buffer, fileName: string): Promise<string> 
 }
 
 export async function POST(request: NextRequest) {
+  let userId: string | undefined;
+  
   try {
-    const session = await auth();
+    const session = await safeAuth();
+    userId = session?.user?.id;
     
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // === CSRF PROTECTION ===
+    const csrfValidation = await validateCSRFMiddleware(request, session.user.id);
+    if (!csrfValidation.valid) {
+      return csrfErrorResponse(csrfValidation.error || 'CSRF validation failed');
     }
 
     const formData = await request.formData();
@@ -53,6 +65,46 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // === COMPREHENSIVE FILE VALIDATION ===
+    // Step 1: Basic validation (size, type, extension)
+    const basicValidation = await validateFile(file);
+    if (!basicValidation.valid) {
+      logger.warn('File validation failed', {
+        userId: session.user.id,
+        fileName: file.name,
+        error: basicValidation.error,
+      });
+      return NextResponse.json(
+        { error: basicValidation.error || 'Invalid file' },
+        { status: 400 }
+      );
+    }
+
+    // Step 2: Magic byte validation (prevents MIME spoofing)
+    const headerValidation = await validateFileHeader(file);
+    if (!headerValidation.valid) {
+      logger.warn('File header validation failed', {
+        userId: session.user.id,
+        fileName: file.name,
+        error: headerValidation.error,
+      });
+      return NextResponse.json(
+        { error: headerValidation.error || 'Invalid file format' },
+        { status: 400 }
+      );
+    }
+
+    // Step 3: Sanitize filename (prevents path traversal attacks)
+    const safeFileName = sanitizeFilename(file.name);
+    
+    logger.info('File validation passed', {
+      userId: session.user.id,
+      fileName: file.name,
+      safeFileName,
+      fileType: basicValidation.fileType,
+      size: file.size,
+    });
 
     // Parse metadata
     const metadataObj = JSON.parse(metadata);
@@ -68,44 +120,17 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Enhanced file type validation
-    const allowedMimeTypes = [
-        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
-        'image/jpeg', 'image/png', 'image/webp', 'image/gif'
-    ];
+    // Use validated file type from file-validation system
+    const fileType = basicValidation.fileType || 'image';
     
-    if (!allowedMimeTypes.includes(file.type)) {
-        return NextResponse.json({ 
-            error: 'Invalid file type. Only MP4, WebM, OGG, QuickTime videos and JPEG, PNG, WebP, GIF images are allowed.' 
-        }, { status: 400 });
-    }
-
-    // File size validation (100MB max for videos, 10MB for images)
-    const maxSize = file.type.startsWith('video/') ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-        const maxSizeMB = maxSize / (1024 * 1024);
-        return NextResponse.json({ 
-            error: `File too large. Maximum size: ${maxSizeMB}MB for ${file.type.startsWith('video/') ? 'videos' : 'images'}` 
-        }, { status: 400 });
-    }
-
-    // Determine file type
-    const isVideo = file.type.startsWith('video/');
-    const isAudio = file.type.startsWith('audio/');
-    const isImage = file.type.startsWith('image/');
-    
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop() || 'bin';
-    const fileName = `${timestamp}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
-    
-    // Save file locally
-    const fileUrl = await saveFileLocally(buffer, fileName);
+    // Save file locally with sanitized filename
+    const fileUrl = await saveFileLocally(buffer, safeFileName);
     
     // Determine media type for database
-    let mediaType = 'IMAGE';
-    if (isVideo) mediaType = 'VIDEO';
-    else if (isAudio) mediaType = 'AUDIO';
+    let mediaType: 'VIDEO' | 'IMAGE' | 'AUDIO' = 'IMAGE';
+    if (fileType === 'video') mediaType = 'VIDEO';
+    else if (fileType === 'audio') mediaType = 'AUDIO';
+    else if (fileType === 'image') mediaType = 'IMAGE';
 
     // Save to database
     const media = await prisma.media.create({
@@ -134,13 +159,24 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    logger.info('Media uploaded successfully', {
+      userId: session.user.id,
+      mediaId: media.id,
+      title: media.title,
+      type: media.type,
+    });
+
     return NextResponse.json({
       message: 'Media uploaded successfully',
       media
     }, { status: 201 });
 
   } catch (error) {
-    console.error('Upload error:', error);
+    logger.error(
+      'Upload error',
+      error instanceof Error ? error : undefined,
+      { userId }
+    );
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
