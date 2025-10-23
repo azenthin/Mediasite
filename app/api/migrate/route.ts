@@ -18,25 +18,31 @@ export async function GET(request: NextRequest) {
 
     console.log('🔄 Starting database migration...');
     
-    // Check if Comment table has userId column (old schema)
-    const checkColumn = await prisma.$queryRaw<Array<{ column_name: string }>>`
+    // Check if Comment table has authorId column (needs to be userId)
+    const checkAuthorId = await prisma.$queryRaw<Array<{ column_name: string }>>`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'Comment' AND column_name = 'authorId'
+    `;
+    
+    const checkUserId = await prisma.$queryRaw<Array<{ column_name: string }>>`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'Comment' AND column_name = 'userId'
     `;
     
-    if (checkColumn.length > 0) {
-      console.log('📝 Found userId column, renaming to authorId...');
+    if (checkAuthorId.length > 0 && checkUserId.length === 0) {
+      console.log('📝 Found authorId column, renaming to userId...');
       
-      // Rename userId to authorId
+      // Rename authorId to userId (for @map compatibility)
       await prisma.$executeRaw`
         ALTER TABLE "Comment" 
-        RENAME COLUMN "userId" TO "authorId"
+        RENAME COLUMN "authorId" TO "userId"
       `;
       
-      console.log('✅ Column renamed successfully!');
+      console.log('✅ Column renamed to userId!');
     } else {
-      console.log('✓ Schema already up to date (authorId column exists)');
+      console.log('✓ Schema already has userId column');
     }
     
     // Create any missing tables/columns
@@ -48,7 +54,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       message: 'Database schema migrated successfully! All data preserved.',
-      columnRenamed: checkColumn.length > 0
+      columnRenamed: checkAuthorId.length > 0
     });
     
   } catch (error) {
