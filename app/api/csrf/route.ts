@@ -3,6 +3,9 @@ import { generateCSRFToken, storeCSRFToken } from '@/lib/csrf';
 import { safeAuth } from '@/lib/safe-auth';
 import { logger } from '@/lib/logger';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/csrf
  * Generate and return a CSRF token for the current session
