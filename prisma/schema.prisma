@@ -117,8 +117,8 @@ model Comment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  authorId  String
+  // Relations - Using authorId field name that maps to userId column in database
+  authorId  String   @map("userId")
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   mediaId   String
   media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
