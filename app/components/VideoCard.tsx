@@ -231,6 +231,14 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
         }
     };
 
+    const handleProfileClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const username = video.uploader?.username;
+        if (username) {
+            router.push(`/profile/${username}`);
+        }
+    };
+
 
 
     const handleMouseEnter = () => {
@@ -362,13 +370,17 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
                 <img
                     src={video.uploader?.avatarUrl || video.profilePicUrl || generateAvatarSvg(video.uploader?.username || video.channel || 'U')}
                     alt="Channel profile"
-                    className="w-9 h-9 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-200"
+                    onClick={handleProfileClick}
+                    className="w-9 h-9 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-200 cursor-pointer hover:ring-white/60"
                 />
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-white text-sm line-clamp-2 leading-snug group-hover:text-white/95 transition-colors duration-200">
                         {video.title}
                     </h3>
-                    <p className="text-gray-300 text-xs mt-1.5 font-medium group-hover:text-white/80 transition-colors duration-200">
+                    <p 
+                        onClick={handleProfileClick}
+                        className="text-gray-300 text-xs mt-1.5 font-medium group-hover:text-white/80 transition-colors duration-200 cursor-pointer hover:underline"
+                    >
                         {video.uploader?.displayName || video.uploader?.username || video.channel || 'Unknown'}
                     </p>
                 </div>
