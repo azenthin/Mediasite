@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import ActionButton from './ActionButton';
 import { useMediaData } from '@/lib/hooks/useMediaData';
@@ -44,6 +45,7 @@ interface MediaData {
 // YouTube-style: No static data, everything comes from API
 
 const RecommendedPageContent = () => {
+    const router = useRouter();
     const playerContainerRef = useRef<HTMLDivElement | null>(null);
     
     // Use custom hooks for different functionalities
@@ -471,10 +473,23 @@ const RecommendedPageContent = () => {
                                     <img 
                                         src={currentMedia.uploader.avatarUrl || `https://placehold.co/40x40/555555/ffffff?text=${currentMedia.uploader.username.charAt(0).toUpperCase()}`} 
                                         alt="Channel profile" 
-                                        className="w-6 h-6 md:w-8 md:h-8 rounded-full" 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            router.push(`/profile/${currentMedia.uploader.username}`);
+                                        }}
+                                        className="w-6 h-6 md:w-8 md:h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-white/60 transition-all" 
                                         style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.6)) drop-shadow(0 0 8px rgba(0,0,0,0.4))' }}
                                     />
-                                    <p className="text-gray-200 text-xs md:text-sm" style={{ textShadow: '0 0 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,0,0,0.4)' }}>{currentMedia.uploader.displayName || currentMedia.uploader.username}</p>
+                                    <p 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            router.push(`/profile/${currentMedia.uploader.username}`);
+                                        }}
+                                        className="text-gray-200 text-xs md:text-sm cursor-pointer hover:underline" 
+                                        style={{ textShadow: '0 0 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,0,0,0.4)' }}
+                                    >
+                                        {currentMedia.uploader.displayName || currentMedia.uploader.username}
+                                    </p>
                                 </div>
                             </div>
                             {/* Action Buttons - Always visible, optimized for mobile */}
