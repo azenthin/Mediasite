@@ -25,6 +25,7 @@ const AIPageContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const [youtubeToken, setYoutubeToken] = useState<string | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<Array<{role: string, content: string}>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check for OAuth tokens on mount
@@ -82,6 +83,9 @@ const AIPageContent: React.FC = () => {
 
     // Add user message
     addMessage('user', userInput);
+    
+    // Add to conversation history
+    const newHistory = [...conversationHistory, { role: 'user', content: userInput }];
 
     try {
       const response = await fetch('/api/ai/playlist', {
@@ -89,15 +93,32 @@ const AIPageContent: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: userInput }),
+        body: JSON.stringify({ 
+          prompt: userInput,
+          conversationHistory: newHistory
+        }),
       });
 
       const data = await response.json();
 
-      if (data.success && data.playlist) {
-        addMessage('playlist', `Here's your "${userInput}" playlist:`, data.playlist);
+      if (data.success) {
+        if (data.type === 'conversation') {
+          // AI wants to have a conversation
+          addMessage('ai', data.message);
+          setConversationHistory([...newHistory, { role: 'assistant', content: data.message }]);
+        } else if (data.type === 'playlist' && data.playlist) {
+          // AI generated a playlist
+          const playlistMessage = data.message || `Here's your "${userInput}" playlist:`;
+          addMessage('playlist', playlistMessage, data.playlist);
+          setConversationHistory([...newHistory, { 
+            role: 'assistant', 
+            content: `Generated a playlist with ${data.playlist.length} songs` 
+          }]);
+        } else {
+          addMessage('error', data.error || 'Unexpected response format');
+        }
       } else {
-        addMessage('error', data.error || 'Failed to generate playlist');
+        addMessage('error', data.error || 'Failed to generate response');
       }
     } catch (error) {
       addMessage('error', 'Failed to connect to AI service');
