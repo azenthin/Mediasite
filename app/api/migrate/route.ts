@@ -18,6 +18,14 @@ export async function GET(request: NextRequest) {
 
     console.log('🔄 Starting database migration...');
     
+    // First, check what columns exist
+    const allColumns = await prisma.$queryRaw<Array<{ column_name: string }>>`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'Comment'
+    `;
+    console.log('📋 Comment table columns:', allColumns.map(c => c.column_name));
+    
     // Check if Comment table has authorId column (needs to be userId)
     const checkAuthorId = await prisma.$queryRaw<Array<{ column_name: string }>>`
       SELECT column_name 
