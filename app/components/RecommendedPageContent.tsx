@@ -3,7 +3,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ActionButton from './ActionButton';
-import SubscribeButton from './SubscribeButton';
 import { useMediaData } from '@/lib/hooks/useMediaData';
 import { useVideoControls } from '@/lib/hooks/useVideoControls';
 import { useVideoProgress } from '@/lib/hooks/useVideoProgress';
@@ -480,18 +479,6 @@ const RecommendedPageContent = () => {
                             </div>
                             {/* Action Buttons - Always visible, optimized for mobile */}
                             <div className="flex flex-col space-y-1 md:space-y-3" style={{ transform: 'translateY(-20px)' }}>
-                                {/* Subscribe Button */}
-                                {currentMedia.uploader.id && (
-                                    <div className="mb-1 md:mb-2">
-                                        <SubscribeButton
-                                            userId={currentMedia.uploader.id}
-                                            username={currentMedia.uploader.username}
-                                            variant="compact"
-                                            className="w-full text-[10px]"
-                                        />
-                                    </div>
-                                )}
-                                
                                 <ActionButton
                                     icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-6 md:w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5A5.5 5.5 0 017.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3A5.5 5.5 0 0122 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>}
                                     label={likeStates[currentMedia.id]?.count?.toString() || currentMedia.likes?.toString() || '0'}
