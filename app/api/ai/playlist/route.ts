@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     );
   }
   
-  console.log('✅ OpenAI API key loaded, length:', apiKey.length);
+  // API key present; avoid logging secrets or derived values in production
   
   const openai = new OpenAI({
     apiKey: apiKey,
