@@ -7,10 +7,12 @@ interface NavbarProps {
     navbarBgColor: string;
     buttonTextColor: string;
     linkColor: string;
+    showSearch?: boolean;
+    pageTitle?: string;
 }
 
 // Main Navbar component
-const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
+const Navbar = ({ navbarBgColor, buttonTextColor, linkColor, showSearch = true, pageTitle }: NavbarProps) => {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -51,31 +53,40 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor }: NavbarProps) => {
                     </div>
                 </div>
                 {/* Center: Search Bar (absolute true-center; responsive size) */}
+                {showSearch && (
                 <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-2 md:px-3 min-w-0 w-[20rem] md:w-[40rem]">
                     {/* Full input visible until very narrow (<440px) */}
-                    <div className="flex w-full h-8 md:h-10 rounded-full overflow-hidden border backdrop-blur-sm max-[440px]:hidden" style={{ borderColor: 'var(--light-up-color)', backgroundColor: 'rgba(20,20,20,0.9)' }}>
+                    <div className="flex w-full h-8 md:h-9 rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] max-[440px]:hidden">
                         <input
                             type="search"
                             id="navbar-search"
                             name="search"
                             placeholder="Search"
                             aria-label="Search for videos, images, and audio content"
-                            className="search-input w-full h-full px-2 md:px-4 py-0 outline-none placeholder-white/60 caret-white text-xs md:text-sm text-white bg-transparent"
+                            className="search-input w-full h-full px-3 md:px-4 py-0 outline-none placeholder-white/60 caret-white text-xs md:text-sm text-white bg-transparent"
                             style={{ color: linkColor }}
                         />
-                        <button aria-label="Search" className="text-white px-2 md:px-4 h-full font-semibold outline-none flex items-center bg-transparent hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500" style={{ color: linkColor }}>
+                        <button aria-label="Search" className="text-white px-3 md:px-4 h-full font-semibold outline-none flex items-center bg-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30" style={{ color: linkColor }}>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </button>
                     </div>
                     {/* Compact icon when < 440px */}
-                    <button aria-label="Open search" className="hidden max-[440px]:inline-flex p-2 rounded-full hover:bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button aria-label="Open search" className="hidden max-[440px]:inline-flex p-2 rounded-full text-white focus:outline-none focus:ring-2 focus:ring-white/30">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </button>
                 </div>
+                )}
+                                {!showSearch && pageTitle && (
+                                    <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-2">
+                                        <div className="text-sm md:text-base font-semibold text-white/90" style={{ color: linkColor }}>
+                                            {pageTitle}
+                                        </div>
+                                    </div>
+                                )}
                 {/* Right: Auth Buttons */}
                 <div className="flex items-center space-x-1 md:space-x-2 shrink-0" role="group" aria-label="Authentication">
                     {session ? (

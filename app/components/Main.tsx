@@ -31,12 +31,14 @@ const App = ({ children }: AppProps) => {
 
     return (
         <>
-            <div className="flex flex-col min-h-screen h-auto" style={{ backgroundColor: colors.siteBgColor }}>
-                <div className="sticky top-0 z-30 md:block" id="navbar-container">
-                  <Navbar
+                        <div className="flex flex-col min-h-screen h-auto pt-14" style={{ backgroundColor: colors.siteBgColor }}>
+                                <div className="fixed top-0 left-0 right-0 z-30 md:block" id="navbar-container">
+                                                        <Navbar
                     navbarBgColor={colors.navbarBgColor}
                     buttonTextColor={colors.buttonTextColor}
-                    linkColor={colors.linkColor}
+                                        linkColor={colors.linkColor}
+                                                            showSearch={!pathname?.startsWith('/ai')}
+                                                            pageTitle={pathname?.startsWith('/ai') ? 'AI Playlist Generator' : undefined}
                   />
                 </div>
 

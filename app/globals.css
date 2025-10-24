@@ -63,11 +63,19 @@ body {
 
 /* Harmonize search placeholder to match brand */
 /* Placeholder aesthetics tuned: slimmer, clean, neutral */
+/* Sharper, higher-quality search placeholder */
+input.search-input {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
 input.search-input::placeholder {
     font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
-    font-weight: 400;
-    font-size: 0.92rem;
-    letter-spacing: 0.15px;
+    font-weight: 400;            /* revert to normal weight for slimmer look */
+    font-size: inherit;          /* match the input size for crisp rendering */
+    letter-spacing: 0.06px;      /* tiny tracking to aid clarity without bulk */
+    line-height: 1.25;           /* stabilize baseline across browsers */
 }
 
 /* Enhanced animations for UI upgrades */
@@ -125,4 +133,15 @@ input.search-input::placeholder {
 *:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.5);
     outline-offset: 2px;
+}
+
+/* Subtle animation keyframes used on AI page */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
