@@ -18,6 +18,7 @@ interface UseTouchGesturesProps {
   onVerticalSwipe: (direction: 'up' | 'down') => void;
   onHorizontalSwipe: (direction: 'left' | 'right') => void;
   onVideoTap: () => void;
+  onVideoDoubleTap?: (direction: 'left' | 'right') => void; // mobile double-tap seek
 }
 
 export const useTouchGestures = ({
@@ -27,6 +28,7 @@ export const useTouchGestures = ({
   onVerticalSwipe,
   onHorizontalSwipe,
   onVideoTap,
+  onVideoDoubleTap,
 }: UseTouchGesturesProps) => {
   // Touch state
   const [touchStart, setTouchStart] = useState<TouchPosition | null>(null);
@@ -35,8 +37,15 @@ export const useTouchGestures = ({
   const [videoTouchStart, setVideoTouchStart] = useState<VideoTouchStart | null>(null);
 
   // Constants
-  const minSwipeDistance = 30;
-  const videoTapThreshold = 200; // Max time for tap vs hold (ms)
+  const minSwipeDistance = isImmersiveMode ? 50 : 30; // tougher on mobile to avoid false triggers
+  const swipeAngleBias = 1.25; // require vertical swipes to be clearly more vertical than horizontal
+  const videoTapThreshold = 220; // Max time for tap vs hold (ms)
+  const doubleTapThreshold = 300; // ms between taps
+  const doubleTapMoveTolerance = 30; // px
+
+  // Double-tap tracking
+  const lastTapTimeRef = useRef<number>(0);
+  const lastTapPosRef = useRef<TouchPosition | null>(null);
 
   // Touch handling - different behavior for desktop vs mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -70,7 +79,7 @@ export const useTouchGestures = ({
     // Different behavior for mobile vs desktop
     if (isImmersiveMode) {
       // Mobile: YouTube Shorts style - only vertical swipes for video navigation
-      if (Math.abs(distanceY) > Math.abs(distanceX)) {
+      if (Math.abs(distanceY) > Math.abs(distanceX) * swipeAngleBias) {
         if (isUpSwipe && currentMediaIndex < mediaDataLength - 1) {
           // Swipe up - next video
           onVerticalSwipe('down');
@@ -81,7 +90,7 @@ export const useTouchGestures = ({
       }
     } else {
       // Desktop: Full functionality - both vertical and horizontal navigation
-      if (Math.abs(distanceY) > Math.abs(distanceX)) {
+      if (Math.abs(distanceY) > Math.abs(distanceX) * swipeAngleBias) {
         // Vertical swipes - video navigation
         if (isUpSwipe && currentMediaIndex < mediaDataLength - 1) {
           onVerticalSwipe('down');
@@ -155,7 +164,25 @@ export const useTouchGestures = ({
     
     // If it's a quick tap (not a swipe)
     if (touchDuration < videoTapThreshold && distanceX < 10 && distanceY < 10) {
-      onVideoTap();
+      const now = Date.now();
+      const lastTime = lastTapTimeRef.current;
+      const lastPos = lastTapPosRef.current;
+      const isDouble = now - lastTime < doubleTapThreshold && lastPos &&
+        Math.abs(lastPos.x - touchEndX) < doubleTapMoveTolerance &&
+        Math.abs(lastPos.y - touchEndY) < doubleTapMoveTolerance;
+
+      if (isDouble && onVideoDoubleTap) {
+        const screenMid = (typeof window !== 'undefined') ? window.innerWidth / 2 : 0;
+        const direction = touchEndX < screenMid ? 'left' : 'right';
+        onVideoDoubleTap(direction);
+        // reset last tap to avoid triple processing
+        lastTapTimeRef.current = 0;
+        lastTapPosRef.current = null;
+      } else {
+        onVideoTap();
+        lastTapTimeRef.current = now;
+        lastTapPosRef.current = { x: touchEndX, y: touchEndY };
+      }
     }
     
     setVideoTouchStart(null);

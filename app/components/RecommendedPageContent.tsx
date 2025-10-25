@@ -247,6 +247,16 @@ const RecommendedPageContent = () => {
         onVerticalSwipe: handleVerticalScroll,
         onHorizontalSwipe: handleHorizontalScroll,
         onVideoTap: triggerVideoPlayPause,
+        onVideoDoubleTap: (direction) => {
+            if (!currentVideoRef.current || !currentVideoRef.current.duration) return;
+            const vid = currentVideoRef.current;
+            const seekBy = vid.duration * 0.1; // 10%
+            if (direction === 'left') {
+                vid.currentTime = Math.max(0, vid.currentTime - seekBy);
+            } else {
+                vid.currentTime = Math.min(vid.duration, vid.currentTime + seekBy);
+            }
+        },
     });
     
 
@@ -344,12 +354,12 @@ const RecommendedPageContent = () => {
         >
             <div className={`sticky z-[300] relative w-full flex items-center justify-center overflow-visible transition-all duration-300 ${
                 isImmersiveMode 
-                    ? 'top-0 h-screen pt-0 pb-0' 
+                    ? 'top-0 h-[100dvh] pt-0 pb-[env(safe-area-inset-bottom)]' 
                     : 'top-14 h-[calc(100vh-100px)] pt-2 md:pt-4'
             }`}>
-                <div ref={playerContainerRef} className={`h-full w-full overflow-hidden bg-[#0b0b0b] relative z-[500] transition-all duration-300 ${
+        <div ref={playerContainerRef} className={`h-full w-full overflow-hidden bg-[#0b0b0b] relative z-[500] transition-all duration-300 ${
                     isImmersiveMode 
-                        ? 'max-w-none rounded-none h-[100vh] w-[100vw] md:max-w-[30rem] md:max-w-[30rem] md:sm:max-w-[28rem] md:rounded-lg md:rounded-xl' 
+            ? 'max-w-none rounded-none h-[100dvh] w-[100vw] md:max-w-[30rem] md:max-w-[30rem] md:sm:max-w-[28rem] md:rounded-lg md:rounded-xl' 
                         : 'max-w-[30rem] md:max-w-[30rem] sm:max-w-[28rem] rounded-lg md:rounded-xl'
                 }`}>
                     {/* Glow tied to the player box (not the full page) - Hidden in immersive mode */}
