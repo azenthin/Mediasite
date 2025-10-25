@@ -27,6 +27,7 @@ const AIPageContent: React.FC = () => {
   const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
   const [youtubeToken, setYoutubeToken] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<Array<{role: string, content: string}>>([]);
+  const [fastMode, setFastMode] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -119,7 +120,8 @@ const AIPageContent: React.FC = () => {
         },
         body: JSON.stringify({ 
           prompt: userInput,
-          conversationHistory: newHistory
+          conversationHistory: newHistory,
+          fast: fastMode
         }),
       });
 
@@ -367,9 +369,20 @@ const AIPageContent: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Describe your perfect playlist..."
-                className="search-input w-full h-full pl-4 md:pl-5 pr-12 md:pr-14 py-0 outline-none placeholder-white/60 caret-white text-base md:text-[1.02rem] text-white bg-transparent border-0"
+                className="search-input w-full h-full pl-4 md:pl-5 pr-28 md:pr-32 py-0 outline-none placeholder-white/60 caret-white text-base md:text-[1.02rem] text-white bg-transparent border-0"
                 disabled={isLoading}
               />
+              {/* Fast mode toggle (inline) */}
+              <button
+                type="button"
+                onClick={() => setFastMode((v) => !v)}
+                className={`absolute right-11 md:right-12 top-1/2 -translate-y-1/2 px-2.5 h-7 rounded-full text-[12px] font-medium border transition-all duration-200 ${fastMode ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/25' : 'bg-white/5 text-white/70 border-white/15 hover:bg-white/8'}`}
+                aria-pressed={fastMode}
+                aria-label="Toggle fast mode"
+                title="Fast mode: shorter, quicker playlists"
+              >
+                ⚡ Fast
+              </button>
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
@@ -382,6 +395,13 @@ const AIPageContent: React.FC = () => {
               </button>
             </div>
           </form>
+          {/* Secondary controls row */}
+          <div className="mt-1.5 flex justify-end">
+            <label className="text-xs text-white/60 select-none cursor-pointer" onClick={() => setFastMode(v => !v)}>
+              <span className={`inline-block align-middle mr-1 h-3.5 w-3.5 rounded-sm border ${fastMode ? 'bg-emerald-400/70 border-emerald-300' : 'bg-transparent border-white/30'}`} />
+              Fast mode
+            </label>
+          </div>
           </div>
           </div>
         </div>
