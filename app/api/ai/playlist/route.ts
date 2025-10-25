@@ -1,30 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Simple in-memory cache persisted across hot reloads
-// Keyed by normalized prompt + flags; TTL in ms
-declare global {
-  // eslint-disable-next-line no-var
-  var __aiPlaylistCache: Map<string, { data: any; expires: number } > | undefined;
-}
-
-const cache: Map<string, { data: any; expires: number }> = (global.__aiPlaylistCache ||= new Map());
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-function getCached(key: string) {
-  const hit = cache.get(key);
-  if (!hit) return null;
-  if (Date.now() > hit.expires) {
-    cache.delete(key);
-    return null;
-  }
-  return hit.data;
-}
-
-function setCached(key: string, data: any) {
-  cache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
-}
-
 export async function POST(request: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
   
@@ -42,18 +18,13 @@ export async function POST(request: NextRequest) {
     apiKey: apiKey,
   });
   try {
-    const { prompt, conversationHistory, fast, limit } = await request.json();
+    const { prompt, conversationHistory } = await request.json();
 
     if (!prompt || prompt.trim().length === 0) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
     }
 
     // Build messages array with conversation history
-    // Determine response size/latency profile
-    const requestedLimit = typeof limit === 'number' ? Math.max(5, Math.min(30, Math.floor(limit))) : undefined;
-    const fastMode: boolean = Boolean(fast);
-    const effectiveLimit = requestedLimit ?? (fastMode ? 10 : 16);
-
     const messages: any[] = [
       {
         role: "system",
@@ -117,7 +88,7 @@ EXAMPLES:
 - "tell me about politics" → {"type": "conversation", "message": "I appreciate your interest! While that topic is outside my wheelhouse, I'm passionate about helping you discover great music. What kind of vibes are you feeling right now?"}
 
 PLAYLIST GUIDELINES:
-- Generate exactly ${effectiveLimit} songs unless the user explicitly asks for a different length
+- Generate 20-25 songs for a substantial playlist
 - VARIETY IS KEY: Mix popular hits with deep cuts, lesser-known gems, and hidden treasures
 - Include songs from different eras (not just current hits or one decade)
 - Blend mainstream artists with indie/underground/emerging artists
@@ -143,38 +114,13 @@ REMINDER: Your entire response must be valid JSON. No text before or after the J
       content: prompt
     });
 
-    // Cache check (prompt + flags + normalized history length only)
-    const cacheKey = JSON.stringify({
-      p: prompt.trim().toLowerCase(),
-      f: fastMode,
-      l: effectiveLimit,
-      h: (conversationHistory?.length ?? 0) > 0 ? 'hasHist' : 'noHist'
-    });
-    const cached = getCached(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached);
-    }
-
-    const model = "gpt-4o-mini"; // already a fast model
-    const temperature = fastMode ? 0.7 : 0.8;
-    const maxTokens = fastMode ? 900 : 1400;
-
-    // Add a timeout guard so we fail fast and keep UI responsive
-    const TIMEOUT_MS = fastMode ? 12000 : 15000;
-
-    const completionPromise = openai.chat.completions.create({
-      model,
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
       messages,
-      temperature,
-      max_tokens: maxTokens,
+      temperature: 0.8,
+      max_tokens: 2000,
       response_format: { type: "json_object" },
     });
-
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('AI timeout')), TIMEOUT_MS)
-    );
-
-    const completion: any = await Promise.race([completionPromise, timeoutPromise]);
 
     const response = completion.choices[0]?.message?.content;
     
@@ -195,49 +141,35 @@ REMINDER: Your entire response must be valid JSON. No text before or after the J
 
     // Handle different response types
     if (result.type === 'conversation') {
-      const payload = {
+      return NextResponse.json({ 
         success: true,
         type: 'conversation',
         message: result.message
-      };
-      setCached(cacheKey, payload);
-      return NextResponse.json(payload);
+      });
     } else if (result.type === 'playlist') {
-      const payload = {
+      return NextResponse.json({ 
         success: true,
         type: 'playlist',
         message: result.message,
         playlist: result.songs,
-        prompt
-      };
-      setCached(cacheKey, payload);
-      return NextResponse.json(payload);
+        prompt 
+      });
     } else {
       // Legacy format support (direct array)
       if (Array.isArray(result)) {
-        const payload = {
+        return NextResponse.json({ 
           success: true,
           type: 'playlist',
           playlist: result,
-          prompt
-        };
-        setCached(cacheKey, payload);
-        return NextResponse.json(payload);
+          prompt 
+        });
       }
       throw new Error('Invalid response structure from AI');
     }
 
   } catch (error: any) {
     console.error('❌ AI Playlist API error:', error);
-    if (String(error?.message || '').includes('timeout')) {
-      // Fail fast with a graceful conversation response
-      return NextResponse.json({
-        success: true,
-        type: 'conversation',
-        message: "This is taking a bit longer than usual. Want me to whip up a quick ${10}‑song playlist instead? Just say 'quick playlist' or try again.",
-      });
-    }
-    return NextResponse.json({
+    return NextResponse.json({ 
       success: false,
       error: error.message || 'Unknown error'
     }, { status: 500 });
