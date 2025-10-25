@@ -189,7 +189,7 @@ const AIPageContent: React.FC = () => {
   <div className="relative max-w-3xl md:max-w-4xl mx-auto min-h-[calc(100vh-56px)] flex flex-col px-5 md:px-6 min-h-0">
 
         {/* Messages */}
-  <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-relevant="additions">
+  <div className="flex-1 overflow-y-auto p-4 space-y-1" role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
             <div className="text-center text-white/40 py-6">
             </div>
@@ -286,22 +286,22 @@ const AIPageContent: React.FC = () => {
         <div className="p-4 border-t border-white/10">
           {/* AI search bar styled to match navbar search */}
           <form onSubmit={handleSubmit} className="flex items-center">
-            <div className="flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Describe your perfect playlist..."
-                className="search-input w-full h-full px-4 md:px-5 py-0 outline-none placeholder-white/60 caret-white text-base md:text-[1.02rem] text-white bg-transparent"
+                className="search-input w-full h-full pl-4 md:pl-5 pr-12 md:pr-14 py-0 outline-none placeholder-white/60 caret-white text-base md:text-[1.02rem] text-white bg-transparent border-0"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="text-white px-4 md:px-5 h-full font-semibold outline-none flex items-center bg-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 grid place-items-center h-8 w-8 md:h-9 md:w-9 rounded-full text-white/80 hover:text-white bg-transparent border-0 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Send AI prompt"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-6 md:w-6 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-5 md:w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
