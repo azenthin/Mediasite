@@ -282,8 +282,8 @@ const AIPageContent: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-  {/* Input - sticky to follow on scroll */}
-  <div className="sticky bottom-0 z-20 p-4 border-t border-white/10 bg-neutral-900/70 backdrop-blur-sm">
+  {/* Input - sticky to follow on scroll (fully transparent background) */}
+  <div className="sticky bottom-0 z-20 p-4 border-t border-white/10 bg-transparent">
           {/* AI search bar styled to match navbar search */}
           <form onSubmit={handleSubmit} className="flex items-center">
             <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
