@@ -94,7 +94,7 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor, showSearch = true, 
                             <button 
                                 onClick={() => window.location.href = '/upload'}
                                 aria-label="Upload new content"
-                                className="px-2 md:px-4 py-1 md:py-1.5 rounded-full font-semibold shadow transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-600 hover:bg-blue-700 text-xs md:text-sm text-white"
+                                className="px-2 md:px-4 py-1 md:py-1.5 rounded-full font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 bg-white/25 hover:bg-white/30 border border-white/35 text-xs md:text-sm text-white"
                             >
                                 <span className="hidden md:inline">Upload</span>
                                 <span className="md:hidden" aria-hidden="true">+</span>

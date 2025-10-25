@@ -1,11 +1,13 @@
 'use client';
 
 import React, { Component, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  router?: ReturnType<typeof useRouter>;
 }
 
 interface State {
@@ -81,7 +83,11 @@ class ErrorBoundary extends Component<Props, State> {
               <button
                 onClick={() => {
                   this.setState({ hasError: false, error: null });
-                  window.history.back();
+                  if (this.props.router) {
+                    this.props.router.back();
+                  } else {
+                    window.location.href = '/';
+                  }
                 }}
                 className="flex-1 bg-[#383838] hover:bg-[#444444] text-white px-4 py-2 rounded-lg transition-colors font-semibold"
               >
@@ -95,6 +101,12 @@ class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+// Wrapper to inject router into class component
+export function ErrorBoundaryWithRouter({ children, ...props }: Omit<Props, 'router'>) {
+  const router = useRouter();
+  return <ErrorBoundary {...props} router={router}>{children}</ErrorBoundary>;
 }
 
 export default ErrorBoundary;

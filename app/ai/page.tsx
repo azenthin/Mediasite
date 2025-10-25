@@ -28,6 +28,7 @@ const AIPageContent: React.FC = () => {
   const [youtubeToken, setYoutubeToken] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<Array<{role: string, content: string}>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Simple gradient generator based on playlist name
   const coverGradient = (seed: string) => {
@@ -147,6 +148,10 @@ const AIPageContent: React.FC = () => {
       addMessage('error', 'Failed to connect to AI service');
     } finally {
       setIsLoading(false);
+      // Auto-focus input after message is sent
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -321,6 +326,7 @@ const AIPageContent: React.FC = () => {
           <form onSubmit={handleSubmit} className="flex items-center">
             <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/20 bg-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-white/30 focus-within:bg-white/[0.12] focus-within:shadow-[0_0_12px_rgba(255,255,255,0.04)] transition-all duration-200">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
