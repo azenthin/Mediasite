@@ -263,9 +263,7 @@ const AIPageContent: React.FC = () => {
                 ) : (
                   <div dangerouslySetInnerHTML={{ __html: message.content }} />
                 )}
-                <div className="text-xs text-white/40 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {message.timestamp.toLocaleTimeString()}
-                </div>
+                {/* Timestamp removed per UX feedback to avoid hover-only empty spacing */}
               </div>
             </div>
           ))}
