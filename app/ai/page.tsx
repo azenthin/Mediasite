@@ -201,12 +201,12 @@ const AIPageContent: React.FC = () => {
               className={`group flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,.35)] [animation:fade-in_250ms_ease-out_both] transition-all ${
+                className={`max-w-[85%] rounded-3xl px-4 py-3 shadow-[0_6px_20px_rgba(0,0,0,.25)] [animation:fade-in_250ms_ease-out_both] transition-colors ${
                   message.type === 'user'
-                    ? 'bg-white/12 text-white border border-white/20 backdrop-blur-sm hover:bg-white/15'
+                    ? 'bg-white/12 text-white border border-white/15 hover:bg-white/16'
                     : message.type === 'error'
                     ? 'bg-red-500/20 text-red-300 border border-red-500/30 backdrop-blur-sm'
-                    : 'bg-white/5 text-white border border-white/10 backdrop-blur-sm hover:bg-white/7'
+                    : 'bg-white/6 text-white border border-white/10 hover:bg-white/8'
                 }`}
               >
                 {message.type === 'playlist' && message.playlist ? (
@@ -261,7 +261,7 @@ const AIPageContent: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                  <div className="text-[0.98rem] leading-6" dangerouslySetInnerHTML={{ __html: message.content }} />
                 )}
                 {/* Timestamp removed per UX feedback to avoid hover-only empty spacing */}
               </div>
