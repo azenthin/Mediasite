@@ -201,7 +201,7 @@ const AIPageContent: React.FC = () => {
         {/* Messages */}
   <div className="p-4 space-y-6" role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6 mt-6 md:mt-10">
               <h1 className="text-4xl md:text-5xl font-semibold text-white mb-6 tracking-tight">
                 What are you in the mood for?
               </h1>
@@ -354,13 +354,13 @@ const AIPageContent: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-  {/* Input - fixed to bottom edge of viewport */}
-  <div className="fixed bottom-0 left-0 right-0 z-20 bg-transparent">
+  {/* Input - fixed to bottom edge of viewport, centered to content */}
+  <div className="fixed bottom-6 md:bottom-4 left-0 md:left-20 right-0 z-20 bg-transparent">
           <div className="max-w-3xl md:max-w-4xl mx-auto px-5 md:px-6">
-          <div className="border-t border-white/10 py-4">
+          <div className="py-4">
           {/* AI search bar styled to match navbar search */}
           <form onSubmit={handleSubmit} className="flex items-center">
-            <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/20 bg-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-white/30 focus-within:bg-white/[0.12] focus-within:shadow-[0_0_12px_rgba(255,255,255,0.04)] transition-all duration-200">
+            <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/20 bg-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-white/30 focus-within:bg-white/[0.12] focus-within:shadow-[0_0_12px_rgba(255,255,255,0.04)] transition-all duration-200 transform focus-within:-translate-y-1 active:-translate-y-1">
               <input
                 ref={inputRef}
                 type="text"
