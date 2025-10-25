@@ -1,26 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 
-// Set DATABASE_URL if not already set
+// Enforce Postgres in all environments by requiring DATABASE_URL.
+// This avoids accidental SQLite fallback that conflicts with the Prisma schema (provider = postgresql).
 if (!process.env.DATABASE_URL) {
-    if (process.env.NODE_ENV === 'production') {
-        throw new Error('DATABASE_URL is required in production');
-    }
-    process.env.DATABASE_URL = "file:./prisma/dev.db";
-}
-
-// Set DATABASE_PROVIDER for schema
-if (!process.env.DATABASE_PROVIDER) {
-    if (process.env.NODE_ENV === 'production') {
-        process.env.DATABASE_PROVIDER = "postgresql";
-    } else {
-        process.env.DATABASE_PROVIDER = "sqlite";
-    }
+    throw new Error(
+        'DATABASE_URL is not set. Please configure a PostgreSQL connection string in .env.local.\n' +
+        'Example: DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mediasite"\n' +
+        'Tip: You can run Postgres locally via docker-compose (see README).'
+    );
 }
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+    prisma: PrismaClient | undefined;
 };
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma; 
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
