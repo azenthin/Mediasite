@@ -203,10 +203,10 @@ const AIPageContent: React.FC = () => {
               <div
                 className={`max-w-[85%] rounded-3xl px-4 py-2.5 shadow-[0_6px_20px_rgba(0,0,0,.25)] [animation:fade-in_250ms_ease-out_both] transition-colors ${
                   message.type === 'user'
-                    ? 'bg-white/12 text-white border border-white/15 hover:bg-white/16'
+                    ? 'bg-white/12 text-white border border-white/8 hover:bg-white/16'
                     : message.type === 'error'
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30 backdrop-blur-sm'
-                    : 'bg-white/6 text-white border border-white/10 hover:bg-white/8'
+                    ? 'bg-red-500/20 text-red-300 border border-red-500/25 backdrop-blur-sm'
+                    : 'bg-white/6 text-white border border-white/6 hover:bg-white/8'
                 }`}
               >
                 {message.type === 'playlist' && message.playlist ? (
@@ -215,7 +215,7 @@ const AIPageContent: React.FC = () => {
                     <div className="flex items-center gap-3 mb-2.5">
                       <div
                         aria-hidden
-                        className="w-14 h-14 rounded-md border border-white/10 shadow-inner"
+                        className="w-14 h-14 rounded-md border border-white/8 shadow-inner"
                         style={{ background: coverGradient(message.content || 'Playlist') }}
                         title="Generated cover"
                       />
@@ -228,7 +228,7 @@ const AIPageContent: React.FC = () => {
                     {/* Track list */}
                     <div className="space-y-1.5 mb-3.5">
                       {message.playlist.map((song, index) => (
-                        <div key={index} className="flex items-center gap-3 py-1.5 px-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10 [animation:slide-up_260ms_ease-out_both]">
+                        <div key={index} className="flex items-center gap-3 py-1.5 px-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/6 [animation:slide-up_260ms_ease-out_both]">
                           <div className="w-6 text-center text-white/50 text-xs select-none">{index + 1}</div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{song.title}</p>
@@ -282,8 +282,8 @@ const AIPageContent: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="p-4 border-t border-white/10">
+  {/* Input - sticky to follow on scroll */}
+  <div className="sticky bottom-0 z-20 p-4 border-t border-white/10 bg-neutral-900/70 backdrop-blur-sm">
           {/* AI search bar styled to match navbar search */}
           <form onSubmit={handleSubmit} className="flex items-center">
             <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
