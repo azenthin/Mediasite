@@ -189,9 +189,9 @@ const AIPageContent: React.FC = () => {
   <div className="relative max-w-3xl md:max-w-4xl mx-auto min-h-[calc(100vh-56px)] flex flex-col px-5 md:px-6 min-h-0">
 
         {/* Messages */}
-  <div className="flex-1 overflow-y-auto p-4 space-y-4" role="log" aria-live="polite" aria-relevant="additions">
+  <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
-            <div className="text-center text-white/40 py-8">
+            <div className="text-center text-white/40 py-6">
             </div>
           )}
 
@@ -201,7 +201,7 @@ const AIPageContent: React.FC = () => {
               className={`group flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-3xl px-4 py-3 shadow-[0_6px_20px_rgba(0,0,0,.25)] [animation:fade-in_250ms_ease-out_both] transition-colors ${
+                className={`max-w-[85%] rounded-3xl px-4 py-2.5 shadow-[0_6px_20px_rgba(0,0,0,.25)] [animation:fade-in_250ms_ease-out_both] transition-colors ${
                   message.type === 'user'
                     ? 'bg-white/12 text-white border border-white/15 hover:bg-white/16'
                     : message.type === 'error'
@@ -212,7 +212,7 @@ const AIPageContent: React.FC = () => {
                 {message.type === 'playlist' && message.playlist ? (
                   <div>
                     {/* Playlist hero header */}
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-3 mb-2.5">
                       <div
                         aria-hidden
                         className="w-14 h-14 rounded-md border border-white/10 shadow-inner"
@@ -226,16 +226,16 @@ const AIPageContent: React.FC = () => {
                     </div>
 
                     {/* Track list */}
-                    <div className="space-y-2 mb-4">
+                    <div className="space-y-1.5 mb-3.5">
                       {message.playlist.map((song, index) => (
-                        <div key={index} className="flex items-center gap-3 py-2 px-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10 [animation:slide-up_260ms_ease-out_both]">
+                        <div key={index} className="flex items-center gap-3 py-1.5 px-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/10 [animation:slide-up_260ms_ease-out_both]">
                           <div className="w-6 text-center text-white/50 text-xs select-none">{index + 1}</div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{song.title}</p>
                             <p className="text-sm text-white/60 truncate">{song.artist}</p>
                           </div>
                           {song.genre && (
-                            <span className="text-xs bg-white/10 px-2 py-1 rounded-full">
+                            <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
                               {song.genre}
                             </span>
                           )}
@@ -261,7 +261,7 @@ const AIPageContent: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-[0.98rem] leading-6" dangerouslySetInnerHTML={{ __html: message.content }} />
+                  <div className="text-[0.98rem] leading-[1.35]" dangerouslySetInnerHTML={{ __html: message.content }} />
                 )}
                 {/* Timestamp removed per UX feedback to avoid hover-only empty spacing */}
               </div>
@@ -270,7 +270,7 @@ const AIPageContent: React.FC = () => {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white/5 rounded-2xl px-4 py-3">
+              <div className="bg-white/5 rounded-2xl px-4 py-2.5">
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   <span>Thinking…</span>
