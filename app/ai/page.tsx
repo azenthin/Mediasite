@@ -186,10 +186,10 @@ const AIPageContent: React.FC = () => {
         }}
       />
       {/* Use the remaining viewport height below the sticky navbar (56px) and avoid body scroll */}
-  <div className="relative max-w-3xl md:max-w-4xl mx-auto min-h-[calc(100vh-56px)] flex flex-col px-5 md:px-6 min-h-0 overflow-y-auto">
+  <div className="relative max-w-3xl md:max-w-4xl mx-auto h-[calc(100vh-56px)] flex flex-col px-5 md:px-6">
 
         {/* Messages */}
-  <div className="flex-1 p-4 space-y-1" role="log" aria-live="polite" aria-relevant="additions">
+  <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
             <div className="text-center text-white/40 py-6">
             </div>
