@@ -186,7 +186,7 @@ const AIPageContent: React.FC = () => {
         }}
       />
       {/* Use the remaining viewport height below the sticky navbar (56px) and avoid body scroll */}
-      <div className="relative max-w-2xl mx-auto min-h-[calc(100vh-56px)] flex flex-col px-4 min-h-0">
+  <div className="relative max-w-3xl md:max-w-4xl mx-auto min-h-[calc(100vh-56px)] flex flex-col px-5 md:px-6 min-h-0">
 
         {/* Messages */}
   <div className="flex-1 overflow-y-auto p-4 space-y-4" role="log" aria-live="polite" aria-relevant="additions">
@@ -201,9 +201,9 @@ const AIPageContent: React.FC = () => {
               className={`group flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,.35)] [animation:fade-in_250ms_ease-out_both] transition-all ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-[0_10px_30px_rgba(0,0,0,.35)] [animation:fade-in_250ms_ease-out_both] transition-all ${
                   message.type === 'user'
-                    ? 'bg-blue-600 text-white shadow-[0_8px_24px_rgba(37,99,235,.35)]'
+                    ? 'bg-white/12 text-white border border-white/20 backdrop-blur-sm hover:bg-white/15'
                     : message.type === 'error'
                     ? 'bg-red-500/20 text-red-300 border border-red-500/30 backdrop-blur-sm'
                     : 'bg-white/5 text-white border border-white/10 backdrop-blur-sm hover:bg-white/7'
