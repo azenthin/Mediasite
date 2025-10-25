@@ -16,7 +16,7 @@ const App = ({ children }: AppProps) => {
 
     // Move colors outside component to prevent re-creation
     const colors = useMemo(() => ({
-        siteBgColor: '#0f0f0fff',
+        siteBgColor: '#141414',
         navbarBgColor: 'transparent',
         sidebarBgColor: '#0f0f0fff',
         buttonBgColor: '#282828',

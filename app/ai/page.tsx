@@ -17,6 +17,7 @@ interface Message {
   content: string;
   playlist?: Song[];
   timestamp: Date;
+  feedback?: 'like' | 'dislike' | null;
 }
 
 const AIPageContent: React.FC = () => {
@@ -76,9 +77,23 @@ const AIPageContent: React.FC = () => {
       type,
       content,
       playlist,
-      timestamp: new Date()
+      timestamp: new Date(),
+      feedback: null
     };
     setMessages(prev => [...prev, message]);
+  };
+
+  const handleFeedback = (messageId: string, feedbackType: 'like' | 'dislike') => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        // Toggle feedback: if clicking the same type, remove it; otherwise set new type
+        return {
+          ...msg,
+          feedback: msg.feedback === feedbackType ? null : feedbackType
+        };
+      }
+      return msg;
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,22 +189,12 @@ const AIPageContent: React.FC = () => {
   };
 
   return (
-    <div className="relative bg-[#0a0a0a] text-white overflow-hidden">
-      {/* Ambient background gradients */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-60"
-        style={{
-          background:
-            `radial-gradient(600px 600px at 85% -5%, rgba(255,255,255,0.06), transparent 60%),
-             radial-gradient(700px 700px at -10% 110%, rgba(255,255,255,0.045), transparent 55%)`,
-        }}
-      />
-      {/* Use the remaining viewport height below the sticky navbar (56px) and avoid body scroll */}
-  <div className="relative max-w-3xl md:max-w-4xl mx-auto h-[calc(100vh-56px)] flex flex-col px-5 md:px-6">
+    <div className="relative bg-[#141414] text-white overflow-hidden antialiased [-webkit-font-smoothing:antialiased] [-moz-osx-font-smoothing:grayscale]">
+      {/* Content container */}
+  <div className="relative max-w-3xl md:max-w-4xl mx-auto flex flex-col px-5 md:px-6 pb-24">
 
         {/* Messages */}
-  <div className="flex-1 overflow-y-auto p-4 space-y-3" role="log" aria-live="polite" aria-relevant="additions">
+  <div className="p-4 space-y-6" role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
             <div className="text-center text-white/40 py-6">
             </div>
@@ -198,73 +203,99 @@ const AIPageContent: React.FC = () => {
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`group flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`group ${message.type === 'user' ? 'flex justify-end' : ''}`}
             >
-              <div
-                className={`max-w-[85%] rounded-3xl px-4 py-2.5 shadow-[0_6px_20px_rgba(0,0,0,.25)] [animation:fade-in_250ms_ease-out_both] transition-colors ${
-                  message.type === 'user'
-                    ? 'bg-white/12 text-white border border-white/8 hover:bg-white/16'
-                    : message.type === 'error'
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/25 backdrop-blur-sm'
-                    : 'bg-white/6 text-white border border-white/6 hover:bg-white/8'
-                }`}
-              >
-                {message.type === 'playlist' && message.playlist ? (
-                  <div>
-                    {/* Playlist hero header */}
-                    <div className="flex items-center gap-3 mb-2.5">
-                      <div
-                        aria-hidden
-                        className="w-14 h-14 rounded-md border border-white/8 shadow-inner"
-                        style={{ background: coverGradient(message.content || 'Playlist') }}
-                        title="Generated cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="font-semibold truncate">{message.content}</p>
-                        <p className="text-xs text-white/60 truncate">AI-generated selection based on your prompt</p>
+              {message.type === 'user' ? (
+                <div className="max-w-[85%] px-4 py-2.5 rounded-3xl bg-white/12 text-white text-[15px] [animation:fade-in_250ms_ease-out_both] transition-colors">
+                  <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                </div>
+              ) : message.type === 'playlist' && message.playlist ? (
+                <div className="w-full">
+                  <div className="max-w-[85%] px-4 py-2.5 rounded-2xl bg-white/6 text-white border border-white/6 hover:bg-white/8 [animation:fade-in_250ms_ease-out_both] transition-colors">
+                    <div>
+                      {/* Playlist hero header */}
+                      <div className="mb-2.5">
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate text-[15px]">{message.content}</p>
+                          <p className="text-[13px] text-white/60 truncate">AI-generated selection based on your prompt</p>
+                        </div>
+                      </div>
+
+                      {/* Track list */}
+                      <div className="space-y-0 mb-3.5">
+                        {message.playlist.map((song, index) => (
+                          <div key={index} className="flex items-center gap-3 py-1 px-1 hover:bg-white/[0.03] transition-colors [animation:slide-up_260ms_ease-out_both]">
+                            <div className="w-6 text-center text-white/40 text-[12px] select-none">{index + 1}</div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate leading-5 text-[14px]">{song.title}</p>
+                              <p className="text-[13px] text-white/60 truncate leading-4">{song.artist}</p>
+                            </div>
+                            {song.genre && (
+                              <span className="text-[12px] text-white/60 px-2">
+                                {song.genre}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {/* CTAs */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => createPlaylist('spotify', message.content, message.playlist!)}
+                          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_8px_20px_rgba(16,185,129,.25)] focus:outline-none focus:ring-2 focus:ring-green-400/40"
+                          aria-label={spotifyToken ? 'Create playlist on Spotify' : 'Connect to Spotify'}
+                        >
+                          {spotifyToken ? 'Create on Spotify' : 'Connect Spotify'}
+                        </button>
+                        <button
+                          onClick={() => createPlaylist('youtube', message.content, message.playlist!)}
+                          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_8px_20px_rgba(239,68,68,.25)] focus:outline-none focus:ring-2 focus:ring-red-400/40"
+                          aria-label={youtubeToken ? 'Create playlist on YouTube' : 'Connect to YouTube'}
+                        >
+                          {youtubeToken ? 'Create on YouTube' : 'Connect YouTube'}
+                        </button>
                       </div>
                     </div>
-
-                    {/* Track list */}
-                    <div className="space-y-1.5 mb-3.5">
-                      {message.playlist.map((song, index) => (
-                        <div key={index} className="flex items-center gap-3 py-1.5 px-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/6 [animation:slide-up_260ms_ease-out_both]">
-                          <div className="w-6 text-center text-white/50 text-xs select-none">{index + 1}</div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{song.title}</p>
-                            <p className="text-sm text-white/60 truncate">{song.artist}</p>
-                          </div>
-                          {song.genre && (
-                            <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
-                              {song.genre}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {/* CTAs */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => createPlaylist('spotify', message.content, message.playlist!)}
-                        className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_8px_20px_rgba(16,185,129,.25)] focus:outline-none focus:ring-2 focus:ring-green-400/40"
-                        aria-label={spotifyToken ? 'Create playlist on Spotify' : 'Connect to Spotify'}
-                      >
-                        {spotifyToken ? 'Create on Spotify' : 'Connect Spotify'}
-                      </button>
-                      <button
-                        onClick={() => createPlaylist('youtube', message.content, message.playlist!)}
-                        className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_8px_20px_rgba(239,68,68,.25)] focus:outline-none focus:ring-2 focus:ring-red-400/40"
-                        aria-label={youtubeToken ? 'Create playlist on YouTube' : 'Connect to YouTube'}
-                      >
-                        {youtubeToken ? 'Create on YouTube' : 'Connect YouTube'}
-                      </button>
-                    </div>
                   </div>
-                ) : (
-                  <div className="text-[0.98rem] leading-[1.35]" dangerouslySetInnerHTML={{ __html: message.content }} />
-                )}
-                {/* Timestamp removed per UX feedback to avoid hover-only empty spacing */}
-              </div>
+                  {/* Feedback buttons */}
+                  <div className="flex gap-2 mt-2 ml-1">
+                    <button
+                      onClick={() => handleFeedback(message.id, 'like')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        message.feedback === 'like' 
+                          ? 'bg-white/20 text-white' 
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      }`}
+                      aria-label="Like this response"
+                    >
+                      <svg className="w-5 h-5" fill={message.feedback === 'like' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ WebkitFontSmoothing: 'antialiased', shapeRendering: 'geometricPrecision' }}>
+                        <path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(message.id, 'dislike')}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        message.feedback === 'dislike' 
+                          ? 'bg-white/20 text-white' 
+                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                      }`}
+                      aria-label="Dislike this response"
+                    >
+                      <svg className="w-5 h-5" fill={message.feedback === 'dislike' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ WebkitFontSmoothing: 'antialiased', shapeRendering: 'geometricPrecision' }}>
+                        <path d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ) : message.type === 'error' ? (
+                <div className="max-w-[85%] px-4 py-2.5 rounded-2xl bg-red-500/20 text-red-300 border border-red-500/25 backdrop-blur-sm [animation:fade-in_250ms_ease-out_both] transition-colors text-[15px]">
+                  <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                </div>
+              ) : (
+                <div className="max-w-[85%] px-4 py-2.5 rounded-2xl bg-white/6 text-white border border-white/6 hover:bg-white/8 [animation:fade-in_250ms_ease-out_both] transition-colors text-[15px]">
+                  <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                </div>
+              )}
             </div>
           ))}
 
@@ -282,11 +313,13 @@ const AIPageContent: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-  {/* Input - sticky to follow on scroll (fully transparent background) */}
-  <div className="sticky bottom-0 z-20 p-4 border-t border-white/10 bg-transparent">
+  {/* Input - fixed to bottom edge of viewport */}
+  <div className="fixed bottom-0 left-0 right-0 z-20 bg-transparent">
+          <div className="max-w-3xl md:max-w-4xl mx-auto px-5 md:px-6">
+          <div className="border-t border-white/10 py-4">
           {/* AI search bar styled to match navbar search */}
           <form onSubmit={handleSubmit} className="flex items-center">
-            <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/15 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/20 bg-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-white/30 focus-within:bg-white/[0.12] focus-within:shadow-[0_0_12px_rgba(255,255,255,0.04)] transition-all duration-200">
               <input
                 type="text"
                 value={input}
@@ -307,6 +340,8 @@ const AIPageContent: React.FC = () => {
               </button>
             </div>
           </form>
+          </div>
+          </div>
         </div>
       </div>
     </div>
