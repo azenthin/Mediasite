@@ -29,38 +29,30 @@ const VideoTimeBar: React.FC<VideoTimeBarProps> = ({
   const roundedProgress = Math.round(progress * 10) / 10;
 
   return (
-    <div className="absolute -bottom-5 left-0 right-0 z-30">
+    <div className="absolute left-0 right-0 z-30" style={{ bottom: '-32px' }}>
       {/* Time Bar Container - Enhanced for mobile with larger touch target */}
       <div 
-        className="relative w-full h-3 md:h-1 bg-white/20 rounded-full cursor-pointer group md:hover:h-3 transition-all duration-200"
+        className="relative w-full cursor-pointer group py-2"
         onClick={onProgressClick}
         onTouchEnd={onProgressTouch}
         style={{
-          padding: '8px 0',  // Larger touch target on mobile
-          margin: '-8px 0',
           WebkitTapHighlightColor: 'transparent'
         }}
       >
-        {/* Progress Fill */}
-        <div 
-          className="absolute top-0 left-0 h-3 md:h-full bg-red-600 rounded-full transition-all duration-75 ease-out"
-          style={{ 
-            width: `${Math.min(100, Math.max(0, progress))}%`,
-            transform: isSeeking ? 'scaleY(1.2)' : 'scaleY(1)',
-          }}
-        >
-          {/* Progress Handle - Larger on mobile */}
+        {/* The actual progress bar */}
+        <div className="relative w-full h-1 bg-white/20 group-hover:h-2 transition-all duration-200">
+          {/* Progress Fill */}
           <div 
-            className="absolute right-0 top-1/2 w-4 h-4 md:w-3 md:h-3 bg-red-600 rounded-full shadow-lg transition-all duration-200"
+            className="absolute top-0 left-0 h-full bg-red-600 transition-all duration-75 ease-out"
             style={{ 
-              transform: `translateY(-50%) translateX(50%) ${isSeeking ? 'scale(1.3)' : 'scale(1)'}`,
-              opacity: isSeeking ? 1 : 0.8
+              width: `${Math.min(100, Math.max(0, progress))}%`,
+              transform: isSeeking ? 'scaleY(1.2)' : 'scaleY(1)',
             }}
           />
+          
+          {/* Hover Preview - Desktop only */}
+          <div className="hidden md:block absolute top-0 left-0 h-full bg-red-600/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         </div>
-        
-        {/* Hover Preview - Desktop only */}
-        <div className="hidden md:block absolute top-0 left-0 h-full bg-red-600/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
       </div>
       
       {/* Time Display - Always visible on mobile, hover on desktop */}

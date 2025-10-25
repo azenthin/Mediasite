@@ -201,7 +201,43 @@ const AIPageContent: React.FC = () => {
         {/* Messages */}
   <div className="p-4 space-y-6" role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
-            <div className="text-center text-white/40 py-6">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+              <h1 className="text-4xl md:text-5xl font-semibold text-white mb-6 tracking-tight">
+                What are you in the mood for?
+              </h1>
+              <p className="text-lg md:text-xl text-white/60 mb-8 max-w-2xl">
+                Tell me the vibe, and I'll create the perfect playlist.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full">
+                <button
+                  onClick={() => setInput('Chill study music')}
+                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
+                >
+                  <div className="font-medium text-sm">Chill study music</div>
+                  <div className="text-xs text-white/50 mt-0.5">Focus and concentration</div>
+                </button>
+                <button
+                  onClick={() => setInput('Upbeat workout playlist')}
+                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
+                >
+                  <div className="font-medium text-sm">Upbeat workout playlist</div>
+                  <div className="text-xs text-white/50 mt-0.5">High energy motivation</div>
+                </button>
+                <button
+                  onClick={() => setInput('Sad rainy day vibes')}
+                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
+                >
+                  <div className="font-medium text-sm">Sad rainy day vibes</div>
+                  <div className="text-xs text-white/50 mt-0.5">Melancholic and reflective</div>
+                </button>
+                <button
+                  onClick={() => setInput('Feel-good summer hits')}
+                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
+                >
+                  <div className="font-medium text-sm">Feel-good summer hits</div>
+                  <div className="text-xs text-white/50 mt-0.5">Sunshine and good vibes</div>
+                </button>
+              </div>
             </div>
           )}
 

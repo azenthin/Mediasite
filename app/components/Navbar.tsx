@@ -82,7 +82,7 @@ const Navbar = ({ navbarBgColor, buttonTextColor, linkColor, showSearch = true, 
                 )}
                                 {!showSearch && pageTitle && (
                                     <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 px-2">
-                                        <div className="text-sm md:text-base font-semibold text-white/90" style={{ color: linkColor }}>
+                                        <div className="text-lg md:text-xl font-bold text-white tracking-tight" style={{ color: linkColor }}>
                                             {pageTitle}
                                         </div>
                                     </div>
