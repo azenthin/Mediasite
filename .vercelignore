@@ -1,0 +1,21 @@
+# Ignore local build artifacts and heavy dev files
+.next/
+node_modules/
+
+# Large media and local uploads (not needed in Vercel deployment)
+videos/**
+public/uploads/**
+public/avatars/**
+
+# Local SQLite databases and prisma cache
+prisma/*.db
+prisma/*.db-journal
+prisma/prisma/**
+
+# Local exports/backups
+scripts/local-database-export.json
+scripts/*.zip
+
+# Misc
+.DS_Store
+Thumbs.db
