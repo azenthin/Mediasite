@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -266,4 +266,77 @@ model SongCache {
   @@index([artist, title])
   @@index([lastAccessed])
   @@index([hitCount(sort: Desc)])
+}
+
+// Ingestion models
+model VerifiedTrack {
+  id           String   @id @default(cuid())
+  internalUuid String   @unique @default(uuid())
+  title        String
+  artist       String
+  album        String?
+  isrc         String?  @unique
+  mbid         String?  @unique
+  spotifyId    String?  @unique
+  acoustid     String?
+  durationMs   Int?
+  releaseDate  DateTime?
+  rawProvider  String?  // JSON string
+  
+  // Genre & Classification
+  genres           String?   // JSON array from artist
+  primaryGenre     String?   // First/main genre for simple filtering
+  
+  // Popularity & Engagement
+  trackPopularity  Int?      // 0-100 from track object
+  artistPopularity Int?      // 0-100 from artist object
+  artistFollowers  Int?      // Total followers
+  
+  // Audio Features (mood/vibe matching)
+  danceability     Float?    // 0-1
+  energy           Float?    // 0-1
+  valence          Float?    // 0-1 (happiness)
+  tempo            Float?    // BPM
+  acousticness     Float?    // 0-1
+  instrumentalness Float?    // 0-1
+  key              Int?      // 0-11
+  mode             Int?      // 0=minor, 1=major
+  loudness         Float?    // dB
+  
+  // Computed/Derived
+  canonicalityScore Float?   // From canonicality module
+  mood             String?   // Computed from valence/energy
+  
+  verifiedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  identifiers  TrackIdentifier[]
+
+  @@index([isrc])
+  @@index([mbid])
+  @@index([primaryGenre])
+  @@index([mood])
+  @@index([trackPopularity])
+}
+
+model TrackIdentifier {
+  id         String   @id @default(cuid())
+  type       String   // 'isrc' | 'mbid' | 'spotify' | 'acoustid'
+  value      String
+  trackId    String
+  track      VerifiedTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([type, value])
+  @@unique([type, value])
+}
+
+model SkippedTrack {
+  id         String   @id @default(cuid())
+  artist     String?
+  title      String?
+  reason     String
+  raw        String?  // raw payloads
+  createdAt  DateTime @default(now())
 }

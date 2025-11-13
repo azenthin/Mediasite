@@ -1,0 +1,11 @@
+{
+  "merges": [
+    {
+      "fromId": "a",
+      "toId": "b",
+      "reason": "duplicate",
+      "actor": "system",
+      "at": "2025-11-09T21:08:10.512Z"
+    }
+  ]
+}

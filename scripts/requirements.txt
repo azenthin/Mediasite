@@ -1,0 +1,9 @@
+numpy
+scipy
+soundfile
+librosa
+openl3
+faiss-cpu
+tqdm
+psycopg2-binary
+pgvector

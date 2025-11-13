@@ -5,8 +5,8 @@ const nextConfig = {
     optimizeCss: false,
   },
   
-  // Static generation for instant page loads
-  output: 'standalone',
+  // Use default output (not standalone) to ensure proper build
+  // output: 'standalone',
   
   // Image optimization like YouTube
   images: {

@@ -1,0 +1,21 @@
+{
+  "fetchedAt": "2025-11-11T03:07:06.882Z",
+  "totalSongs": 181782,
+  "uniqueArtists": 38484,
+  "source": "Spotify",
+  "strategies": [
+    "genre×year",
+    "genre×country",
+    "year×pagination"
+  ],
+  "queriesExecuted": 13050,
+  "durationMinutes": "72.6",
+  "avgPopularity": "23.7",
+  "withISRC": 181782,
+  "nextSteps": [
+    "Songs ready for ingestion pipeline",
+    "Run ingestion in batches: node scripts/ingest/run-sample.js --source=spotify-2million.csv --limit=10000",
+    "Process in chunks to avoid memory issues",
+    "Expected acceptance rate: ~55-60%"
+  ]
+}

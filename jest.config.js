@@ -9,6 +9,9 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
+  watchPathIgnorePatterns: ['node_modules', 'dist', 'build'],
+  watch: false, // Disable watch mode by default; use --watch flag if needed
+  bail: false, // Continue running tests even if some fail
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },

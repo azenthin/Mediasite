@@ -4,6 +4,8 @@
  */
 
 import { prisma } from './database';
+import { execSync } from 'child_process';
+import path from 'path';
 
 interface Song {
   title: string;
@@ -14,7 +16,161 @@ interface Song {
   spotifyUrl?: string;
   youtubeUrl?: string;
   verified: boolean;
-  source?: 'genre-match' | 'fuzzy-match' | 'search-fallback' | 'ai-generated';
+  source?: 'genre-match' | 'fuzzy-match' | 'search-fallback' | 'ai-generated' | 'database';
+}
+
+/**
+ * Query verified tracks from ingestion pipeline (VerifiedTrack table)
+ * Matches by artist or title
+ */
+async function queryVerifiedTracks(prompt: string, limit: number = 15): Promise<Song[]> {
+  try {
+    const promptLower = prompt.toLowerCase();
+    
+    // Query VerifiedTrack table with enriched search (genre, mood, popularity)
+    // Note: SQLite is case-insensitive by default for LIKE operations (which contains uses)
+    const verifiedTracks = await prisma.verifiedTrack.findMany({
+      where: {
+        OR: [
+          { artist: { contains: promptLower } },
+          { title: { contains: promptLower } },
+          { album: { contains: promptLower } },
+          { primaryGenre: { contains: promptLower } },
+          { genres: { contains: promptLower } },
+          { mood: { contains: promptLower } },
+        ],
+      },
+      include: {
+        identifiers: true,
+      },
+      orderBy: [
+        { trackPopularity: 'desc' },
+        { verifiedAt: 'desc' },
+      ],
+      take: limit,
+    });
+
+    if (verifiedTracks.length === 0) {
+      return [];
+    }
+
+    // Convert VerifiedTrack records to Song format
+    const songs: Song[] = verifiedTracks
+      .map((track: any) => {
+        const spotifyIdentifier = track.identifiers?.find((id: any) => id.type === 'spotify');
+        const youtubeIdentifier = track.identifiers?.find((id: any) => id.type === 'youtube');
+        
+        return {
+          title: track.title,
+          artist: track.artist,
+          year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
+          spotifyUrl: spotifyIdentifier ? `spotify:track:${spotifyIdentifier.value}` : undefined,
+          youtubeUrl: youtubeIdentifier ? `https://www.youtube.com/watch?v=${youtubeIdentifier.value}` : undefined,
+          verified: true,
+          source: 'ingestion-pipeline',
+        };
+      })
+      .filter((s: any) => s.title && s.artist) as Song[];
+
+    // FRESHNESS SORTING: 2015+ songs first (newest to oldest), then pre-2015 songs
+    songs.sort((a: any, b: any) => {
+      const yearA = a.year || 1995;
+      const yearB = b.year || 1995;
+      
+      // Primary sort: 2015+ songs come first
+      if ((yearA >= 2015) !== (yearB >= 2015)) {
+        return (yearB >= 2015) ? 1 : -1;
+      }
+      
+      // Secondary sort: within each era, newest first
+      return yearB - yearA;
+    });
+
+    return songs;
+  } catch (error) {
+    console.error('Failed to query verified tracks:', error);
+    return [];
+  }
+}
+
+/**
+ * Search local enhanced_music.db database for songs matching a query
+ * Filters by genres/moods and returns freshest results
+ * Returns songs sorted by release_year (newest first) for freshness
+ */
+async function searchLocalDatabase(query: string, limit: number = 15): Promise<Song[]> {
+  try {
+    const queryLower = query.toLowerCase();
+    console.log(`🏠 Searching local database for: "${query}"`);
+
+    // Use sqlite3 CLI to query the database
+    // Search by genre, mood, or title/artist with 2015+ prioritization
+    const sqlQuery = `
+      SELECT 
+        title,
+        artist,
+        genres,
+        moods,
+        release_year,
+        popularity_score
+      FROM songs
+      WHERE 
+        (LOWER(genres) LIKE '%${queryLower}%' OR 
+         LOWER(moods) LIKE '%${queryLower}%' OR 
+         LOWER(title) LIKE '%${queryLower}%' OR
+         LOWER(artist) LIKE '%${queryLower}%' OR
+         LOWER(tags) LIKE '%${queryLower}%')
+        AND release_year IS NOT NULL
+      ORDER BY 
+        CASE WHEN release_year >= 2015 THEN 0 ELSE 1 END,
+        release_year DESC,
+        popularity_score DESC
+      LIMIT ${limit}
+    `.replace(/\n/g, ' ');
+
+    const dbPath = path.join(process.cwd(), 'enhanced_music.db');
+    const command = `sqlite3 "${dbPath}" "${sqlQuery.replace(/"/g, '\\"')}"`;
+    
+    let output = '';
+    try {
+      output = execSync(command, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+    } catch (error: any) {
+      console.error('❌ Database query failed:', error.message);
+      return [];
+    }
+
+    if (!output.trim()) {
+      console.log(`📦 Database returned 0 tracks`);
+      return [];
+    }
+
+    // Parse the pipe-delimited output
+    const lines = output.trim().split('\n');
+    const songs: Song[] = lines.map(line => {
+      const parts = line.split('|');
+      return {
+        title: parts[0]?.trim() || '',
+        artist: parts[1]?.trim() || '',
+        genre: parts[2] ? parts[2].trim().split(',')[0] : undefined,
+        mood: parts[3] ? parts[3].trim().split(',')[0] : undefined,
+        year: parts[4] ? parseInt(parts[4].trim(), 10) : undefined,
+        verified: true,
+        source: 'database',
+      } as Song;
+    }).filter(s => s.title && s.artist) as Song[];
+
+    console.log(`📦 Database returned ${songs.length} tracks`);
+
+    if (songs.length > 0) {
+      console.log(`📅 APPLYING FRESHNESS SORT: Prioritizing 2015+ songs (database search)`);
+      console.log(`📊 Top 3 years: ${songs.slice(0, 3).map(s => s.year).join(', ')}`);
+    }
+
+    return songs;
+  } catch (error) {
+    console.error('❌ Local database search error:', error);
+    return [];
+  }
 }
 
 /**
@@ -83,8 +239,8 @@ async function checkSongCache(
     // Fallback to artist + title match
     const cached = await prisma.songCache.findFirst({
       where: {
-        artist: { equals: artist, mode: 'insensitive' },
-        title: { equals: title, mode: 'insensitive' },
+        artist: { equals: artist },
+        title: { equals: title },
       },
     });
     
@@ -182,551 +338,92 @@ async function saveSongCache(
 }
 
 /**
- * Get Spotify access token
+ * @deprecated These functions were used for old Spotify genre-based recommendations
+ * Now using ingestion pipeline verified tracks instead
  */
-async function getSpotifyToken(): Promise<string | null> {
-  try {
-    console.log('🔑 Requesting Spotify token...');
-    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(
-          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-        ).toString('base64'),
-      },
-      body: 'grant_type=client_credentials',
-    });
-
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('❌ Spotify token error:', tokenResponse.status, errorText);
-      return null;
-    }
-
-    const { access_token } = await tokenResponse.json();
-    console.log('✅ Got Spotify token:', access_token ? 'SUCCESS' : 'FAILED');
-    return access_token;
-  } catch (error) {
-    console.error('❌ Spotify token exception:', error);
-    return null;
-  }
-}
+// Disabled: getSpotifyToken, getAvailableGenres, GENRE_MAPPINGS, stringSimilarity, findSimilarGenres
+// All Spotify genre-based recommendations have been replaced with queryVerifiedTracks()
 
 /**
- * Get all available genre seeds from Spotify
- */
-async function getAvailableGenres(token: string): Promise<string[]> {
-  try {
-    const url = 'https://api.spotify.com/v1/recommendations/available-genre-seeds';
-    console.log(`🌐 Fetching Spotify genres from: ${url}`);
-    const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ Spotify genre API failed: ${response.status} ${response.statusText}`);
-      console.error(`❌ Response body:`, errorText.substring(0, 500));
-      console.error(`❌ Request headers: Authorization: Bearer ${token.substring(0, 20)}...`);
-      return [];
-    }
-
-    const data = await response.json();
-    const genres = data.genres || [];
-    console.log(`✅ Loaded ${genres.length} genres from Spotify`);
-    return genres;
-  } catch (error) {
-    console.error('Failed to get Spotify genres:', error);
-    return [];
-  }
-}
-
-/**
- * Map popular genre names to their Spotify equivalents or related genres
- * This handles genres that users might search for but don't exist in Spotify's seed list
- */
-const GENRE_MAPPINGS: Record<string, string[]> = {
-  'uptempo': ['hardstyle', 'hardcore', 'hard-techno', 'gabber', 'speedcore'],
-  'rawstyle': ['hardstyle', 'hardcore', 'hard-techno'],
-  'frenchcore': ['hardcore', 'hardstyle', 'hard-techno'],
-  'terrorcore': ['hardcore', 'speedcore', 'hardstyle'],
-  'mainstream': ['pop', 'dance-pop', 'electro-house'],
-  'euphoric': ['trance', 'progressive-trance', 'uplifting-trance'],
-  'psytrance': ['psych-rock', 'trance', 'psychedelic'],
-  'future-bass': ['edm', 'electro', 'dubstep'],
-  'lo-fi': ['chill', 'study', 'ambient'],
-  'lofi': ['chill', 'study', 'ambient'],
-};
-
-/**
- * Calculate similarity between two strings (Levenshtein-based)
- * Returns a score from 0 (no match) to 1 (exact match)
- */
-function stringSimilarity(str1: string, str2: string): number {
-  const longer = str1.length > str2.length ? str1 : str2;
-  const shorter = str1.length > str2.length ? str2 : str1;
-  
-  if (longer.length === 0) return 1.0;
-  
-  // Check for substring matches (higher score)
-  if (longer.includes(shorter) || shorter.includes(longer)) {
-    return 0.7 + (shorter.length / longer.length) * 0.3;
-  }
-  
-  // Simple character overlap
-  const longerChars = new Set(longer.split(''));
-  const shorterChars = new Set(shorter.split(''));
-  let overlap = 0;
-  shorterChars.forEach(char => {
-    if (longerChars.has(char)) overlap++;
-  });
-  
-  return overlap / longer.length;
-}
-
-/**
- * Find similar genres from Spotify's available genres using fuzzy matching
- */
-function findSimilarGenres(searchTerm: string, availableGenres: string[], maxResults: number = 5): string[] {
-  const scored = availableGenres
-    .map(genre => ({
-      genre,
-      score: stringSimilarity(searchTerm.toLowerCase(), genre.toLowerCase()),
-    }))
-    .filter(item => item.score > 0.4) // Only include reasonably similar genres
-    .sort((a, b) => b.score - a.score) // Sort by similarity
-    .slice(0, maxResults)
-    .map(item => item.genre);
-  
-  return scored;
-}
-
-/**
- * Get song recommendations from Spotify based on genre, mood, or search query
- * This uses Spotify's actual recommendation engine and ALL available genres
+ * Get song recommendations - PRIMARY: verified tracks from ingestion pipeline (VerifiedTrack table)
+ * Falls back to local database cache if ingestion pipeline has no matches
  */
 export async function getSpotifyRecommendations(
   prompt: string,
   limit: number = 15
 ): Promise<Song[]> {
   try {
-    const token = await getSpotifyToken();
-    if (!token) return [];
-
-    const promptLower = prompt.toLowerCase();
     console.log(`🎵 getSpotifyRecommendations called with prompt: "${prompt}"`);
     
-    // Get ALL available genres from Spotify (hundreds of them!)
-    const allGenres = await getAvailableGenres(token);
-    console.log(`📊 Spotify has ${allGenres.length} available genres`);
+    // PRIMARY: Query VerifiedTrack table from ingestion pipeline
+    console.log(`📊 PRIMARY: Querying verified tracks from ingestion pipeline (VerifiedTrack)...`);
+    const verifiedTracks = await queryVerifiedTracks(prompt, limit);
     
-    // Find genres that match words in the prompt
-    const matchedGenres: string[] = [];
-    
-    // Split prompt into words and check each against Spotify's genre list
-    const promptWords = promptLower.split(/\s+/);
-    console.log(`🔍 Prompt words:`, promptWords);
-    
-    // First, check if any prompt words match our genre mappings
-    for (const word of promptWords) {
-      if (GENRE_MAPPINGS[word]) {
-        console.log(`✅ Found hardcoded mapping for "${word}":`, GENRE_MAPPINGS[word]);
-        const mappedGenres = GENRE_MAPPINGS[word].filter(g => allGenres.includes(g));
-        console.log(`✅ Validated genres (exist in Spotify):`, mappedGenres);
-        matchedGenres.push(...mappedGenres);
-        if (matchedGenres.length >= 5) break;
-      }
-    }
-    
-    // If we still don't have enough genres, try direct matching
-    if (matchedGenres.length < 5) {
-      for (const genre of allGenres) {
-        const genreLower = genre.toLowerCase();
-        
-        // Exact match or contains match
-        if (promptWords.some(word => 
-          word === genreLower || 
-          genreLower.includes(word) || 
-          word.includes(genreLower)
-        )) {
-          if (!matchedGenres.includes(genre)) {
-            matchedGenres.push(genre);
-          }
-        }
-        
-        // Stop at 5 genres (Spotify's max for recommendations)
-        if (matchedGenres.length >= 5) break;
-      }
-    }
-    
-    // If we STILL don't have enough genres, use fuzzy matching on each word
-    if (matchedGenres.length < 5) {
-      for (const word of promptWords) {
-        // Skip very short words
-        if (word.length < 3) continue;
-        
-        const similarGenres = findSimilarGenres(word, allGenres, 5 - matchedGenres.length);
-        for (const genre of similarGenres) {
-          if (!matchedGenres.includes(genre)) {
-            matchedGenres.push(genre);
-            console.log(`Fuzzy match: "${word}" → "${genre}"`);
-          }
-          if (matchedGenres.length >= 5) break;
-        }
-        if (matchedGenres.length >= 5) break;
-      }
+    if (verifiedTracks.length > 0) {
+      console.log(`✅ Verified tracks found: ${verifiedTracks.length} tracks from ingestion pipeline`);
+      console.log(`🎯 Returning ${verifiedTracks.length} tracks from INGESTION PIPELINE - FRESHNESS SORTED`);
+      console.log(`📊 Top 3 years: ${verifiedTracks.slice(0, 3).map((t) => t.year || '?').join(', ')}`);
+      return verifiedTracks;
     }
 
-    // If we found genre matches, use recommendations API
-    if (matchedGenres.length > 0) {
-      console.log(`✨ Found ${matchedGenres.length} genre matches for "${prompt}":`, matchedGenres);
-      const genreParam = matchedGenres.slice(0, 5).join(',');
-      const recommendResponse = await fetch(
-        `https://api.spotify.com/v1/recommendations?seed_genres=${encodeURIComponent(genreParam)}&limit=${limit}`,
-        {
-          headers: { 'Authorization': `Bearer ${token}` },
-        }
-      );
-
-      if (recommendResponse.ok) {
-        const data = await recommendResponse.json();
-        const tracks = data.tracks || [];
-
-        // Also search YouTube for each track using ISRC and caching
-        const enrichedTracks = await Promise.all(
-          tracks.map(async (track: any) => {
-            const artist = track.artists.map((a: any) => a.name).join(', ');
-            const title = track.name;
-            const year = track.album?.release_date ? new Date(track.album.release_date).getFullYear() : undefined;
-            const spotifyUrl = track.external_urls?.spotify;
-            const spotifyId = track.id;
-            const isrc = track.external_ids?.isrc;
-            
-            // Check cache first
-            const cached = await checkSongCache(artist, title, spotifyId, isrc);
-            if (cached) {
-              console.log(`Cache hit for: ${artist} - ${title}`);
-              return { ...cached, source: 'genre-match' as const };
-            }
-            
-            // Not in cache, search YouTube with ISRC
-            const query = `${artist} ${title}`;
-            const youtubeResult = await searchYouTube(query, isrc);
-            
-            const song: Song = {
-              title,
-              artist,
-              year,
-              spotifyUrl,
-              youtubeUrl: youtubeResult?.youtubeUrl,
-              verified: true,
-              source: 'genre-match',
-            };
-            
-            // Save to cache
-            await saveSongCache(
-              title,
-              artist,
-              spotifyUrl,
-              youtubeResult?.youtubeUrl,
-              spotifyId,
-              isrc,
-              year
-            );
-            
-            return song;
-          })
-        );
-
-        console.log(`🎯 Returning ${enrichedTracks.length} tracks from GENRE MATCHING (${matchedGenres.join(', ')})`);
-        return enrichedTracks;
-      }
+    console.log(`⚠️  No verified tracks found in pipeline, falling back to local database cache...`);
+    
+    const cacheResults = await searchLocalDatabase(prompt, limit);
+    if (cacheResults.length > 0) {
+      console.log(`✅ Local cache found: ${cacheResults.length} tracks`);
+      console.log(`🎯 Returning ${cacheResults.length} tracks from LOCAL CACHE - FRESHNESS SORTED`);
+      console.log(`📊 Top 3 years: ${cacheResults.slice(0, 3).map((t) => t.year || '?').join(', ')}`);
+      return cacheResults;
     }
 
-    // Fallback: Use search API with genre-specific queries
-    console.log(`🔎 No genre matches found for "${prompt}", using SEARCH FALLBACK`);
-    
-    // For genre-like searches, just use the raw prompt - Spotify will match it in track titles, artists, etc.
-    const searchQuery = prompt;
-    console.log(`🔍 Searching Spotify for: "${searchQuery}"`);
-    
-    const searchResponse = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=${limit}`,
-      {
-        headers: { 'Authorization': `Bearer ${token}` },
-      }
-    );
-
-    if (searchResponse.ok) {
-      const data = await searchResponse.json();
-      const tracks = data.tracks?.items || [];
-      console.log(`📦 Spotify search returned ${tracks.length} tracks`);
-      
-      // Also search YouTube for each track with ISRC and caching
-      const enrichedTracks = await Promise.all(
-        tracks.map(async (track: any) => {
-          const artist = track.artists.map((a: any) => a.name).join(', ');
-          const title = track.name;
-          const year = track.album?.release_date ? new Date(track.album.release_date).getFullYear() : undefined;
-          const spotifyUrl = track.external_urls?.spotify;
-          const spotifyId = track.id;
-          const isrc = track.external_ids?.isrc;
-          
-          // Check cache first
-          const cached = await checkSongCache(artist, title, spotifyId, isrc);
-          if (cached) {
-            console.log(`Cache hit for: ${artist} - ${title}`);
-            return { ...cached, source: 'search-fallback' as const };
-          }
-          
-          // Not in cache, search YouTube with ISRC
-          const query = `${artist} ${title}`;
-          const youtubeResult = await searchYouTube(query, isrc);
-          
-          const song: Song = {
-            title,
-            artist,
-            year,
-            spotifyUrl,
-            youtubeUrl: youtubeResult?.youtubeUrl,
-            verified: true,
-            source: 'search-fallback',
-          };
-          
-          // Save to cache
-          await saveSongCache(
-            title,
-            artist,
-            spotifyUrl,
-            youtubeResult?.youtubeUrl,
-            spotifyId,
-            isrc,
-            year
-          );
-          
-          return song;
-        })
-      );
-      
-      console.log(`🔍 Returning ${enrichedTracks.length} tracks from SEARCH FALLBACK`);
-      return enrichedTracks;
-    }
-
+    console.log(`⚠️  No results found in verified pipeline or local cache`);
     return [];
   } catch (error) {
-    console.error('Spotify recommendations error:', error);
+    console.error('Music recommendations error:', error);
     return [];
   }
 }
 
 /**
- * Search Spotify for a song and return with ISRC
+ * @deprecated Use queryVerifiedTracks() from ingestion pipeline instead
+ * This function is disabled and should not be used
  */
 export async function searchSpotify(query: string): Promise<(Song & { isrc?: string; spotifyId?: string }) | null> {
-  try {
-    // Get Spotify access token (client credentials flow)
-    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(
-          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-        ).toString('base64'),
-      },
-      body: 'grant_type=client_credentials',
-    });
-
-    if (!tokenResponse.ok) {
-      console.error('Spotify token error:', await tokenResponse.text());
-      return null;
-    }
-
-    const { access_token } = await tokenResponse.json();
-
-    // Search for the track
-    const searchResponse = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=1`,
-      {
-        headers: {
-          'Authorization': `Bearer ${access_token}`,
-        },
-      }
-    );
-
-    if (!searchResponse.ok) {
-      console.error('Spotify search error:', await searchResponse.text());
-      return null;
-    }
-
-    const data = await searchResponse.json();
-    const track = data.tracks?.items?.[0];
-
-    if (!track) return null;
-
-    return {
-      title: track.name,
-      artist: track.artists.map((a: any) => a.name).join(', '),
-      year: track.album?.release_date ? new Date(track.album.release_date).getFullYear() : undefined,
-      spotifyUrl: track.external_urls?.spotify,
-      spotifyId: track.id,
-      isrc: track.external_ids?.isrc, // ← This is the key for accurate YouTube search!
-      verified: true,
-    };
-  } catch (error) {
-    console.error('Spotify search error:', error);
-    return null;
-  }
+  console.warn('❌ searchSpotify() is DEPRECATED - use ingestion pipeline verified tracks instead');
+  return null;
 }
 
 /**
- * Search YouTube for a song using ISRC or query
+ * @deprecated Use ingestion pipeline verified tracks instead
+ * This function is disabled and should not be used
  */
 export async function searchYouTube(query: string, isrc?: string): Promise<Song | null> {
-  try {
-    const apiKey = process.env.YOUTUBE_API_KEY;
-    if (!apiKey) {
-      console.error('YouTube API key not configured');
-      return null;
-    }
-
-    // Don't use ISRC search - it's not reliable on YouTube
-    // Instead, use exact match with official audio filter
-    const searchQuery = `${query} official audio`;
-    console.log(`Searching YouTube for: ${searchQuery}`);
-
-    const searchResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&videoCategoryId=10&maxResults=1&key=${apiKey}`
-    );
-
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error('YouTube search error:', errorText);
-      return null;
-    }
-
-    const data = await searchResponse.json();
-    
-    // Check for API errors (like quota exceeded)
-    if (data.error) {
-      console.error('YouTube search error:', data.error);
-      return null;
-    }
-    
-    const video = data.items?.[0];
-
-    if (!video) {
-      return null;
-    }
-
-    // Parse title to extract artist and song (common YouTube format: "Artist - Song")
-    const title = video.snippet.title;
-    const parts = title.split(' - ');
-    
-    return {
-      title: parts.length > 1 ? parts[1].trim() : title,
-      artist: parts.length > 1 ? parts[0].trim() : video.snippet.channelTitle,
-      youtubeUrl: `https://www.youtube.com/watch?v=${video.id.videoId}`,
-      verified: true,
-    };
-  } catch (error) {
-    console.error('YouTube search error:', error);
-    return null;
-  }
+  console.warn('❌ searchYouTube() is DEPRECATED - use ingestion pipeline verified tracks instead');
+  return null;
 }
 
 /**
- * Search both Spotify and YouTube for a song with caching
+ * @deprecated Use ingestion pipeline verified tracks instead
+ * This function is disabled and should not be used
  */
 export async function searchBoth(title: string, artist: string): Promise<Song> {
-  const query = `${artist} ${title}`;
-  
-  // Check cache first
-  const cached = await checkSongCache(artist, title);
-  if (cached) {
-    console.log(`Cache hit for: ${artist} - ${title}`);
-    return cached;
-  }
-  
-  console.log(`Cache miss for: ${artist} - ${title}, searching APIs...`);
-  
-  // Search Spotify first to get ISRC and metadata
-  const spotifyResult = await searchSpotify(query);
-  
-  let youtubeResult: Song | null = null;
-  
-  // If we have Spotify result with ISRC, use it for YouTube search
-  if (spotifyResult) {
-    // Extract Spotify ID and ISRC from the full track object
-    // We need to modify searchSpotify to return these
-    const spotifyId = spotifyResult.spotifyUrl?.split('/track/')[1];
-    const isrc = (spotifyResult as any).isrc; // Will add this to searchSpotify
-    
-    if (isrc) {
-      youtubeResult = await searchYouTube(query, isrc);
-    } else {
-      youtubeResult = await searchYouTube(query);
-    }
-  } else {
-    // No Spotify result, search YouTube with query only
-    youtubeResult = await searchYouTube(query);
-  }
-
-  // Merge results, preferring Spotify data
-  const merged: Song = {
-    title: spotifyResult?.title || youtubeResult?.title || title,
-    artist: spotifyResult?.artist || youtubeResult?.artist || artist,
-    year: spotifyResult?.year,
-    spotifyUrl: spotifyResult?.spotifyUrl,
-    youtubeUrl: youtubeResult?.youtubeUrl,
-    verified: !!(spotifyResult || youtubeResult),
+  console.warn('❌ searchBoth() is DEPRECATED - use ingestion pipeline verified tracks instead');
+  return {
+    title,
+    artist,
+    verified: false,
   };
-  
-  // Save to cache for next time
-  if (merged.verified) {
-    const spotifyId = merged.spotifyUrl?.split('/track/')[1];
-    const isrc = (spotifyResult as any)?.isrc;
-    
-    await saveSongCache(
-      merged.title,
-      merged.artist,
-      merged.spotifyUrl,
-      merged.youtubeUrl,
-      spotifyId,
-      isrc,
-      merged.year
-    );
-  }
-
-  return merged;
 }
 
 /**
- * Verify and enrich a list of AI-generated songs
+ * @deprecated Use ingestion pipeline verified tracks instead
+ * This function is disabled and should not be used
  */
 export async function verifySongs(songs: Array<{ title: string; artist: string; genre?: string; mood?: string; year?: number }>): Promise<Song[]> {
-  // Process all songs in parallel for much faster results
-  const verificationPromises = songs.map(async (song) => {
-    try {
-      const verified = await searchBoth(song.title, song.artist);
-      return {
-        ...verified,
-        genre: song.genre,
-        mood: song.mood,
-        year: verified.year || song.year,
-      };
-    } catch (error) {
-      console.error(`Error verifying song: ${song.artist} - ${song.title}`, error);
-      // Include unverified song as fallback
-      return {
-        ...song,
-        verified: false,
-      };
-    }
-  });
-
-  // Wait for all searches to complete in parallel
-  const verifiedSongs = await Promise.all(verificationPromises);
-  return verifiedSongs;
+  console.warn('❌ verifySongs() is DEPRECATED - use ingestion pipeline verified tracks instead');
+  return songs.map(song => ({
+    ...song,
+    verified: false,
+  }));
 }
 

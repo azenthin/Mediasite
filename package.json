@@ -10,7 +10,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:ci": "jest --ci",
     "test:coverage": "jest --coverage",
     "db:generate": "prisma generate",
@@ -21,7 +22,11 @@
     "db:seed": "tsx scripts/seed-database.ts",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
-    "db:logs": "docker compose logs -f postgres"
+    "db:logs": "docker compose logs -f postgres",
+    "ingest:fetch": "node scripts/ingest/fetch-musicbrainz-songs.js",
+    "ingest:fetch-spotify": "node scripts/ingest/fetch-spotify-popular.js",
+    "ingest:sample": "node scripts/ingest/run-sample.js",
+    "ingest:upsert": "node scripts/ingest/upsert-db.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -35,6 +40,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.0.1",
     "dompurify": "^3.2.6",
+    "dotenv": "^17.2.3",
     "express-rate-limit": "^8.0.1",
     "framer-motion": "^12.23.12",
     "googleapis": "^144.0.0",

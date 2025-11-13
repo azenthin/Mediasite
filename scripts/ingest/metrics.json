@@ -1,0 +1,10 @@
+{
+  "processed": 11267,
+  "accepted": 5036,
+  "queued": 1205,
+  "skipped": 5026,
+  "errors": 2,
+  "byReason": {
+    "low-confidence": 5026
+  }
+}

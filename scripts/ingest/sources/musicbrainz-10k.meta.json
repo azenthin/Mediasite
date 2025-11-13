@@ -1,0 +1,14 @@
+{
+  "fetchedAt": "2025-11-11T00:55:16.965Z",
+  "totalSongs": 10000,
+  "uniqueArtists": 4968,
+  "source": "MusicBrainz",
+  "rateLimit": "1000ms",
+  "durationSeconds": 236.629,
+  "nextSteps": [
+    "Review CSV for quality",
+    "Run: npm run ingest:sample -- --source=musicbrainz-10k.csv",
+    "Check staging output for canonicality scores",
+    "Run: npm run ingest:upsert (requires CONFIRM_UPSERT=yes)"
+  ]
+}

@@ -241,6 +241,7 @@ const VideoCard = ({ video, showTopSeparator = false, onImpression, onCardClick 
 
 
 
+
     const handleMouseEnter = () => {
         setIsHovered(true);
         if (videoRef.current && video.type === 'VIDEO') {

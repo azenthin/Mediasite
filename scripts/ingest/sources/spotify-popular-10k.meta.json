@@ -1,0 +1,14 @@
+{
+  "fetchedAt": "2025-11-11T01:50:04.337Z",
+  "totalSongs": 1387,
+  "uniqueArtists": 604,
+  "source": "Spotify",
+  "avgPopularity": "58.9",
+  "withISRC": 1387,
+  "nextSteps": [
+    "All songs are guaranteed to be on Spotify",
+    "Run: npm run ingest:sample -- --source=spotify-popular-10k.csv",
+    "Pipeline will enrich with MusicBrainz data (MBID, genres, canonical dates)",
+    "High acceptance rate expected (Spotify ID + ISRC present)"
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "title": "Ur So F**kInG cOoL",
+    "artist": "Tones & I",
+    "uuid": "2ffc5f25-f191-4551-a1b4-40fe9ddcc075",
+    "song_id": "2ffc5f25-f191-4551-a1b4-40fe9ddcc075",
+    "isrc": "USAT22003425",
+    "spotify_id": "7A9rdAz2M6AjRwOa34jxIP",
+    "release_date": "2022-06-01",
+    "release_year": 2022,
+    "genres": "pop",
+    "duration_ms": 185000,
+    "source": "soundcharts-sandbox-manifest"
+  },
+  {
+    "title": "Bad Guy",
+    "artist": "Billie Eilish",
+    "uuid": "7d534228-5165-11e9-9375-549f35161576",
+    "song_id": "7d534228-5165-11e9-9375-549f35161576",
+    "isrc": "USUM71900764",
+    "spotify_id": "37s1cvCDnWgt8EPmgdWWgT",
+    "release_date": "2019-03-29",
+    "release_year": 2019,
+    "genres": "pop",
+    "duration_ms": 194000,
+    "source": "soundcharts-sandbox-manifest"
+  }
+]

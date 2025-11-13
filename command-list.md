@@ -27,6 +27,14 @@ npm run test:coverage
 taskkill /f /im node.exe
 ```
 
+**Kill Only Prisma Studio (Port 5555)**
+```bash
+# Find the PID
+netstat -ano | findstr ":5555"
+# Kill that PID
+taskkill /f /pid XXXX
+```
+
 **Check Ports**
 ```bash
 netstat -ano | findstr ":300"

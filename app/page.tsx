@@ -1,10 +1,6 @@
-import App from './components/Main';
-import HomePageContent from './components/HomePageContent';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return (
-    <App>
-      <HomePageContent />
-    </App>
-  );
+  // Make the AI page the site homepage
+  redirect('/ai');
 }
