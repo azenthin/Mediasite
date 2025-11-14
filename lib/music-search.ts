@@ -127,11 +127,12 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
         return {
           title: track.title,
           artist: track.artist,
+          genre: track.primaryGenre || undefined,
           year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
-          spotifyUrl: spotifyIdentifier ? `spotify:track:${spotifyIdentifier.value}` : undefined,
+          spotifyUrl: spotifyIdentifier ? `https://open.spotify.com/track/${spotifyIdentifier.value}` : undefined,
           youtubeUrl: youtubeIdentifier ? `https://www.youtube.com/watch?v=${youtubeIdentifier.value}` : undefined,
           verified: true,
-          source: 'ingestion-pipeline',
+          source: 'database',
         };
       })
       .filter((s: any) => s.title && s.artist) as Song[];
