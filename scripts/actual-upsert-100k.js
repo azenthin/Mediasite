@@ -4,7 +4,10 @@ const path = require('path');
 const { fetchArtistsBatch, fetchAudioFeaturesBatch, computeMood } = require('./spotify-enrichment');
 
 const prisma = new PrismaClient();
-const stagingFile = path.join(__dirname, 'ingest/staging-results-100k.json');
+// Use command line argument if provided, otherwise default
+const stagingFile = process.argv[2] 
+  ? path.resolve(process.argv[2])
+  : path.join(__dirname, 'ingest/staging-results-100k.json');
 
 async function upsert100k() {
   try {
@@ -12,6 +15,8 @@ async function upsert100k() {
       console.error('❌ Staging file not found:', stagingFile);
       return;
     }
+    
+    console.log('📂 Using staging file:', stagingFile);
 
     console.log('📂 Loading staging results...');
     const staging = JSON.parse(fs.readFileSync(stagingFile, 'utf8'));

@@ -20,12 +20,76 @@ interface Song {
 }
 
 /**
+ * Check if the prompt is requesting a single artist
+ */
+function isSingleArtistRequest(prompt: string): boolean {
+  const promptLower = prompt.toLowerCase();
+  // Check for patterns like "songs by X", "music from X", "X songs", "only X", etc.
+  const singleArtistPatterns = [
+    /^(?:songs?|music|tracks?) (?:by|from) /i,
+    /^only /i,
+    /^just /i,
+    / only$/i,
+    /^([a-z0-9\s]+) songs?$/i,
+    /^([a-z0-9\s]+) music$/i,
+  ];
+  
+  return singleArtistPatterns.some(pattern => pattern.test(promptLower));
+}
+
+/**
+ * Apply artist diversity: remove duplicate artists unless it's a single-artist request
+ * or we don't have enough songs to fill the playlist
+ */
+function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist: boolean): Song[] {
+  if (isSingleArtist) {
+    // For single artist requests, allow all tracks from that artist
+    return songs.slice(0, targetCount);
+  }
+  
+  const uniqueArtists = new Set<string>();
+  const diverseTracks: Song[] = [];
+  const duplicateArtistTracks: Song[] = [];
+  
+  // First pass: collect one track per artist
+  for (const song of songs) {
+    const artistKey = song.artist.toLowerCase().trim();
+    
+    if (!uniqueArtists.has(artistKey)) {
+      uniqueArtists.add(artistKey);
+      diverseTracks.push(song);
+    } else {
+      // Save for potential backfill if we don't have enough songs
+      duplicateArtistTracks.push(song);
+    }
+    
+    // If we already have enough diverse tracks, stop
+    if (diverseTracks.length >= targetCount) {
+      break;
+    }
+  }
+  
+  // If we don't have enough tracks, backfill with duplicate artists
+  if (diverseTracks.length < targetCount && duplicateArtistTracks.length > 0) {
+    const needed = targetCount - diverseTracks.length;
+    diverseTracks.push(...duplicateArtistTracks.slice(0, needed));
+    console.log(`⚠️  Added ${Math.min(needed, duplicateArtistTracks.length)} duplicate artist tracks to meet playlist size`);
+  }
+  
+  return diverseTracks;
+}
+
+/**
  * Query verified tracks from ingestion pipeline (VerifiedTrack table)
  * Matches by artist or title
  */
-async function queryVerifiedTracks(prompt: string, limit: number = 15): Promise<Song[]> {
+async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
   try {
     const promptLower = prompt.toLowerCase();
+    const isSingleArtist = isSingleArtistRequest(prompt);
+    
+    // Fetch more tracks if we need diversity (2-3x the limit to ensure variety)
+    const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
     
     // Query VerifiedTrack table with enriched search (genre, mood, popularity)
     // Note: SQLite is case-insensitive by default for LIKE operations (which contains uses)
@@ -47,7 +111,7 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15): Promise<
         { trackPopularity: 'desc' },
         { verifiedAt: 'desc' },
       ],
-      take: limit,
+      take: fetchLimit,
     });
 
     if (verifiedTracks.length === 0) {
@@ -86,7 +150,14 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15): Promise<
       return yearB - yearA;
     });
 
-    return songs;
+    // Apply artist diversity if requested
+    if (applyDiversity) {
+      const diverseSongs = applyArtistDiversity(songs, limit, isSingleArtist);
+      console.log(`🎨 Artist diversity applied: ${diverseSongs.length} tracks (single artist: ${isSingleArtist})`);
+      return diverseSongs;
+    }
+
+    return songs.slice(0, limit);
   } catch (error) {
     console.error('Failed to query verified tracks:', error);
     return [];
@@ -98,9 +169,12 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15): Promise<
  * Filters by genres/moods and returns freshest results
  * Returns songs sorted by release_year (newest first) for freshness
  */
-async function searchLocalDatabase(query: string, limit: number = 15): Promise<Song[]> {
+async function searchLocalDatabase(query: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
   try {
     const queryLower = query.toLowerCase();
+    const isSingleArtist = isSingleArtistRequest(query);
+    const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
+    
     console.log(`🏠 Searching local database for: "${query}"`);
 
     // Use sqlite3 CLI to query the database
@@ -125,7 +199,7 @@ async function searchLocalDatabase(query: string, limit: number = 15): Promise<S
         CASE WHEN release_year >= 2015 THEN 0 ELSE 1 END,
         release_year DESC,
         popularity_score DESC
-      LIMIT ${limit}
+      LIMIT ${fetchLimit}
     `.replace(/\n/g, ' ');
 
     const dbPath = path.join(process.cwd(), 'enhanced_music.db');
@@ -166,7 +240,14 @@ async function searchLocalDatabase(query: string, limit: number = 15): Promise<S
       console.log(`📊 Top 3 years: ${songs.slice(0, 3).map(s => s.year).join(', ')}`);
     }
 
-    return songs;
+    // Apply artist diversity if requested
+    if (applyDiversity) {
+      const diverseSongs = applyArtistDiversity(songs, limit, isSingleArtist);
+      console.log(`🎨 Artist diversity applied: ${diverseSongs.length} tracks (single artist: ${isSingleArtist})`);
+      return diverseSongs;
+    }
+
+    return songs.slice(0, limit);
   } catch (error) {
     console.error('❌ Local database search error:', error);
     return [];

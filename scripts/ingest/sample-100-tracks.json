@@ -1,0 +1,2840 @@
+{
+  "results": [
+    {
+      "isrc": "USUG12506436",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1dosSsKwYF7hoQA2kuu6wI",
+        "raw": {
+          "id": "1dosSsKwYF7hoQA2kuu6wI",
+          "name": "The Fate of Ophelia",
+          "artists": [
+            {
+              "name": "Taylor Swift",
+              "id": "06HL4z0CvFAxyc27GXpf02"
+            }
+          ],
+          "album": {
+            "name": "The Life of a Showgirl (Track by Track Version)",
+            "release_date": "2025-10-02"
+          },
+          "duration_ms": 226073,
+          "popularity": 73,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG12506436"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72409273",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2plbrEY59IikOBgBGLjaoe",
+        "raw": {
+          "id": "2plbrEY59IikOBgBGLjaoe",
+          "name": "Die With A Smile",
+          "artists": [
+            {
+              "name": "Lady Gaga",
+              "id": "1HY2Jd0NmPuamShAr6KMms"
+            },
+            {
+              "name": "Bruno Mars",
+              "id": "0du5cEVh5yTK9QJze8zA0C"
+            }
+          ],
+          "album": {
+            "name": "Die With A Smile",
+            "release_date": "2024-08-16"
+          },
+          "duration_ms": 251667,
+          "popularity": 91,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72409273"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAT22500463",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6qqrTXSdwiJaq8SO0X2lSe",
+        "raw": {
+          "id": "6qqrTXSdwiJaq8SO0X2lSe",
+          "name": "Ordinary",
+          "artists": [
+            {
+              "name": "Alex Warren",
+              "id": "0fTSzq9jAh4c36UVb4V7CB"
+            }
+          ],
+          "album": {
+            "name": "Ordinary",
+            "release_date": "2025-02-07"
+          },
+          "duration_ms": 186964,
+          "popularity": 90,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAT22500463"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZ8BZ2513510",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1CPZ5BxNNd0n0nF4Orb9JS",
+        "raw": {
+          "id": "1CPZ5BxNNd0n0nF4Orb9JS",
+          "name": "Golden",
+          "artists": [
+            {
+              "name": "HUNTR/X",
+              "id": "2yNNYQBChuox9A5Ka93BIn"
+            },
+            {
+              "name": "EJAE",
+              "id": "0RMJOzHDhAKY1o2j0W0vxY"
+            },
+            {
+              "name": "AUDREY NUNA",
+              "id": "0Wwji82sLA0Hcvtuak3omb"
+            },
+            {
+              "name": "REI AMI",
+              "id": "6U1dV7aL68N7Gb0Naq34V5"
+            },
+            {
+              "name": "KPop Demon Hunters Cast",
+              "id": "7mW7Tv7NvywKKXqafZo0Lc"
+            }
+          ],
+          "album": {
+            "name": "KPop Demon Hunters (Soundtrack from the Netflix Film)",
+            "release_date": "2025-06-20"
+          },
+          "duration_ms": 194607,
+          "popularity": 99,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QZ8BZ2513510"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12504304",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5BZsQlgw21vDOAjoqkNgKb",
+        "raw": {
+          "id": "5BZsQlgw21vDOAjoqkNgKb",
+          "name": "DAISIES",
+          "artists": [
+            {
+              "name": "Justin Bieber",
+              "id": "1uNFoZAHBGtllmzznpCI3s"
+            }
+          ],
+          "album": {
+            "name": "SWAG",
+            "release_date": "2025-07-11"
+          },
+          "duration_ms": 176453,
+          "popularity": 91,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG12504304"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USWB12405502",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0FTmksd2dxiE5e3rWyJXs6",
+        "raw": {
+          "id": "0FTmksd2dxiE5e3rWyJXs6",
+          "name": "back to friends",
+          "artists": [
+            {
+              "name": "sombr",
+              "id": "4G9NDjRyZFDlJKMRL8hx3S"
+            }
+          ],
+          "album": {
+            "name": "back to friends",
+            "release_date": "2024-12-27"
+          },
+          "duration_ms": 199032,
+          "popularity": 92,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USWB12405502"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "GBUM72401610",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3SKH53SPQbEnZR4cJPVaz2",
+        "raw": {
+          "id": "3SKH53SPQbEnZR4cJPVaz2",
+          "name": "Messy",
+          "artists": [
+            {
+              "name": "Lola Young",
+              "id": "67FB4n52MgexGQIG8s0yUH"
+            }
+          ],
+          "album": {
+            "name": "Messy",
+            "release_date": "2024-05-30"
+          },
+          "duration_ms": 284068,
+          "popularity": 84,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "GBUM72401610"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "KRA402400094",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5H1sKFMzDeMtXwND3V6hRY",
+        "raw": {
+          "id": "5H1sKFMzDeMtXwND3V6hRY",
+          "name": "JUMP",
+          "artists": [
+            {
+              "name": "BLACKPINK",
+              "id": "41MozSoPIsD1dJM0CLPjZF"
+            }
+          ],
+          "album": {
+            "name": "JUMP",
+            "release_date": "2025-07-11"
+          },
+          "duration_ms": 164718,
+          "popularity": 90,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "KRA402400094"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72504354",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2BwO5K8Q7EPAJSGze3AAh9",
+        "raw": {
+          "id": "2BwO5K8Q7EPAJSGze3AAh9",
+          "name": "Manchild",
+          "artists": [
+            {
+              "name": "Sabrina Carpenter",
+              "id": "74KM79TiuVKeVCqs8QtB0B"
+            }
+          ],
+          "album": {
+            "name": "Man’s Best Friend",
+            "release_date": "2025-08-29"
+          },
+          "duration_ms": 213645,
+          "popularity": 88,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUM72504354"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAT22409172",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5vNRhkKd0yEAg8suGBpjeY",
+        "raw": {
+          "id": "5vNRhkKd0yEAg8suGBpjeY",
+          "name": "APT.",
+          "artists": [
+            {
+              "name": "ROSÉ",
+              "id": "3eVa5w3URK5duf6eyVDbu9"
+            },
+            {
+              "name": "Bruno Mars",
+              "id": "0du5cEVh5yTK9QJze8zA0C"
+            }
+          ],
+          "album": {
+            "name": "APT.",
+            "release_date": "2024-10-18"
+          },
+          "duration_ms": 169917,
+          "popularity": 88,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAT22409172"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72317276",
+      "spotify": {
+        "found": true,
+        "spotify_id": "51ZQ1vr10ffzbwIjDCwqm4",
+        "raw": {
+          "id": "51ZQ1vr10ffzbwIjDCwqm4",
+          "name": "we can't be friends (wait for your love)",
+          "artists": [
+            {
+              "name": "Ariana Grande",
+              "id": "66CXWjxzNUsdJxJ2JdwvnR"
+            }
+          ],
+          "album": {
+            "name": "eternal sunshine",
+            "release_date": "2024-03-08"
+          },
+          "duration_ms": 228639,
+          "popularity": 87,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72317276"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USHM92438095",
+      "spotify": {
+        "found": true,
+        "spotify_id": "21IYMdzTrzSe191Cy5eMap",
+        "raw": {
+          "id": "21IYMdzTrzSe191Cy5eMap",
+          "name": "Sailor Song",
+          "artists": [
+            {
+              "name": "Gigi Perez",
+              "id": "1iCnM8foFssWlPRLfAbIwo"
+            }
+          ],
+          "album": {
+            "name": "At The Beach, In Every Life",
+            "release_date": "2025-04-25"
+          },
+          "duration_ms": 211978,
+          "popularity": 86,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USHM92438095"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12401028",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2OzhQlSqBEmt7hmkYxfT6m",
+        "raw": {
+          "id": "2OzhQlSqBEmt7hmkYxfT6m",
+          "name": "Fortnight (feat. Post Malone)",
+          "artists": [
+            {
+              "name": "Taylor Swift",
+              "id": "06HL4z0CvFAxyc27GXpf02"
+            },
+            {
+              "name": "Post Malone",
+              "id": "246dkjvS1zLTtiykXe5h60"
+            }
+          ],
+          "album": {
+            "name": "THE TORTURED POETS DEPARTMENT",
+            "release_date": "2024-04-18"
+          },
+          "duration_ms": 228965,
+          "popularity": 81,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG12401028"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72401994",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6dOtVTDdiauQNBQEDOtlAB",
+        "raw": {
+          "id": "6dOtVTDdiauQNBQEDOtlAB",
+          "name": "BIRDS OF A FEATHER",
+          "artists": [
+            {
+              "name": "Billie Eilish",
+              "id": "6qqNVTkY8uBg9cP3Jd7DAH"
+            }
+          ],
+          "album": {
+            "name": "HIT ME HARD AND SOFT",
+            "release_date": "2024-05-17"
+          },
+          "duration_ms": 210373,
+          "popularity": 94,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72401994"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM12209777",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0yLdNVWF3Srea0uzk55zFn",
+        "raw": {
+          "id": "0yLdNVWF3Srea0uzk55zFn",
+          "name": "Flowers",
+          "artists": [
+            {
+              "name": "Miley Cyrus",
+              "id": "5YGY8feqx7naU7z4HrwZM6"
+            }
+          ],
+          "album": {
+            "name": "Flowers",
+            "release_date": "2023-01-13"
+          },
+          "duration_ms": 200454,
+          "popularity": 14,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM12209777"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72206227",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4h9wh7iOZ0GGn8QVp4RAOB",
+        "raw": {
+          "id": "4h9wh7iOZ0GGn8QVp4RAOB",
+          "name": "I Ain't Worried",
+          "artists": [
+            {
+              "name": "OneRepublic",
+              "id": "5Pwc4xIPtQLFEnJriah9YJ"
+            }
+          ],
+          "album": {
+            "name": "I Ain’t Worried (Music From The Motion Picture \"Top Gun: Maverick\")",
+            "release_date": "2022-05-13"
+          },
+          "duration_ms": 148485,
+          "popularity": 81,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72206227"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72201759",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0HqZX76SFLDz2aW8aiqi7G",
+        "raw": {
+          "id": "0HqZX76SFLDz2aW8aiqi7G",
+          "name": "Bones",
+          "artists": [
+            {
+              "name": "Imagine Dragons",
+              "id": "53XhwfbYqKCa1cC15pYq2q"
+            }
+          ],
+          "album": {
+            "name": "Bones",
+            "release_date": "2022-03-11"
+          },
+          "duration_ms": 165264,
+          "popularity": 76,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72201759"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12304091",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1kuGVB7EU95pJObxwvfwKS",
+        "raw": {
+          "id": "1kuGVB7EU95pJObxwvfwKS",
+          "name": "vampire",
+          "artists": [
+            {
+              "name": "Olivia Rodrigo",
+              "id": "1McMsnEElThX1knmY4oliG"
+            }
+          ],
+          "album": {
+            "name": "GUTS",
+            "release_date": "2023-09-08"
+          },
+          "duration_ms": 219724,
+          "popularity": 84,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUG12304091"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12506170",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2SsY5k7UWFqgye3PUMG3Oq",
+        "raw": {
+          "id": "2SsY5k7UWFqgye3PUMG3Oq",
+          "name": "The Subway",
+          "artists": [
+            {
+              "name": "Chappell Roan",
+              "id": "7GlBOeep6PqTfFi59PTUUN"
+            }
+          ],
+          "album": {
+            "name": "The Subway",
+            "release_date": "2025-08-01"
+          },
+          "duration_ms": 252276,
+          "popularity": 87,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUG12506170"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "GBAYE0000267",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3AJwUDP919kvQ9QcozQPxg",
+        "raw": {
+          "id": "3AJwUDP919kvQ9QcozQPxg",
+          "name": "Yellow",
+          "artists": [
+            {
+              "name": "Coldplay",
+              "id": "4gzpq5DPGxSnKTe4SA8HAU"
+            }
+          ],
+          "album": {
+            "name": "Parachutes",
+            "release_date": "2000-07-10"
+          },
+          "duration_ms": 266773,
+          "popularity": 91,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "GBAYE0000267"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USWB12302315",
+      "spotify": {
+        "found": true,
+        "spotify_id": "17phhZDn6oGtzMe56NuWvj",
+        "raw": {
+          "id": "17phhZDn6oGtzMe56NuWvj",
+          "name": "Lose Control",
+          "artists": [
+            {
+              "name": "Teddy Swims",
+              "id": "33qOK5uJ8AR2xuQQAhHump"
+            }
+          ],
+          "album": {
+            "name": "I've Tried Everything But Therapy (Part 1)",
+            "release_date": "2023-09-15"
+          },
+          "duration_ms": 210688,
+          "popularity": 89,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USWB12302315"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12406903",
+      "spotify": {
+        "found": true,
+        "spotify_id": "7ne4VBA60CxGM75vw0EYad",
+        "raw": {
+          "id": "7ne4VBA60CxGM75vw0EYad",
+          "name": "That’s So True",
+          "artists": [
+            {
+              "name": "Gracie Abrams",
+              "id": "4tuJ0bMpJh08umKkEXKUI5"
+            }
+          ],
+          "album": {
+            "name": "The Secret of Us (Deluxe)",
+            "release_date": "2024-10-18"
+          },
+          "duration_ms": 166300,
+          "popularity": 90,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUG12406903"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZZ662445642",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1De425SCFJULIHbcmeebUw",
+        "raw": {
+          "id": "1De425SCFJULIHbcmeebUw",
+          "name": "LET THE WORLD BURN",
+          "artists": [
+            {
+              "name": "Chris Grey",
+              "id": "0F3maSKfGGVtfATaAyeyPG"
+            }
+          ],
+          "album": {
+            "name": "LET THE WORLD BURN",
+            "release_date": "2024-03-08"
+          },
+          "duration_ms": 163290,
+          "popularity": 81,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QZZ662445642"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USA2P2431062",
+      "spotify": {
+        "found": true,
+        "spotify_id": "7tI8dRuH2Yc6RuoTjxo4dU",
+        "raw": {
+          "id": "7tI8dRuH2Yc6RuoTjxo4dU",
+          "name": "Who",
+          "artists": [
+            {
+              "name": "Jimin",
+              "id": "1oSPZhvZMIrWW5I41kPkkY"
+            }
+          ],
+          "album": {
+            "name": "MUSE",
+            "release_date": "2024-07-19"
+          },
+          "duration_ms": 170887,
+          "popularity": 86,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USA2P2431062"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC12301932",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3rUGC1vUpkDG9CZFHMur1t",
+        "raw": {
+          "id": "3rUGC1vUpkDG9CZFHMur1t",
+          "name": "greedy",
+          "artists": [
+            {
+              "name": "Tate McRae",
+              "id": "45dkTj5sMRSjrmBSBeiHym"
+            }
+          ],
+          "album": {
+            "name": "greedy",
+            "release_date": "2023-09-15"
+          },
+          "duration_ms": 131872,
+          "popularity": 87,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USRC12301932"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "GBAHT2301078",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5b5cPscqVEMChvDqscVw26",
+        "raw": {
+          "id": "5b5cPscqVEMChvDqscVw26",
+          "name": "Training Season",
+          "artists": [
+            {
+              "name": "Dua Lipa",
+              "id": "6M2wZ9GZgrQXHCFfjv46we"
+            }
+          ],
+          "album": {
+            "name": "Radical Optimism",
+            "release_date": "2024-05-03"
+          },
+          "duration_ms": 209487,
+          "popularity": 80,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "GBAHT2301078"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG11601011",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2Ch7LmS7r2Gy2kc64wv3Bz",
+        "raw": {
+          "id": "2Ch7LmS7r2Gy2kc64wv3Bz",
+          "name": "Die For You",
+          "artists": [
+            {
+              "name": "The Weeknd",
+              "id": "1Xyo4u8uXC1ZmMpatF05PJ"
+            }
+          ],
+          "album": {
+            "name": "Starboy",
+            "release_date": "2016-11-25"
+          },
+          "duration_ms": 260252,
+          "popularity": 79,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG11601011"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QM6P42522744",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1CjFD8mc8f40JtIIK0NRGA",
+        "raw": {
+          "id": "1CjFD8mc8f40JtIIK0NRGA",
+          "name": "Lonely Together",
+          "artists": [
+            {
+              "name": "Sickick",
+              "id": "3NR7hAacOhmcztWvD7vJfS"
+            },
+            {
+              "name": "Vikkstar",
+              "id": "3wE6Lb4RCyPMoXsnXV0ZPC"
+            },
+            {
+              "name": "Aloe Blacc",
+              "id": "0id62QV2SZZfvBn9xpmuCl"
+            }
+          ],
+          "album": {
+            "name": "Lonely Together",
+            "release_date": "2025-09-05"
+          },
+          "duration_ms": 156582,
+          "popularity": 56,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QM6P42522744"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72403305",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2qSkIjg1o9h3YT9RAgYN75",
+        "raw": {
+          "id": "2qSkIjg1o9h3YT9RAgYN75",
+          "name": "Espresso",
+          "artists": [
+            {
+              "name": "Sabrina Carpenter",
+              "id": "74KM79TiuVKeVCqs8QtB0B"
+            }
+          ],
+          "album": {
+            "name": "Espresso",
+            "release_date": "2024-04-12"
+          },
+          "duration_ms": 175459,
+          "popularity": 84,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUM72403305"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USWB12307016",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3xkHsmpQCBMytMJNiDf3Ii",
+        "raw": {
+          "id": "3xkHsmpQCBMytMJNiDf3Ii",
+          "name": "Beautiful Things",
+          "artists": [
+            {
+              "name": "Benson Boone",
+              "id": "22wbnEMDvgVIAGdFeek6ET"
+            }
+          ],
+          "album": {
+            "name": "Fireworks & Rollerblades",
+            "release_date": "2024-04-05"
+          },
+          "duration_ms": 180304,
+          "popularity": 88,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USWB12307016"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC12204584",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1Qrg8KqiBpW07V7PNxwwwL",
+        "raw": {
+          "id": "1Qrg8KqiBpW07V7PNxwwwL",
+          "name": "Kill Bill",
+          "artists": [
+            {
+              "name": "SZA",
+              "id": "7tYKF4w9nC0nq9CsPZTHyP"
+            }
+          ],
+          "album": {
+            "name": "SOS",
+            "release_date": "2022-12-08"
+          },
+          "duration_ms": 153946,
+          "popularity": 82,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USRC12204584"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "FRR642000625",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0TRmtiR9q6XnYDzXmoMpGC",
+        "raw": {
+          "id": "0TRmtiR9q6XnYDzXmoMpGC",
+          "name": "All My Heroes - Radio Edit",
+          "artists": [
+            {
+              "name": "Naeleck",
+              "id": "2DYDFBqoaBP2i9XrTGpOgF"
+            },
+            {
+              "name": "Sarah Rebecca",
+              "id": "58obmxGKVKCenZAkACSMgJ"
+            }
+          ],
+          "album": {
+            "name": "All My Heroes",
+            "release_date": "2020-07-31"
+          },
+          "duration_ms": 228433,
+          "popularity": 12,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "FRR642000625"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QMDA62217995",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5Z2MiIZ5I3jJvvmeWMLbOQ",
+        "raw": {
+          "id": "5Z2MiIZ5I3jJvvmeWMLbOQ",
+          "name": "Escapism.",
+          "artists": [
+            {
+              "name": "RAYE",
+              "id": "5KKpBU5eC2tJDzf0wmlRp2"
+            },
+            {
+              "name": "070 Shake",
+              "id": "12Zk1DFhCbHY6v3xep2ZjI"
+            }
+          ],
+          "album": {
+            "name": "Escapism. / The Thrill Is Gone.",
+            "release_date": "2022-10-12"
+          },
+          "duration_ms": 272373,
+          "popularity": 5,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "QMDA62217995"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12101240",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6HU7h9RYOaPRFeh0R3UeAr",
+        "raw": {
+          "id": "6HU7h9RYOaPRFeh0R3UeAr",
+          "name": "deja vu",
+          "artists": [
+            {
+              "name": "Olivia Rodrigo",
+              "id": "1McMsnEElThX1knmY4oliG"
+            }
+          ],
+          "album": {
+            "name": "SOUR",
+            "release_date": "2021-05-21"
+          },
+          "duration_ms": 215506,
+          "popularity": 85,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUG12101240"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72210708",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6dgUya35uo964z7GZXM07g",
+        "raw": {
+          "id": "6dgUya35uo964z7GZXM07g",
+          "name": "Nonsense",
+          "artists": [
+            {
+              "name": "Sabrina Carpenter",
+              "id": "74KM79TiuVKeVCqs8QtB0B"
+            }
+          ],
+          "album": {
+            "name": "emails i can't send",
+            "release_date": "2022-07-15"
+          },
+          "duration_ms": 163648,
+          "popularity": 83,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72210708"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12401040",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4q5YezDOIPcoLr8R81x9qy",
+        "raw": {
+          "id": "4q5YezDOIPcoLr8R81x9qy",
+          "name": "I Can Do It With a Broken Heart",
+          "artists": [
+            {
+              "name": "Taylor Swift",
+              "id": "06HL4z0CvFAxyc27GXpf02"
+            }
+          ],
+          "album": {
+            "name": "THE TORTURED POETS DEPARTMENT",
+            "release_date": "2024-04-18"
+          },
+          "duration_ms": 218004,
+          "popularity": 80,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUG12401040"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC12000832",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4l0RmWt52FxpVxMNni6i63",
+        "raw": {
+          "id": "4l0RmWt52FxpVxMNni6i63",
+          "name": "you broke me first",
+          "artists": [
+            {
+              "name": "Tate McRae",
+              "id": "45dkTj5sMRSjrmBSBeiHym"
+            }
+          ],
+          "album": {
+            "name": "TOO YOUNG TO BE SAD",
+            "release_date": "2021-03-26"
+          },
+          "duration_ms": 170234,
+          "popularity": 85,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USRC12000832"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAT21802284",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2qxmye6gAegTMjLKEBoR3d",
+        "raw": {
+          "id": "2qxmye6gAegTMjLKEBoR3d",
+          "name": "Let Me Down Slowly",
+          "artists": [
+            {
+              "name": "Alec Benjamin",
+              "id": "5IH6FPUwQTxPSXurCrcIov"
+            }
+          ],
+          "album": {
+            "name": "Narrated For You",
+            "release_date": "2018-11-16"
+          },
+          "duration_ms": 169353,
+          "popularity": 82,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAT21802284"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZJ842400387",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2GxrNKugF82CnoRFbQfzPf",
+        "raw": {
+          "id": "2GxrNKugF82CnoRFbQfzPf",
+          "name": "i like the way you kiss me",
+          "artists": [
+            {
+              "name": "Artemas",
+              "id": "0PCCGZ0wGLizHt2KZ7hhA2"
+            }
+          ],
+          "album": {
+            "name": "i like the way you kiss me",
+            "release_date": "2024-03-19"
+          },
+          "duration_ms": 142514,
+          "popularity": 80,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QZJ842400387"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QM24S2400638",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5uQ7de4EWjb3rkcFxyEOpu",
+        "raw": {
+          "id": "5uQ7de4EWjb3rkcFxyEOpu",
+          "name": "Belong Together",
+          "artists": [
+            {
+              "name": "Mark Ambor",
+              "id": "11p2E654TTU8e0nZWBR4AL"
+            }
+          ],
+          "album": {
+            "name": "Belong Together",
+            "release_date": "2024-02-16"
+          },
+          "duration_ms": 148317,
+          "popularity": 75,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QM24S2400638"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC12400216",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1bjeWoagtHmUKputLVyDxQ",
+        "raw": {
+          "id": "1bjeWoagtHmUKputLVyDxQ",
+          "name": "Saturn",
+          "artists": [
+            {
+              "name": "SZA",
+              "id": "7tYKF4w9nC0nq9CsPZTHyP"
+            }
+          ],
+          "album": {
+            "name": "Saturn",
+            "release_date": "2024-02-22"
+          },
+          "duration_ms": 186191,
+          "popularity": 77,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USRC12400216"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG11901472",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1BxfuPKGuaTgP7aM0Bbdwr",
+        "raw": {
+          "id": "1BxfuPKGuaTgP7aM0Bbdwr",
+          "name": "Cruel Summer",
+          "artists": [
+            {
+              "name": "Taylor Swift",
+              "id": "06HL4z0CvFAxyc27GXpf02"
+            }
+          ],
+          "album": {
+            "name": "Lover",
+            "release_date": "2019-08-23"
+          },
+          "duration_ms": 178426,
+          "popularity": 87,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG11901472"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM12200612",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4Dvkj6JhhA12EX05fT7y2e",
+        "raw": {
+          "id": "4Dvkj6JhhA12EX05fT7y2e",
+          "name": "As It Was",
+          "artists": [
+            {
+              "name": "Harry Styles",
+              "id": "6KImCVD70vtIoJWnq6nGn3"
+            }
+          ],
+          "album": {
+            "name": "Harry's House",
+            "release_date": "2022-05-20"
+          },
+          "duration_ms": 167303,
+          "popularity": 88,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM12200612"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QT4K32589339",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4IXasJjUsHa69EHAFs1z7E",
+        "raw": {
+          "id": "4IXasJjUsHa69EHAFs1z7E",
+          "name": "Beaucoup",
+          "artists": [
+            {
+              "name": "TILILA",
+              "id": "0oZLmVQhyT6zFb7EjpJRrR"
+            }
+          ],
+          "album": {
+            "name": "Beaucoup",
+            "release_date": "2025-06-27"
+          },
+          "duration_ms": 193324,
+          "popularity": 45,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QT4K32589339"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72212470",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0mflMxspEfB0VbI1kyLiAv",
+        "raw": {
+          "id": "0mflMxspEfB0VbI1kyLiAv",
+          "name": "Stick Season",
+          "artists": [
+            {
+              "name": "Noah Kahan",
+              "id": "2RQXRUsr4IW1f3mKyKsy4B"
+            }
+          ],
+          "album": {
+            "name": "Stick Season",
+            "release_date": "2022-10-14"
+          },
+          "duration_ms": 182346,
+          "popularity": 84,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72212470"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12401967",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0WbMK4wrZ1wFSty9F7FCgu",
+        "raw": {
+          "id": "0WbMK4wrZ1wFSty9F7FCgu",
+          "name": "Good Luck, Babe!",
+          "artists": [
+            {
+              "name": "Chappell Roan",
+              "id": "7GlBOeep6PqTfFi59PTUUN"
+            }
+          ],
+          "album": {
+            "name": "Good Luck, Babe!",
+            "release_date": "2024-04-05"
+          },
+          "duration_ms": 218423,
+          "popularity": 89,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG12401967"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USWB12400001",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3Pbp7cUCx4d3OAkZSCoNvn",
+        "raw": {
+          "id": "3Pbp7cUCx4d3OAkZSCoNvn",
+          "name": "Scared To Start",
+          "artists": [
+            {
+              "name": "Michael Marcagi",
+              "id": "4j96cMcT8GRi11qbvo1cLQ"
+            }
+          ],
+          "album": {
+            "name": "Scared To Start",
+            "release_date": "2024-01-12"
+          },
+          "duration_ms": 159636,
+          "popularity": 79,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USWB12400001"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUYG1508626",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3R71L8KTSrVNgCyiQ6LUhG",
+        "raw": {
+          "id": "3R71L8KTSrVNgCyiQ6LUhG",
+          "name": "ALL NIGHT LONG",
+          "artists": [
+            {
+              "name": "Mishaal Tamer",
+              "id": "2NM1t8dMvgeu9Lfl06574g"
+            }
+          ],
+          "album": {
+            "name": "HOME IS CHANGING",
+            "release_date": "2024-10-18"
+          },
+          "duration_ms": 213720,
+          "popularity": 56,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUYG1508626"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC12403826",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3U3hFkMr0Q90pD24EkE3Pr",
+        "raw": {
+          "id": "3U3hFkMr0Q90pD24EkE3Pr",
+          "name": "BMF",
+          "artists": [
+            {
+              "name": "SZA",
+              "id": "7tYKF4w9nC0nq9CsPZTHyP"
+            }
+          ],
+          "album": {
+            "name": "SOS Deluxe: LANA",
+            "release_date": "2024-12-20"
+          },
+          "duration_ms": 180746,
+          "popularity": 77,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USRC12403826"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USWB12302870",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3dj4wgM3cPeuLwMNHDuBon",
+        "raw": {
+          "id": "3dj4wgM3cPeuLwMNHDuBon",
+          "name": "The Door",
+          "artists": [
+            {
+              "name": "Teddy Swims",
+              "id": "33qOK5uJ8AR2xuQQAhHump"
+            }
+          ],
+          "album": {
+            "name": "I've Tried Everything But Therapy (Part 1)",
+            "release_date": "2023-09-15"
+          },
+          "duration_ms": 212648,
+          "popularity": 86,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USWB12302870"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC12403580",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4il87YHqSV9UqbBkXM7z7m",
+        "raw": {
+          "id": "4il87YHqSV9UqbBkXM7z7m",
+          "name": "Sports car",
+          "artists": [
+            {
+              "name": "Tate McRae",
+              "id": "45dkTj5sMRSjrmBSBeiHym"
+            }
+          ],
+          "album": {
+            "name": "So Close To What",
+            "release_date": "2025-02-21"
+          },
+          "duration_ms": 165045,
+          "popularity": 66,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USRC12403580"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZWDW2567492",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3htoQPC7v5x04gWCQz1y2S",
+        "raw": {
+          "id": "3htoQPC7v5x04gWCQz1y2S",
+          "name": "WRONG",
+          "artists": [
+            {
+              "name": "Chris Grey",
+              "id": "0F3maSKfGGVtfATaAyeyPG"
+            }
+          ],
+          "album": {
+            "name": "FUNHOUSE / WRONG",
+            "release_date": "2025-07-25"
+          },
+          "duration_ms": 177250,
+          "popularity": 76,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QZWDW2567492"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "FR9W12539952",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5H6QYCgYjoH7nVBdl3wOSR",
+        "raw": {
+          "id": "5H6QYCgYjoH7nVBdl3wOSR",
+          "name": "Not Alone - Acoustic Version",
+          "artists": [
+            {
+              "name": "Gabry Ponte",
+              "id": "5ENS85nZShljwNgg4wFD7D"
+            },
+            {
+              "name": "Naeleck",
+              "id": "2DYDFBqoaBP2i9XrTGpOgF"
+            },
+            {
+              "name": "Diana Goldberg",
+              "id": "0FSc1VcYTT0NQ5u9f5Hmpk"
+            }
+          ],
+          "album": {
+            "name": "Not Alone (feat. Diana Goldberg)",
+            "release_date": "2024-11-08"
+          },
+          "duration_ms": 201642,
+          "popularity": 55,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "FR9W12539952"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAT22401137",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4WFgvKVfEhb3IUAFGrutTR",
+        "raw": {
+          "id": "4WFgvKVfEhb3IUAFGrutTR",
+          "name": "Love Me Not",
+          "artists": [
+            {
+              "name": "Ravyn Lenae",
+              "id": "5RTLRtXjbXI2lSXc6jxlAz"
+            }
+          ],
+          "album": {
+            "name": "Bird's Eye",
+            "release_date": "2024-08-09"
+          },
+          "duration_ms": 213466,
+          "popularity": 89,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAT22401137"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72504354",
+      "spotify": {
+        "found": true,
+        "spotify_id": "42UBPzRMh5yyz0EDPr6fr1",
+        "raw": {
+          "id": "42UBPzRMh5yyz0EDPr6fr1",
+          "name": "Manchild",
+          "artists": [
+            {
+              "name": "Sabrina Carpenter",
+              "id": "74KM79TiuVKeVCqs8QtB0B"
+            }
+          ],
+          "album": {
+            "name": "Manchild",
+            "release_date": "2025-06-05"
+          },
+          "duration_ms": 213645,
+          "popularity": 86,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUM72504354"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG12401775",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5wbg8kepMFoMzHOEuxiI0q",
+        "raw": {
+          "id": "5wbg8kepMFoMzHOEuxiI0q",
+          "name": "Close To You",
+          "artists": [
+            {
+              "name": "Gracie Abrams",
+              "id": "4tuJ0bMpJh08umKkEXKUI5"
+            }
+          ],
+          "album": {
+            "name": "The Secret of Us",
+            "release_date": "2024-06-20"
+          },
+          "duration_ms": 225973,
+          "popularity": 79,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG12401775"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USA2P2509874",
+      "spotify": {
+        "found": true,
+        "spotify_id": "27xkOIER6uDLKALIelHylZ",
+        "raw": {
+          "id": "27xkOIER6uDLKALIelHylZ",
+          "name": "Don’t Say You Love Me",
+          "artists": [
+            {
+              "name": "Jin",
+              "id": "5vV3bFXnN6D6N3Nj4xRvaV"
+            }
+          ],
+          "album": {
+            "name": "Echo",
+            "release_date": "2025-05-16"
+          },
+          "duration_ms": 180716,
+          "popularity": 88,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USA2P2509874"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "ITM712500003",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5hw7dvgBRLvlCiALWwujYz",
+        "raw": {
+          "id": "5hw7dvgBRLvlCiALWwujYz",
+          "name": "Nectar - B-Rain Remix",
+          "artists": [
+            {
+              "name": "Senhit",
+              "id": "0kgOnYSaZeTf3ZnErgwkGT"
+            },
+            {
+              "name": "B-Rain",
+              "id": "3hWT3bsPOSKsJkR30Z9xQr"
+            }
+          ],
+          "album": {
+            "name": "Nectar (The Remixes)",
+            "release_date": "2025-10-17"
+          },
+          "duration_ms": 177374,
+          "popularity": 47,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "ITM712500003"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72503465",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1xOqGUkyxGQRdCvGpvWKmL",
+        "raw": {
+          "id": "1xOqGUkyxGQRdCvGpvWKmL",
+          "name": "Gabriela",
+          "artists": [
+            {
+              "name": "KATSEYE",
+              "id": "3c0gDdb9lhnHGFtP4prQpn"
+            }
+          ],
+          "album": {
+            "name": "Gabriela",
+            "release_date": "2025-06-20"
+          },
+          "duration_ms": 197226,
+          "popularity": 93,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM72503465"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "FRZID0900480",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5xYC48nOppVemY6U5GRGTb",
+        "raw": {
+          "id": "5xYC48nOppVemY6U5GRGTb",
+          "name": "Memories (feat. Kid Cudi)",
+          "artists": [
+            {
+              "name": "David Guetta",
+              "id": "1Cs0zKBU1kc0i8ypK3B9ai"
+            },
+            {
+              "name": "Kid Cudi",
+              "id": "0fA0VVWsXO9YnASrzqfmYu"
+            }
+          ],
+          "album": {
+            "name": "One More Love",
+            "release_date": "2010-11-22"
+          },
+          "duration_ms": 210853,
+          "popularity": 63,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "FRZID0900480"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USRC10900433",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0HPD5WQqrq7wPWR7P7Dw1i",
+        "raw": {
+          "id": "0HPD5WQqrq7wPWR7P7Dw1i",
+          "name": "TiK ToK",
+          "artists": [
+            {
+              "name": "Kesha",
+              "id": "6LqNN22kT3074XbTVUrhzX"
+            }
+          ],
+          "album": {
+            "name": "Animal (Expanded Edition)",
+            "release_date": "2010-01-01"
+          },
+          "duration_ms": 199693,
+          "popularity": 84,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USRC10900433"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM19901056",
+      "spotify": {
+        "found": true,
+        "spotify_id": "7H6ev70Weq6DdpZyyTmUXk",
+        "raw": {
+          "id": "7H6ev70Weq6DdpZyyTmUXk",
+          "name": "Say My Name",
+          "artists": [
+            {
+              "name": "Destiny's Child",
+              "id": "1Y8cdNmUJH7yBTd9yOvr5i"
+            }
+          ],
+          "album": {
+            "name": "The Writing's On The Wall",
+            "release_date": "1999-07-27"
+          },
+          "duration_ms": 271333,
+          "popularity": 79,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM19901056"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USJI19810404",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3MjUtNVVq3C8Fn0MP3zhXa",
+        "raw": {
+          "id": "3MjUtNVVq3C8Fn0MP3zhXa",
+          "name": "...Baby One More Time",
+          "artists": [
+            {
+              "name": "Britney Spears",
+              "id": "26dSoYclwsYLMAKD3tpOr4"
+            }
+          ],
+          "album": {
+            "name": "...Baby One More Time (Digital Deluxe Version)",
+            "release_date": "1999-01-12"
+          },
+          "duration_ms": 211066,
+          "popularity": 83,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USJI19810404"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM71115507",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6qn9YLKt13AGvpq9jfO8py",
+        "raw": {
+          "id": "6qn9YLKt13AGvpq9jfO8py",
+          "name": "We Found Love",
+          "artists": [
+            {
+              "name": "Rihanna",
+              "id": "5pKCCKE2ajJHZ9KAiaK11H"
+            },
+            {
+              "name": "Calvin Harris",
+              "id": "7CajNmpbOovFoOoasH2HaY"
+            }
+          ],
+          "album": {
+            "name": "Talk That Talk",
+            "release_date": "2011-11-18"
+          },
+          "duration_ms": 215226,
+          "popularity": 84,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM71115507"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USJI10000100",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6naxalmIoLFWR0siv8dnQQ",
+        "raw": {
+          "id": "6naxalmIoLFWR0siv8dnQQ",
+          "name": "Oops!...I Did It Again",
+          "artists": [
+            {
+              "name": "Britney Spears",
+              "id": "26dSoYclwsYLMAKD3tpOr4"
+            }
+          ],
+          "album": {
+            "name": "Oops!... I Did It Again",
+            "release_date": "2000-05-16"
+          },
+          "duration_ms": 211160,
+          "popularity": 82,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USJI10000100"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM72403305",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2HRqTpkrJO5ggZyyK6NPWz",
+        "raw": {
+          "id": "2HRqTpkrJO5ggZyyK6NPWz",
+          "name": "Espresso",
+          "artists": [
+            {
+              "name": "Sabrina Carpenter",
+              "id": "74KM79TiuVKeVCqs8QtB0B"
+            }
+          ],
+          "album": {
+            "name": "Short n' Sweet",
+            "release_date": "2024-08-23"
+          },
+          "duration_ms": 175459,
+          "popularity": 85,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUM72403305"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM12405673",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5kDgJffgJ0lYHTSiaXFWNw",
+        "raw": {
+          "id": "5kDgJffgJ0lYHTSiaXFWNw",
+          "name": "BABY I'M BACK",
+          "artists": [
+            {
+              "name": "The Kid LAROI",
+              "id": "2tIP7SsRs7vjIcLrU85W8J"
+            }
+          ],
+          "album": {
+            "name": "THE FIRST TIME (DELUXE VERSION)",
+            "release_date": "2024-08-09"
+          },
+          "duration_ms": 171243,
+          "popularity": 75,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USSM12405673"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM12209777",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4DHcnVTT87F0zZhRPYmZ3B",
+        "raw": {
+          "id": "4DHcnVTT87F0zZhRPYmZ3B",
+          "name": "Flowers",
+          "artists": [
+            {
+              "name": "Miley Cyrus",
+              "id": "5YGY8feqx7naU7z4HrwZM6"
+            }
+          ],
+          "album": {
+            "name": "Endless Summer Vacation",
+            "release_date": "2023-03-10"
+          },
+          "duration_ms": 200600,
+          "popularity": 6,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM12209777"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAT20705841",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0CAfXk7DXMnon4gLudAp7J",
+        "raw": {
+          "id": "0CAfXk7DXMnon4gLudAp7J",
+          "name": "Low (feat. T-Pain)",
+          "artists": [
+            {
+              "name": "Flo Rida",
+              "id": "0jnsk9HBra6NMjO2oANoPY"
+            },
+            {
+              "name": "T-Pain",
+              "id": "3aQeKQSyrW4qWr35idm0cy"
+            }
+          ],
+          "album": {
+            "name": "Mail on Sunday",
+            "release_date": "2008-03-17"
+          },
+          "duration_ms": 231400,
+          "popularity": 84,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAT20705841"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "NLZ542200165",
+      "spotify": {
+        "found": true,
+        "spotify_id": "7fZBQnc0zXwVybgCIrQQil",
+        "raw": {
+          "id": "7fZBQnc0zXwVybgCIrQQil",
+          "name": "Belly Dancer",
+          "artists": [
+            {
+              "name": "Imanbek",
+              "id": "5rGrDvrLOV2VV8SCFVGWlj"
+            },
+            {
+              "name": "BYOR",
+              "id": "0Upxnyh9nIUNSOmNE8WF4R"
+            }
+          ],
+          "album": {
+            "name": "Belly Dancer",
+            "release_date": "2022-02-18"
+          },
+          "duration_ms": 151475,
+          "popularity": 76,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "NLZ542200165"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "DECE72401347",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5nPbKG04fhLkIAjcPFaZq7",
+        "raw": {
+          "id": "5nPbKG04fhLkIAjcPFaZq7",
+          "name": "I Adore You (feat. Daecolm)",
+          "artists": [
+            {
+              "name": "HUGEL",
+              "id": "5PlfkPxwCpRRWQJBxCa0By"
+            },
+            {
+              "name": "Topic",
+              "id": "0u6GtibW46tFX7koQ6uNJZ"
+            },
+            {
+              "name": "Arash",
+              "id": "7hQmAXAzWI6D350VTgkKTG"
+            },
+            {
+              "name": "Daecolm",
+              "id": "1IFAU4mznUcfPVP9z2c24N"
+            }
+          ],
+          "album": {
+            "name": "I Adore You (feat. Daecolm)",
+            "release_date": "2024-07-19"
+          },
+          "duration_ms": 214000,
+          "popularity": 84,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "DECE72401347"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "UYB282301031",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4nrPB8O7Y7wsOCJdgXkthe",
+        "raw": {
+          "id": "4nrPB8O7Y7wsOCJdgXkthe",
+          "name": "Shakira: Bzrp Music Sessions, Vol. 53/66",
+          "artists": [
+            {
+              "name": "Bizarrap",
+              "id": "716NhGYqD1jl2wI1Qkgq36"
+            },
+            {
+              "name": "Shakira",
+              "id": "0EmeFodog0BfCgMzAIvKQp"
+            }
+          ],
+          "album": {
+            "name": "Shakira: Bzrp Music Sessions, Vol. 53/66",
+            "release_date": "2023-01-11"
+          },
+          "duration_ms": 214945,
+          "popularity": 75,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "UYB282301031"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "NL2J92505861",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5tsSdgnZLNhVt78voyyjju",
+        "raw": {
+          "id": "5tsSdgnZLNhVt78voyyjju",
+          "name": "Mina Kupenda",
+          "artists": [
+            {
+              "name": "Thierry Von Der Warth",
+              "id": "2mF9PcfpN8vxRtCfra8hz1"
+            },
+            {
+              "name": "joki",
+              "id": "1jk1F3dSUQFcHCfbXpuQ5D"
+            },
+            {
+              "name": "Mugisho",
+              "id": "3KRCoMtReqUVKI38p5aWHw"
+            }
+          ],
+          "album": {
+            "name": "Mina Kupenda",
+            "release_date": "2025-05-23"
+          },
+          "duration_ms": 124000,
+          "popularity": 67,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "NL2J92505861"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "NL9KQ2390561",
+      "spotify": {
+        "found": true,
+        "spotify_id": "29iBq2XErmuCwpsCXb7la3",
+        "raw": {
+          "id": "29iBq2XErmuCwpsCXb7la3",
+          "name": "Loveline",
+          "artists": [
+            {
+              "name": "BYOR",
+              "id": "0Upxnyh9nIUNSOmNE8WF4R"
+            },
+            {
+              "name": "joki",
+              "id": "1jk1F3dSUQFcHCfbXpuQ5D"
+            }
+          ],
+          "album": {
+            "name": "Loveline",
+            "release_date": "2024-11-15"
+          },
+          "duration_ms": 135572,
+          "popularity": 7,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "NL9KQ2390561"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUYG1541249",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2FQrifJ1N335Ljm3TjTVVf",
+        "raw": {
+          "id": "2FQrifJ1N335Ljm3TjTVVf",
+          "name": "A Bar Song (Tipsy)",
+          "artists": [
+            {
+              "name": "Shaboozey",
+              "id": "3y2cIKLjiOlp1Np37WiUdH"
+            }
+          ],
+          "album": {
+            "name": "A Bar Song (Tipsy)",
+            "release_date": "2024-04-12"
+          },
+          "duration_ms": 171291,
+          "popularity": 83,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUYG1541249"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAR10301423",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5rb9QrpfcKFHM1EUbSIurX",
+        "raw": {
+          "id": "5rb9QrpfcKFHM1EUbSIurX",
+          "name": "Yeah! (feat. Lil Jon & Ludacris)",
+          "artists": [
+            {
+              "name": "USHER",
+              "id": "23zg3TcAtWQy7J6upgbUnj"
+            },
+            {
+              "name": "Lil Jon",
+              "id": "7sfl4Xt5KmfyDs2T3SVSMK"
+            },
+            {
+              "name": "Ludacris",
+              "id": "3ipn9JLAPI5GUEo4y4jcoi"
+            }
+          ],
+          "album": {
+            "name": "Confessions (Expanded Edition)",
+            "release_date": "2004-03-23"
+          },
+          "duration_ms": 250373,
+          "popularity": 85,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAR10301423"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUG11904206",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0VjIjW4GlUZAMYd2vXMi3b",
+        "raw": {
+          "id": "0VjIjW4GlUZAMYd2vXMi3b",
+          "name": "Blinding Lights",
+          "artists": [
+            {
+              "name": "The Weeknd",
+              "id": "1Xyo4u8uXC1ZmMpatF05PJ"
+            }
+          ],
+          "album": {
+            "name": "After Hours",
+            "release_date": "2020-03-20"
+          },
+          "duration_ms": 200040,
+          "popularity": 90,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUG11904206"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "GBARL2400510",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3Vr3zh0r7ALn8VLqCiRR10",
+        "raw": {
+          "id": "3Vr3zh0r7ALn8VLqCiRR10",
+          "name": "Stargazing",
+          "artists": [
+            {
+              "name": "Myles Smith",
+              "id": "3bO19AOone0ubCsfDXDtYt"
+            }
+          ],
+          "album": {
+            "name": "Stargazing",
+            "release_date": "2024-05-10"
+          },
+          "duration_ms": 172533,
+          "popularity": 85,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "GBARL2400510"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZES71804596",
+      "spotify": {
+        "found": true,
+        "spotify_id": "7Buwh9QtKvKm3UasCwHDGA",
+        "raw": {
+          "id": "7Buwh9QtKvKm3UasCwHDGA",
+          "name": "Taste",
+          "artists": [
+            {
+              "name": "Laci Kay Somers",
+              "id": "22CdKDXLh4wqXLZcPuCFYQ"
+            }
+          ],
+          "album": {
+            "name": "Bedroom EP",
+            "release_date": "2018-11-09"
+          },
+          "duration_ms": 254691,
+          "popularity": 36,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "QZES71804596"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM70965169",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4vp2J1l5RD4gMZwGFLfRAu",
+        "raw": {
+          "id": "4vp2J1l5RD4gMZwGFLfRAu",
+          "name": "I Gotta Feeling",
+          "artists": [
+            {
+              "name": "Black Eyed Peas",
+              "id": "1yxSLGMDHlW21z4YXirZDS"
+            }
+          ],
+          "album": {
+            "name": "THE E.N.D. (THE ENERGY NEVER DIES)",
+            "release_date": "2009-01-01"
+          },
+          "duration_ms": 289133,
+          "popularity": 7,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM70965169"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM11301446",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6FE2iI43OZnszFLuLtvvmg",
+        "raw": {
+          "id": "6FE2iI43OZnszFLuLtvvmg",
+          "name": "Classic",
+          "artists": [
+            {
+              "name": "MKTO",
+              "id": "2l35CQqtYRh3d8ZIiBep4v"
+            }
+          ],
+          "album": {
+            "name": "MKTO",
+            "release_date": "2012"
+          },
+          "duration_ms": 175426,
+          "popularity": 79,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM11301446"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZTB92360479",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2uqYupMHANxnwgeiXTZXzd",
+        "raw": {
+          "id": "2uqYupMHANxnwgeiXTZXzd",
+          "name": "Austin (Boots Stop Workin')",
+          "artists": [
+            {
+              "name": "Dasha",
+              "id": "7Ez6lTtSMjMf2YSYpukP1I"
+            }
+          ],
+          "album": {
+            "name": "What Happens Now?",
+            "release_date": "2024-02-16"
+          },
+          "duration_ms": 171782,
+          "popularity": 82,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "QZTB92360479"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZLL92568764",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4BC3zlTGqYgCqUc7uBgsZk",
+        "raw": {
+          "id": "4BC3zlTGqYgCqUc7uBgsZk",
+          "name": "Under Your Skin",
+          "artists": [
+            {
+              "name": "Bruklin",
+              "id": "4fjAtF6VmMxQHxKI5C3HPO"
+            }
+          ],
+          "album": {
+            "name": "Under Your Skin",
+            "release_date": "2025-05-20"
+          },
+          "duration_ms": 180130,
+          "popularity": 46,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QZLL92568764"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USCJY1231039",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6FB3v4YcR57y4tXFcdxI1E",
+        "raw": {
+          "id": "6FB3v4YcR57y4tXFcdxI1E",
+          "name": "I Knew You Were Trouble.",
+          "artists": [
+            {
+              "name": "Taylor Swift",
+              "id": "06HL4z0CvFAxyc27GXpf02"
+            }
+          ],
+          "album": {
+            "name": "Red (Big Machine Radio Release Special)",
+            "release_date": "2012-10-22"
+          },
+          "duration_ms": 219720,
+          "popularity": 76,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USCJY1231039"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USAT22401350",
+      "spotify": {
+        "found": true,
+        "spotify_id": "19RybK6XDbAVpcdxSbZL1o",
+        "raw": {
+          "id": "19RybK6XDbAVpcdxSbZL1o",
+          "name": "Apple",
+          "artists": [
+            {
+              "name": "Charli xcx",
+              "id": "25uiPmTg16RbhZWAqwLBy5"
+            }
+          ],
+          "album": {
+            "name": "BRAT",
+            "release_date": "2024-06-07"
+          },
+          "duration_ms": 151739,
+          "popularity": 77,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USAT22401350"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM12200612",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4LRPiXqCikLlN15c3yImP7",
+        "raw": {
+          "id": "4LRPiXqCikLlN15c3yImP7",
+          "name": "As It Was",
+          "artists": [
+            {
+              "name": "Harry Styles",
+              "id": "6KImCVD70vtIoJWnq6nGn3"
+            }
+          ],
+          "album": {
+            "name": "As It Was",
+            "release_date": "2022-03-31"
+          },
+          "duration_ms": 167303,
+          "popularity": 14,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM12200612"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "GBUM72205415",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3nqQXoyQOWXiESFLlDF1hG",
+        "raw": {
+          "id": "3nqQXoyQOWXiESFLlDF1hG",
+          "name": "Unholy (feat. Kim Petras)",
+          "artists": [
+            {
+              "name": "Sam Smith",
+              "id": "2wY79sveU1sp5g7SokKOiI"
+            },
+            {
+              "name": "Kim Petras",
+              "id": "3Xt3RrJMFv5SZkCfUE8C1J"
+            }
+          ],
+          "album": {
+            "name": "Unholy (feat. Kim Petras)",
+            "release_date": "2022-09-22"
+          },
+          "duration_ms": 156943,
+          "popularity": 78,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "GBUM72205415"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "THTRD2500044",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5LzhYkmwJA5iF2NjkLlF6M",
+        "raw": {
+          "id": "5LzhYkmwJA5iF2NjkLlF6M",
+          "name": "Blood Moon",
+          "artists": [
+            {
+              "name": "Yayee",
+              "id": "7E4AHVUsQp85eDuXyKwcM2"
+            },
+            {
+              "name": "Swimming Teddys",
+              "id": "6kTqvXVMr7SCmBiqkJUeeY"
+            }
+          ],
+          "album": {
+            "name": "Blood Moon",
+            "release_date": "2025-10-24"
+          },
+          "duration_ms": 157225,
+          "popularity": 33,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "THTRD2500044"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "UKWLG2200055",
+      "spotify": {
+        "found": true,
+        "spotify_id": "4uUG5RXrOk84mYEfFvj3cK",
+        "raw": {
+          "id": "4uUG5RXrOk84mYEfFvj3cK",
+          "name": "I'm Good (Blue)",
+          "artists": [
+            {
+              "name": "David Guetta",
+              "id": "1Cs0zKBU1kc0i8ypK3B9ai"
+            },
+            {
+              "name": "Bebe Rexha",
+              "id": "64M6ah0SkkRsnPGtGiRAbb"
+            }
+          ],
+          "album": {
+            "name": "I'm Good (Blue)",
+            "release_date": "2022-08-26"
+          },
+          "duration_ms": 175238,
+          "popularity": 85,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "UKWLG2200055"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QT3F22553099",
+      "spotify": {
+        "found": true,
+        "spotify_id": "7sgx2p6KPYPia5fowJNZzO",
+        "raw": {
+          "id": "7sgx2p6KPYPia5fowJNZzO",
+          "name": "TBB",
+          "artists": [
+            {
+              "name": "Sabir",
+              "id": "46evhOcmLuNb29JhjOzKeY"
+            }
+          ],
+          "album": {
+            "name": "TBB",
+            "release_date": "2025-10-06"
+          },
+          "duration_ms": 145187,
+          "popularity": 35,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "QT3F22553099"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZWFP2449935",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6YVGQ0DBjK4hqdWRN9C5cO",
+        "raw": {
+          "id": "6YVGQ0DBjK4hqdWRN9C5cO",
+          "name": "rearview",
+          "artists": [
+            {
+              "name": "leoleo",
+              "id": "5Dsd7jTkXFpmNtZTWuBMDh"
+            }
+          ],
+          "album": {
+            "name": "rearview",
+            "release_date": "2024-10-25"
+          },
+          "duration_ms": 208264,
+          "popularity": 44,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "QZWFP2449935"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "CA5KR2588456",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6DYul32gElizGgTrtRYrNY",
+        "raw": {
+          "id": "6DYul32gElizGgTrtRYrNY",
+          "name": "gigolo",
+          "artists": [
+            {
+              "name": "bbno$",
+              "id": "41X1TR6hrK8Q2ZCpp2EqCz"
+            }
+          ],
+          "album": {
+            "name": "gigolo",
+            "release_date": "2025-09-30"
+          },
+          "duration_ms": 118461,
+          "popularity": 77,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "CA5KR2588456"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USSM11300080",
+      "spotify": {
+        "found": true,
+        "spotify_id": "2QjOHCTQ1Jl3zawyYOpxh6",
+        "raw": {
+          "id": "2QjOHCTQ1Jl3zawyYOpxh6",
+          "name": "Sweater Weather",
+          "artists": [
+            {
+              "name": "The Neighbourhood",
+              "id": "77SW9BnxLY8rJ0RciFqkHh"
+            }
+          ],
+          "album": {
+            "name": "I Love You.",
+            "release_date": "2013-04-22"
+          },
+          "duration_ms": 240400,
+          "popularity": 91,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USSM11300080"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM70918596",
+      "spotify": {
+        "found": true,
+        "spotify_id": "0SiywuOBRcynK0uKGWdCnn",
+        "raw": {
+          "id": "0SiywuOBRcynK0uKGWdCnn",
+          "name": "Bad Romance",
+          "artists": [
+            {
+              "name": "Lady Gaga",
+              "id": "1HY2Jd0NmPuamShAr6KMms"
+            }
+          ],
+          "album": {
+            "name": "The Fame Monster (Deluxe Edition)",
+            "release_date": "2009-11-05"
+          },
+          "duration_ms": 294573,
+          "popularity": 85,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "USUM70918596"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USJI10301005",
+      "spotify": {
+        "found": true,
+        "spotify_id": "6I9VzXrHxO9rA9A5euc8Ak",
+        "raw": {
+          "id": "6I9VzXrHxO9rA9A5euc8Ak",
+          "name": "Toxic",
+          "artists": [
+            {
+              "name": "Britney Spears",
+              "id": "26dSoYclwsYLMAKD3tpOr4"
+            }
+          ],
+          "album": {
+            "name": "In The Zone",
+            "release_date": "2003-11-13"
+          },
+          "duration_ms": 198800,
+          "popularity": 85,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USJI10301005"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "QZNWV2064237",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5cBvwieT5RLB9Ro2OOjBoI",
+        "raw": {
+          "id": "5cBvwieT5RLB9Ro2OOjBoI",
+          "name": "Whistle",
+          "artists": [
+            {
+              "name": "Hoodie Forester",
+              "id": "0nVvtYn9kK3NEegwMtyock"
+            },
+            {
+              "name": "Young Jae",
+              "id": "6bNnQIzGszCJgHI90SRt64"
+            }
+          ],
+          "album": {
+            "name": "Whistle",
+            "release_date": "2020-12-09"
+          },
+          "duration_ms": 125052,
+          "popularity": 42,
+          "explicit": true,
+          "external_ids": {
+            "isrc": "QZNWV2064237"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USUM71101057",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5MeZ3VxmtSv1O8PcekvLTn",
+        "raw": {
+          "id": "5MeZ3VxmtSv1O8PcekvLTn",
+          "name": "Boom Boom Pow",
+          "artists": [
+            {
+              "name": "Black Eyed Peas",
+              "id": "1yxSLGMDHlW21z4YXirZDS"
+            }
+          ],
+          "album": {
+            "name": "The Beginning & The Best Of The E.N.D.",
+            "release_date": "2011-01-01"
+          },
+          "duration_ms": 251426,
+          "popularity": 46,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USUM71101057"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "GBUM72000433",
+      "spotify": {
+        "found": true,
+        "spotify_id": "3USxtqRwSYz57Ewm6wWRMp",
+        "raw": {
+          "id": "3USxtqRwSYz57Ewm6wWRMp",
+          "name": "Heat Waves",
+          "artists": [
+            {
+              "name": "Glass Animals",
+              "id": "4yvcSjfu4PC0CYQyLy4wSq"
+            }
+          ],
+          "album": {
+            "name": "Dreamland",
+            "release_date": "2020-08-07"
+          },
+          "duration_ms": 238805,
+          "popularity": 85,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "GBUM72000433"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "USCJY1431309",
+      "spotify": {
+        "found": true,
+        "spotify_id": "1u8c2t2Cy7UBoG4ArRcF5g",
+        "raw": {
+          "id": "1u8c2t2Cy7UBoG4ArRcF5g",
+          "name": "Blank Space",
+          "artists": [
+            {
+              "name": "Taylor Swift",
+              "id": "06HL4z0CvFAxyc27GXpf02"
+            }
+          ],
+          "album": {
+            "name": "1989 (Deluxe)",
+            "release_date": "2014-01-01"
+          },
+          "duration_ms": 231826,
+          "popularity": 83,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "USCJY1431309"
+          }
+        }
+      }
+    },
+    {
+      "isrc": "CAQOI2503221",
+      "spotify": {
+        "found": true,
+        "spotify_id": "5BY0EwNXOC6k38oArRtiic",
+        "raw": {
+          "id": "5BY0EwNXOC6k38oArRtiic",
+          "name": "Real Life Fantasy",
+          "artists": [
+            {
+              "name": "Edward Maya",
+              "id": "6XwwFnewNgWp81MYMK8zLq"
+            },
+            {
+              "name": "Foínix",
+              "id": "7FNA36ZmHzr9QkZJcQjYcO"
+            },
+            {
+              "name": "Jordan Grace",
+              "id": "0NST5cNxDtRZuToY6ngC0k"
+            },
+            {
+              "name": "ERIICE",
+              "id": "3DVYnBKNeZTLLPvMaEbmzC"
+            }
+          ],
+          "album": {
+            "name": "Real Life Fantasy",
+            "release_date": "2025-04-18"
+          },
+          "duration_ms": 148173,
+          "popularity": 36,
+          "explicit": false,
+          "external_ids": {
+            "isrc": "CAQOI2503221"
+          }
+        }
+      }
+    }
+  ]
+}

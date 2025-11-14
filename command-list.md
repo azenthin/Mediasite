@@ -69,6 +69,24 @@ npm run db:migrate
 npm run db:seed
 ```
 
+**Import Music (Turbo Mode)**
+```bash
+# Test with sample (100 tracks)
+node scripts/turbo-upsert.js scripts/ingest/sample-100-tracks.json
+
+# Full import (280k tracks)
+node scripts/turbo-upsert.js scripts/ingest/staging-results-500k.json
+```
+
+**Fetch Music from Spotify**
+```bash
+# Mega fetch: 1000 songs × 6,238 genres = up to 6M songs
+node scripts/fetch-mega-1000-per-genre.js
+
+# Check progress
+cat scripts/ingest/checkpoint-mega.json
+```
+
 ---
 
 ## 📦 Package Management
