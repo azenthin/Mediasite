@@ -49,6 +49,16 @@ netstat -ano | findstr ":300"
 npm run db:generate
 ```
 
+**Migrate Local SQLite to Vercel Postgres**
+```bash
+# Get your Postgres URL from Vercel dashboard: Settings > Storage > your-db > .env.local tab
+# Copy the POSTGRES_URL value
+POSTGRES_URL="postgresql://user:pass@host/db" node scripts/migrate-to-postgres.js
+
+# Example:
+# POSTGRES_URL="postgresql://default:xxx@ep-xxx.us-east-1.aws.neon.tech/verceldb" node scripts/migrate-to-postgres.js
+```
+
 **Push Changes**
 ```bash
 npm run db:push
