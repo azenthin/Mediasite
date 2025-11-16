@@ -104,10 +104,11 @@ export async function POST(request: NextRequest) {
     try {
       console.log(`🎵 Attempting to get Spotify recommendations for: "${prompt}"`);
       
-      // DIRECT DATABASE QUERY - bypass music-search.ts complexity
+      // DIRECT DATABASE QUERY - bypass music-search.ts complexity with timeout
       console.log('🔍 DIRECT QUERY: Attempting to query VerifiedTrack table directly...');
       try {
-        const directTracks = await prisma.verifiedTrack.findMany({
+        // Wrap query in a timeout promise to prevent hanging
+        const queryPromise = prisma.verifiedTrack.findMany({
           where: {
             OR: [
               { primaryGenre: { contains: prompt.toLowerCase(), mode: 'insensitive' } },
@@ -123,6 +124,12 @@ export async function POST(request: NextRequest) {
             { trackPopularity: 'desc' },
           ],
         });
+        
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Database query timeout after 3s')), 3000)
+        );
+        
+        const directTracks = await Promise.race([queryPromise, timeoutPromise]);
         
         console.log(`✅ DIRECT QUERY RESULT: ${directTracks.length} tracks found`);
         
@@ -145,6 +152,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (directError) {
         console.error('❌ DIRECT QUERY FAILED:', directError);
+        console.error('❌ Error details:', directError instanceof Error ? directError.message : String(directError));
       }
       
       // Fallback to old method if direct query failed
