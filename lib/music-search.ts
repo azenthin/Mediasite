@@ -479,6 +479,11 @@ export async function getSpotifyRecommendations(
   limit: number = 15
 ): Promise<Song[]> {
   const startTime = Date.now();
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('🎵 GET SPOTIFY RECOMMENDATIONS CALLED');
+  console.log('📝 Prompt:', prompt);
+  console.log('📝 Limit:', limit);
+  
   try {
     console.log(`🎵 getSpotifyRecommendations called with prompt: "${prompt}"`);
     
@@ -487,7 +492,9 @@ export async function getSpotifyRecommendations(
     let verifiedTracks: Song[] = [];
     
     try {
+      console.log('🔍 ABOUT TO CALL queryVerifiedTracks()...');
       verifiedTracks = await queryVerifiedTracks(prompt, limit);
+      console.log('✅ queryVerifiedTracks() RETURNED:', verifiedTracks.length, 'tracks');
     } catch (queryError) {
       console.error(`❌ queryVerifiedTracks failed:`, queryError);
       if (queryError instanceof Error && queryError.message.includes('timeout')) {
