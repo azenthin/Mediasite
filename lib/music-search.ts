@@ -180,7 +180,13 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     if (error instanceof Error) {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
+      
+      // If it's a timeout, throw it so caller knows it's not just "no results"
+      if (error.message.includes('timeout')) {
+        throw new Error(`Database query timeout: ${error.message}`);
+      }
     }
+    // For other errors, return empty array but log it
     return [];
   }
 }
@@ -454,17 +460,33 @@ export async function getSpotifyRecommendations(
   prompt: string,
   limit: number = 15
 ): Promise<Song[]> {
+  const startTime = Date.now();
   try {
     console.log(`🎵 getSpotifyRecommendations called with prompt: "${prompt}"`);
     
     // PRIMARY: Query VerifiedTrack table from ingestion pipeline
     console.log(`📊 PRIMARY: Querying verified tracks from ingestion pipeline (VerifiedTrack)...`);
-    const verifiedTracks = await queryVerifiedTracks(prompt, limit);
+    let verifiedTracks: Song[] = [];
+    
+    try {
+      verifiedTracks = await queryVerifiedTracks(prompt, limit);
+    } catch (queryError) {
+      console.error(`❌ queryVerifiedTracks failed:`, queryError);
+      if (queryError instanceof Error && queryError.message.includes('timeout')) {
+        console.error(`⏱️  DATABASE QUERY TIMED OUT - this is why AI fallback is being used`);
+      }
+      // Continue to try local cache
+    }
+    
+    const queryElapsed = Date.now() - startTime;
+    console.log(`⏱️  Query took ${queryElapsed}ms`);
     
     if (verifiedTracks.length > 0) {
       console.log(`✅ Verified tracks found: ${verifiedTracks.length} tracks from ingestion pipeline`);
       console.log(`🎯 Returning ${verifiedTracks.length} tracks from INGESTION PIPELINE - FRESHNESS SORTED`);
       console.log(`📊 Top 3 years: ${verifiedTracks.slice(0, 3).map((t) => t.year || '?').join(', ')}`);
+      console.log(`📊 First track: ${verifiedTracks[0]?.title} by ${verifiedTracks[0]?.artist}`);
+      console.log(`📊 Has Spotify URL: ${!!verifiedTracks[0]?.spotifyUrl}`);
       return verifiedTracks;
     }
 
@@ -478,10 +500,11 @@ export async function getSpotifyRecommendations(
       return cacheResults;
     }
 
-    console.log(`⚠️  No results found in verified pipeline or local cache`);
+    console.log(`❌ NO RESULTS FOUND - AI fallback will be used`);
+    console.log(`⏱️  Total time: ${Date.now() - startTime}ms`);
     return [];
   } catch (error) {
-    console.error('Music recommendations error:', error);
+    console.error('❌ Music recommendations error:', error);
     return [];
   }
 }
