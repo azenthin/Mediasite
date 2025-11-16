@@ -6,15 +6,20 @@ import { PrismaClient } from '@prisma/client';
 
 function resolveDatasourceUrl(): string {
     const raw = process.env.DATABASE_URL;
+    console.log('🔍 DATABASE.TS: Resolving datasource URL');
+    console.log('🔍 DATABASE.TS: DATABASE_URL exists:', !!raw);
+    console.log('🔍 DATABASE.TS: DATABASE_URL prefix:', raw?.substring(0, 30));
 
     // If DATABASE_URL is set and looks valid, use it
     if (raw && raw.trim()) {
         // For SQLite, must start with file:
         if (raw.toLowerCase().includes('sqlite') || raw.toLowerCase().startsWith('file:')) {
+            console.log('🔍 DATABASE.TS: Detected SQLite connection');
             return raw;
         }
         // For PostgreSQL
         if (raw.toLowerCase().startsWith('postgresql://') || raw.toLowerCase().startsWith('postgres://')) {
+            console.log('🔍 DATABASE.TS: Detected PostgreSQL connection');
             return raw;
         }
     }
@@ -38,10 +43,13 @@ const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
 };
 
+console.log('🔍 DATABASE.TS: Creating Prisma client with URL:', datasourceUrl.substring(0, 30));
+
 export const prisma =
     globalForPrisma.prisma ?? new PrismaClient({ 
         datasources: { db: { url: datasourceUrl } },
         errorFormat: 'pretty',
+        log: ['query', 'error', 'warn'],
     });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

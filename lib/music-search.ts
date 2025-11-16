@@ -84,8 +84,12 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
  * Matches by artist or title
  */
 async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
+  console.log('═══════════════════════════════════════════════');
+  console.log('🔍 QUERY START: queryVerifiedTracks');
+  console.log('📝 Prompt:', prompt);
+  console.log('📝 Limit:', limit);
+  console.log('📝 Apply diversity:', applyDiversity);
   try {
-    console.log(`🔍 queryVerifiedTracks called with prompt: "${prompt}"`);
     const startTime = Date.now();
     
     const promptLower = prompt.toLowerCase();
@@ -95,10 +99,15 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
     
     console.log(`📊 Querying database for ${fetchLimit} tracks...`);
+    console.log('🔍 PRISMA CLIENT STATUS:');
+    console.log('  - Prisma object exists:', !!prisma);
+    console.log('  - VerifiedTrack model exists:', !!prisma?.verifiedTrack);
+    console.log('  - findMany function exists:', typeof prisma?.verifiedTrack?.findMany);
     
     // Query VerifiedTrack table with enriched search (genre, mood, popularity)
     // Use case-insensitive search for PostgreSQL compatibility
     // Timeout after 5 seconds to prevent hanging
+    console.log('🔍 EXECUTING PRISMA QUERY NOW...');
     const queryPromise = prisma.verifiedTrack.findMany({
       where: {
         OR: [
@@ -124,13 +133,17 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       setTimeout(() => reject(new Error('Database query timeout')), 5000)
     );
     
+    console.log('⏳ Waiting for query or timeout...');
     const verifiedTracks = await Promise.race([queryPromise, timeoutPromise]);
     
     const elapsed = Date.now() - startTime;
-    console.log(`✅ Query completed in ${elapsed}ms, found ${verifiedTracks.length} tracks`);
+    console.log(`✅✅✅ QUERY COMPLETED in ${elapsed}ms ✅✅✅`);
+    console.log(`📊 Found ${verifiedTracks.length} tracks`);
+    console.log(`📊 First track:`, verifiedTracks[0] ? JSON.stringify(verifiedTracks[0]).substring(0, 200) : 'N/A');
 
     if (verifiedTracks.length === 0) {
-      console.log(`⚠️  No tracks found for prompt: "${prompt}"`);
+      console.log(`❌❌❌ NO TRACKS FOUND for prompt: "${prompt}" ❌❌❌`);
+      console.log('═══════════════════════════════════════════════');
       return [];
     }
 
@@ -176,16 +189,21 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
 
     return songs.slice(0, limit);
   } catch (error) {
-    console.error('❌ Failed to query verified tracks:', error);
+    console.error('❌❌❌ QUERY FAILED ❌❌❌');
+    console.error('Error type:', error?.constructor?.name);
+    console.error('Error object:', error);
     if (error instanceof Error) {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
       
       // If it's a timeout, throw it so caller knows it's not just "no results"
       if (error.message.includes('timeout')) {
+        console.error('⏱️  TIMEOUT DETECTED - Query took > 5 seconds');
+        console.log('═══════════════════════════════════════════════');
         throw new Error(`Database query timeout: ${error.message}`);
       }
     }
+    console.log('═══════════════════════════════════════════════');
     // For other errors, return empty array but log it
     return [];
   }
