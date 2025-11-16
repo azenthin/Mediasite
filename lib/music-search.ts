@@ -85,15 +85,21 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
  */
 async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
   try {
+    console.log(`🔍 queryVerifiedTracks called with prompt: "${prompt}"`);
+    const startTime = Date.now();
+    
     const promptLower = prompt.toLowerCase();
     const isSingleArtist = isSingleArtistRequest(prompt);
     
     // Fetch more tracks if we need diversity (2-3x the limit to ensure variety)
     const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
     
+    console.log(`📊 Querying database for ${fetchLimit} tracks...`);
+    
     // Query VerifiedTrack table with enriched search (genre, mood, popularity)
     // Use case-insensitive search for PostgreSQL compatibility
-    const verifiedTracks = await prisma.verifiedTrack.findMany({
+    // Timeout after 5 seconds to prevent hanging
+    const queryPromise = prisma.verifiedTrack.findMany({
       where: {
         OR: [
           { artist: { contains: promptLower, mode: 'insensitive' } },
@@ -113,8 +119,18 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       ],
       take: fetchLimit,
     });
+    
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Database query timeout')), 5000)
+    );
+    
+    const verifiedTracks = await Promise.race([queryPromise, timeoutPromise]);
+    
+    const elapsed = Date.now() - startTime;
+    console.log(`✅ Query completed in ${elapsed}ms, found ${verifiedTracks.length} tracks`);
 
     if (verifiedTracks.length === 0) {
+      console.log(`⚠️  No tracks found for prompt: "${prompt}"`);
       return [];
     }
 
@@ -160,7 +176,11 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
 
     return songs.slice(0, limit);
   } catch (error) {
-    console.error('Failed to query verified tracks:', error);
+    console.error('❌ Failed to query verified tracks:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return [];
   }
 }

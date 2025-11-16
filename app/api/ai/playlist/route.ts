@@ -102,7 +102,9 @@ export async function POST(request: NextRequest) {
     let spotifyTracks: any[] = [];
     timer.start('spotify_recommendations');
     try {
+      console.log(`🎵 Attempting to get Spotify recommendations for: "${prompt}"`);
       spotifyTracks = await getSpotifyRecommendations(prompt, 15);
+      console.log(`✅ Spotify recommendations result: ${spotifyTracks.length} tracks`);
       if (spotifyTracks.length > 0) {
         logger.info('Got Spotify recommendations', {
           component: 'api.ai.playlist',
@@ -114,6 +116,7 @@ export async function POST(request: NextRequest) {
         });
       }
     } catch (spotifyError) {
+      console.error('❌ Spotify recommendations error:', spotifyError);
       logger.warn('Failed to get Spotify recommendations, falling back to AI', {
         component: 'api.ai.playlist',
         error: spotifyError instanceof Error ? spotifyError.message : String(spotifyError),
