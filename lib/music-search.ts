@@ -94,16 +94,16 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
     // Query VerifiedTrack table with enriched search (genre, mood, popularity)
-    // Note: SQLite is case-insensitive by default for LIKE operations (which contains uses)
+    // Use case-insensitive search for PostgreSQL compatibility
     const verifiedTracks = await prisma.verifiedTrack.findMany({
       where: {
         OR: [
-          { artist: { contains: promptLower } },
-          { title: { contains: promptLower } },
-          { album: { contains: promptLower } },
-          { primaryGenre: { contains: promptLower } },
-          { genres: { contains: promptLower } },
-          { mood: { contains: promptLower } },
+          { artist: { contains: promptLower, mode: 'insensitive' } },
+          { title: { contains: promptLower, mode: 'insensitive' } },
+          { album: { contains: promptLower, mode: 'insensitive' } },
+          { primaryGenre: { contains: promptLower, mode: 'insensitive' } },
+          { genres: { contains: promptLower, mode: 'insensitive' } },
+          { mood: { contains: promptLower, mode: 'insensitive' } },
         ],
       },
       include: {
