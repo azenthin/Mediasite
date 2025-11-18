@@ -84,39 +84,26 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
  * Matches by artist or title
  */
 async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
-  console.log('═══════════════════════════════════════════════');
-  console.log('🔍 QUERY START: queryVerifiedTracks');
-  console.log('📝 Prompt:', prompt);
-  console.log('📝 Limit:', limit);
-  console.log('📝 Apply diversity:', applyDiversity);
   try {
-    const startTime = Date.now();
-    
     const promptLower = prompt.toLowerCase();
     const isSingleArtist = isSingleArtistRequest(prompt);
     
     // Fetch more tracks if we need diversity (2-3x the limit to ensure variety)
     const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
     
-    console.log(`📊 Querying database for ${fetchLimit} tracks...`);
-    console.log('🔍 PRISMA CLIENT STATUS:');
-    console.log('  - Prisma object exists:', !!prisma);
-    console.log('  - VerifiedTrack model exists:', !!prisma?.verifiedTrack);
-    console.log('  - findMany function exists:', typeof prisma?.verifiedTrack?.findMany);
+    console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
     // Query VerifiedTrack table with enriched search (genre, mood, popularity)
-    // Use case-insensitive search for PostgreSQL compatibility
-    // Timeout after 5 seconds to prevent hanging
-    console.log('🔍 EXECUTING PRISMA QUERY NOW...');
-    const queryPromise = prisma.verifiedTrack.findMany({
+    // Note: SQLite is case-insensitive by default for LIKE operations (which contains uses)
+    const verifiedTracks = await prisma.verifiedTrack.findMany({
       where: {
         OR: [
-          { artist: { contains: promptLower, mode: 'insensitive' } },
-          { title: { contains: promptLower, mode: 'insensitive' } },
-          { album: { contains: promptLower, mode: 'insensitive' } },
-          { primaryGenre: { contains: promptLower, mode: 'insensitive' } },
-          { genres: { contains: promptLower, mode: 'insensitive' } },
-          { mood: { contains: promptLower, mode: 'insensitive' } },
+          { artist: { contains: promptLower } },
+          { title: { contains: promptLower } },
+          { album: { contains: promptLower } },
+          { primaryGenre: { contains: promptLower } },
+          { genres: { contains: promptLower } },
+          { mood: { contains: promptLower } },
         ],
       },
       include: {
@@ -128,22 +115,11 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       ],
       take: fetchLimit,
     });
-    
-    const timeoutPromise = new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error('Database query timeout')), 5000)
-    );
-    
-    console.log('⏳ Waiting for query or timeout...');
-    const verifiedTracks = await Promise.race([queryPromise, timeoutPromise]);
-    
-    const elapsed = Date.now() - startTime;
-    console.log(`✅✅✅ QUERY COMPLETED in ${elapsed}ms ✅✅✅`);
-    console.log(`📊 Found ${verifiedTracks.length} tracks`);
-    console.log(`📊 First track:`, verifiedTracks[0] ? JSON.stringify(verifiedTracks[0]).substring(0, 200) : 'N/A');
+
+    console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} tracks from Postgres`);
 
     if (verifiedTracks.length === 0) {
-      console.log(`❌❌❌ NO TRACKS FOUND for prompt: "${prompt}" ❌❌❌`);
-      console.log('═══════════════════════════════════════════════');
+      console.log(`⚠️  No tracks found in Postgres for query "${promptLower}"`);
       return [];
     }
 
@@ -189,22 +165,7 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
 
     return songs.slice(0, limit);
   } catch (error) {
-    console.error('❌❌❌ QUERY FAILED ❌❌❌');
-    console.error('Error type:', error?.constructor?.name);
-    console.error('Error object:', error);
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      
-      // If it's a timeout, throw it so caller knows it's not just "no results"
-      if (error.message.includes('timeout')) {
-        console.error('⏱️  TIMEOUT DETECTED - Query took > 5 seconds');
-        console.log('═══════════════════════════════════════════════');
-        throw new Error(`Database query timeout: ${error.message}`);
-      }
-    }
-    console.log('═══════════════════════════════════════════════');
-    // For other errors, return empty array but log it
+    console.error('Failed to query verified tracks:', error);
     return [];
   }
 }
@@ -478,58 +439,25 @@ export async function getSpotifyRecommendations(
   prompt: string,
   limit: number = 15
 ): Promise<Song[]> {
-  const startTime = Date.now();
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('🎵 GET SPOTIFY RECOMMENDATIONS CALLED');
-  console.log('📝 Prompt:', prompt);
-  console.log('📝 Limit:', limit);
-  
   try {
     console.log(`🎵 getSpotifyRecommendations called with prompt: "${prompt}"`);
     
-    // PRIMARY: Query VerifiedTrack table from ingestion pipeline
+    // PRIMARY: Query VerifiedTrack table from ingestion pipeline (PostgreSQL)
     console.log(`📊 PRIMARY: Querying verified tracks from ingestion pipeline (VerifiedTrack)...`);
-    let verifiedTracks: Song[] = [];
-    
-    try {
-      console.log('🔍 ABOUT TO CALL queryVerifiedTracks()...');
-      verifiedTracks = await queryVerifiedTracks(prompt, limit);
-      console.log('✅ queryVerifiedTracks() RETURNED:', verifiedTracks.length, 'tracks');
-    } catch (queryError) {
-      console.error(`❌ queryVerifiedTracks failed:`, queryError);
-      if (queryError instanceof Error && queryError.message.includes('timeout')) {
-        console.error(`⏱️  DATABASE QUERY TIMED OUT - this is why AI fallback is being used`);
-      }
-      // Continue to try local cache
-    }
-    
-    const queryElapsed = Date.now() - startTime;
-    console.log(`⏱️  Query took ${queryElapsed}ms`);
+    const verifiedTracks = await queryVerifiedTracks(prompt, limit);
     
     if (verifiedTracks.length > 0) {
       console.log(`✅ Verified tracks found: ${verifiedTracks.length} tracks from ingestion pipeline`);
       console.log(`🎯 Returning ${verifiedTracks.length} tracks from INGESTION PIPELINE - FRESHNESS SORTED`);
       console.log(`📊 Top 3 years: ${verifiedTracks.slice(0, 3).map((t) => t.year || '?').join(', ')}`);
-      console.log(`📊 First track: ${verifiedTracks[0]?.title} by ${verifiedTracks[0]?.artist}`);
-      console.log(`📊 Has Spotify URL: ${!!verifiedTracks[0]?.spotifyUrl}`);
       return verifiedTracks;
     }
 
-    console.log(`⚠️  No verified tracks found in pipeline, falling back to local database cache...`);
-    
-    const cacheResults = await searchLocalDatabase(prompt, limit);
-    if (cacheResults.length > 0) {
-      console.log(`✅ Local cache found: ${cacheResults.length} tracks`);
-      console.log(`🎯 Returning ${cacheResults.length} tracks from LOCAL CACHE - FRESHNESS SORTED`);
-      console.log(`📊 Top 3 years: ${cacheResults.slice(0, 3).map((t) => t.year || '?').join(', ')}`);
-      return cacheResults;
-    }
-
-    console.log(`❌ NO RESULTS FOUND - AI fallback will be used`);
-    console.log(`⏱️  Total time: ${Date.now() - startTime}ms`);
+    console.log(`⚠️  No verified tracks found in PostgreSQL pipeline`);
+    console.log(`📝 Note: Local SQLite fallback disabled - all data should be in PostgreSQL`);
     return [];
   } catch (error) {
-    console.error('❌ Music recommendations error:', error);
+    console.error('Music recommendations error:', error);
     return [];
   }
 }
