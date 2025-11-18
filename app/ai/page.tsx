@@ -291,7 +291,8 @@ const AIPageContent: React.FC = () => {
       setShowPlatformModal(true);
     } else if (hasSpotify) {
       // Only Spotify available, open directly
-      window.open(song.spotifyUrl, '_blank', 'noopener,noreferrer');
+      // Use window.location for Spotify URI to properly handle app redirect
+      window.location.href = song.spotifyUrl;
     } else if (hasYoutube) {
       // Only YouTube available, open directly
       window.open(song.youtubeUrl, '_blank', 'noopener,noreferrer');
@@ -303,7 +304,13 @@ const AIPageContent: React.FC = () => {
     
     const url = platform === 'spotify' ? selectedSong.spotifyUrl : selectedSong.youtubeUrl;
     if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (platform === 'spotify') {
+        // Use window.location for Spotify URI to properly handle app redirect
+        window.location.href = url;
+      } else {
+        // YouTube uses regular window.open
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
     }
     
     setShowPlatformModal(false);
