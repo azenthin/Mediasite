@@ -495,11 +495,6 @@ const AIPageContent: React.FC = () => {
                               <p className="text-[13px] text-white/60 truncate leading-4">{song.artist}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              {song.genre && (
-                                <span className="text-[12px] text-white/60">
-                                  {song.genre}
-                                </span>
-                              )}
                               <div className="flex items-center gap-1">
                                 {song.spotifyUrl && (
                                   <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
