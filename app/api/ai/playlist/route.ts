@@ -103,65 +103,8 @@ export async function POST(request: NextRequest) {
     timer.start('spotify_recommendations');
     try {
       console.log(`🎵 Attempting to get Spotify recommendations for: "${prompt}"`);
+      spotifyTracks = await getSpotifyRecommendations(prompt, 15);
       
-      // DIRECT DATABASE QUERY - bypass music-search.ts complexity with timeout
-      console.log('🔍 DIRECT QUERY: Attempting to query VerifiedTrack table directly...');
-      try {
-        // Wrap query in a timeout promise to prevent hanging
-        const queryPromise = prisma.verifiedTrack.findMany({
-          where: {
-            OR: [
-              { primaryGenre: { contains: prompt.toLowerCase(), mode: 'insensitive' } },
-              { artist: { contains: prompt.toLowerCase(), mode: 'insensitive' } },
-              { title: { contains: prompt.toLowerCase(), mode: 'insensitive' } },
-            ],
-          },
-          include: {
-            identifiers: true,
-          },
-          take: 15,
-          orderBy: [
-            { trackPopularity: 'desc' },
-          ],
-        });
-        
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Database query timeout after 3s')), 3000)
-        );
-        
-        const directTracks = await Promise.race([queryPromise, timeoutPromise]);
-        
-        console.log(`✅ DIRECT QUERY RESULT: ${directTracks.length} tracks found`);
-        
-        if (directTracks.length > 0) {
-          spotifyTracks = directTracks.map((track: any) => {
-            const spotifyId = track.identifiers?.find((id: any) => id.type === 'spotify');
-            const youtubeId = track.identifiers?.find((id: any) => id.type === 'youtube');
-            return {
-              title: track.title,
-              artist: track.artist,
-              genre: track.primaryGenre,
-              year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
-              spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId.value}` : undefined,
-              youtubeUrl: youtubeId ? `https://www.youtube.com/watch?v=${youtubeId.value}` : undefined,
-              verified: true,
-              source: 'database',
-            };
-          });
-          console.log(`✅ Mapped ${spotifyTracks.length} tracks with URLs`);
-        }
-      } catch (directError) {
-        console.error('❌ DIRECT QUERY FAILED:', directError);
-        console.error('❌ Error details:', directError instanceof Error ? directError.message : String(directError));
-      }
-      
-      // Fallback to old method if direct query failed
-      if (spotifyTracks.length === 0) {
-        console.log('⚠️  Direct query returned 0 tracks, trying getSpotifyRecommendations...');
-        spotifyTracks = await getSpotifyRecommendations(prompt, 15);
-      }
-      
-      console.log(`✅ Spotify recommendations result: ${spotifyTracks.length} tracks`);
       if (spotifyTracks.length > 0) {
         logger.info('Got Spotify recommendations', {
           component: 'api.ai.playlist',
@@ -173,7 +116,6 @@ export async function POST(request: NextRequest) {
         });
       }
     } catch (spotifyError) {
-      console.error('❌ Spotify recommendations error:', spotifyError);
       logger.warn('Failed to get Spotify recommendations, falling back to AI', {
         component: 'api.ai.playlist',
         error: spotifyError instanceof Error ? spotifyError.message : String(spotifyError),

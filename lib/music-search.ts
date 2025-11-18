@@ -146,7 +146,7 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
           artist: track.artist,
           genre: track.primaryGenre || undefined,
           year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
-          spotifyUrl: spotifyIdentifier ? `spotify:track:${spotifyIdentifier.value}` : undefined,
+          spotifyUrl: spotifyIdentifier ? `https://open.spotify.com/track/${spotifyIdentifier.value}` : undefined,
           youtubeUrl: youtubeIdentifier ? `https://www.youtube.com/watch?v=${youtubeIdentifier.value}` : undefined,
           verified: true,
           source: 'database',
