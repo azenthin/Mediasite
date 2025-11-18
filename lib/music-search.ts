@@ -81,7 +81,7 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
 
 /**
  * Query verified tracks from ingestion pipeline (VerifiedTrack table)
- * Matches by artist or title
+ * Matches by artist or title using raw SQL for better performance
  */
 async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
   try {
@@ -93,28 +93,22 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     
     console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
-    // Query VerifiedTrack table with enriched search (genre, mood, popularity)
-    // Use case-insensitive search for PostgreSQL compatibility
-    const verifiedTracks = await prisma.verifiedTrack.findMany({
-      where: {
-        OR: [
-          { artist: { contains: promptLower, mode: 'insensitive' } },
-          { title: { contains: promptLower, mode: 'insensitive' } },
-          { album: { contains: promptLower, mode: 'insensitive' } },
-          { primaryGenre: { contains: promptLower, mode: 'insensitive' } },
-          { genres: { contains: promptLower, mode: 'insensitive' } },
-          { mood: { contains: promptLower, mode: 'insensitive' } },
-        ],
-      },
-      include: {
-        identifiers: true,
-      },
-      orderBy: [
-        { trackPopularity: 'desc' },
-        { verifiedAt: 'desc' },
-      ],
-      take: fetchLimit,
-    });
+    // Use raw SQL for better performance with case-insensitive search
+    const verifiedTracks = await prisma.$queryRaw`
+      SELECT 
+        id, title, artist, album, "primaryGenre", genres, mood, 
+        "trackPopularity", "verifiedAt", "releaseDate"
+      FROM "VerifiedTrack"
+      WHERE 
+        LOWER(artist) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(title) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(album) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER("primaryGenre") LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(genres) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(mood) LIKE LOWER(${`%${promptLower}%`})
+      ORDER BY "trackPopularity" DESC, "verifiedAt" DESC
+      LIMIT ${fetchLimit}
+    ` as any[];
 
     console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} tracks from Postgres`);
 
@@ -123,11 +117,29 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       return [];
     }
 
+    // Fetch identifiers for these tracks
+    const trackIds = verifiedTracks.map(t => t.id);
+    const identifiersData = await prisma.$queryRaw`
+      SELECT "trackId", type, value
+      FROM "TrackIdentifier"
+      WHERE "trackId" = ANY(${trackIds}::text[])
+    ` as any[];
+
+    // Group identifiers by trackId
+    const identifiersByTrackId = new Map<string, any[]>();
+    identifiersData.forEach(id => {
+      if (!identifiersByTrackId.has(id.trackId)) {
+        identifiersByTrackId.set(id.trackId, []);
+      }
+      identifiersByTrackId.get(id.trackId)!.push(id);
+    });
+
     // Convert VerifiedTrack records to Song format
     const songs: Song[] = verifiedTracks
       .map((track: any) => {
-        const spotifyIdentifier = track.identifiers?.find((id: any) => id.type === 'spotify');
-        const youtubeIdentifier = track.identifiers?.find((id: any) => id.type === 'youtube');
+        const identifiers = identifiersByTrackId.get(track.id) || [];
+        const spotifyIdentifier = identifiers.find((id: any) => id.type === 'spotify');
+        const youtubeIdentifier = identifiers.find((id: any) => id.type === 'youtube');
         
         return {
           title: track.title,
