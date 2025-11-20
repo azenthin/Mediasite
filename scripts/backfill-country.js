@@ -19,8 +19,9 @@ const prisma = new PrismaClient();
 
 // Configuration
 const BATCH_SIZE = 500;           // Tracks to process per batch
+const PARALLEL_BATCHES = 10;      // Number of batches to process in parallel (10x speedup)
 const SPOTIFY_BATCH_SIZE = 50;    // Artist lookups per API call (Spotify max: 50)
-const RATE_LIMIT_MS = 50;         // 50ms between requests = 20 req/sec
+const RATE_LIMIT_MS = 50;         // 50ms between requests = 20 req/sec per batch
 const CHECKPOINT_FILE = path.join(__dirname, 'checkpoint-country.json');
 
 let spotifyToken = null;
@@ -118,7 +119,79 @@ function saveCheckpoint(checkpoint) {
 }
 
 /**
- * Main backfill process
+ * Process a single batch of tracks
+ */
+async function processBatch(tracks, batchNum, totalBatches) {
+  const batchStart = Date.now();
+  let updated = 0;
+  let failed = 0;
+
+  // Get unique artist IDs from tracks
+  const trackIds = tracks.map(t => t.id);
+  const tracksWithArtistId = await prisma.verifiedTrack.findMany({
+    where: { id: { in: trackIds } },
+    select: {
+      id: true,
+      rawProvider: true
+    }
+  });
+
+  // Extract artist IDs from raw provider data
+  const artistIds = [];
+  const trackIdToArtistId = {};
+
+  tracksWithArtistId.forEach(track => {
+    try {
+      if (track.rawProvider) {
+        const raw = JSON.parse(track.rawProvider);
+        const artistId = raw.spotify?.raw?.artists?.[0]?.id;
+        if (artistId) {
+          artistIds.push(artistId);
+          trackIdToArtistId[track.id] = artistId;
+        }
+      }
+    } catch (err) {
+      // Skip tracks with invalid JSON
+    }
+  });
+
+  if (artistIds.length === 0) {
+    return { updated: 0, failed: tracks.length };
+  }
+
+  // Fetch artist data in batches of 50
+  const artistMap = {};
+
+  for (let i = 0; i < artistIds.length; i += SPOTIFY_BATCH_SIZE) {
+    const batch = artistIds.slice(i, i + SPOTIFY_BATCH_SIZE);
+    const batchData = await fetchArtistsBatch(batch);
+    Object.assign(artistMap, batchData);
+  }
+
+  // Update tracks with country data
+  for (const track of tracksWithArtistId) {
+    const artistId = trackIdToArtistId[track.id];
+    if (!artistId || !artistMap[artistId]) {
+      failed++;
+      continue;
+    }
+
+    try {
+      await prisma.verifiedTrack.update({
+        where: { id: track.id },
+        data: { country: artistMap[artistId].country || null }
+      });
+      updated++;
+    } catch (err) {
+      failed++;
+    }
+  }
+
+  return { updated, failed };
+}
+
+/**
+ * Main backfill process with parallel batch processing
  */
 async function backfillCountry() {
   const startTime = Date.now();
@@ -128,8 +201,9 @@ async function backfillCountry() {
     console.log('🌍 BACKFILL COUNTRY DATA\n');
     console.log('⚙️  Configuration:');
     console.log(`   - Batch size: ${BATCH_SIZE} tracks`);
+    console.log(`   - Parallel batches: ${PARALLEL_BATCHES} (${PARALLEL_BATCHES}x speedup)`);
     console.log(`   - Artist batch: ${SPOTIFY_BATCH_SIZE} artists`);
-    console.log(`   - Rate limit: ${RATE_LIMIT_MS}ms between requests (20 req/sec)\n`);
+    console.log(`   - Rate limit: ${RATE_LIMIT_MS}ms between requests per batch\n`);
 
     // Get total count
     console.log('📊 Analyzing database...');
@@ -146,99 +220,60 @@ async function backfillCountry() {
     let processed = checkpoint.processed;
     let updated = checkpoint.updated;
     let failed = checkpoint.failed;
-    let batchCount = 0;
+    let batchNum = 0;
 
-    // Process in batches
+    // Process in parallel batches
     while (processed < total) {
-      batchCount++;
-      const batchStart = Date.now();
+      batchNum++;
 
-      // Fetch batch of tracks without country
-      const tracks = await prisma.verifiedTrack.findMany({
-        where: { country: null },
-        select: { id: 'true', artist: true },
-        skip: processed,
-        take: BATCH_SIZE,
-        orderBy: { createdAt: 'asc' }
-      });
+      // Fetch PARALLEL_BATCHES number of track batches
+      const batchPromises = [];
+      const trackBatches = [];
 
-      if (tracks.length === 0) break;
+      for (let i = 0; i < PARALLEL_BATCHES; i++) {
+        if (processed + (i * BATCH_SIZE) >= total) break;
 
-      // Get unique artist IDs from tracks (need to refetch to get spotify raw data)
-      const trackIds = tracks.map(t => t.id);
-      const tracksWithArtistId = await prisma.verifiedTrack.findMany({
-        where: { id: { in: trackIds } },
-        select: {
-          id: true,
-          rawProvider: true
-        }
-      });
+        const promise = prisma.verifiedTrack.findMany({
+          where: { country: null },
+          select: { id: true, artist: true },
+          skip: processed + (i * BATCH_SIZE),
+          take: BATCH_SIZE,
+          orderBy: { createdAt: 'asc' }
+        });
 
-      // Extract artist IDs from raw provider data
-      const artistIds = [];
-      const trackIdToArtistId = {};
-
-      tracksWithArtistId.forEach(track => {
-        try {
-          if (track.rawProvider) {
-            const raw = JSON.parse(track.rawProvider);
-            const artistId = raw.spotify?.raw?.artists?.[0]?.id;
-            if (artistId) {
-              artistIds.push(artistId);
-              trackIdToArtistId[track.id] = artistId;
-            }
-          }
-        } catch (err) {
-          // Skip tracks with invalid JSON
-        }
-      });
-
-      if (artistIds.length === 0) {
-        processed += tracks.length;
-        continue;
+        batchPromises.push(promise);
       }
 
-      // Fetch artist data in batches of 50
-      console.log(`\n📦 Batch ${batchCount}: Processing ${tracks.length} tracks...`);
-      const artistMap = {};
+      const results = await Promise.all(batchPromises);
 
-      for (let i = 0; i < artistIds.length; i += SPOTIFY_BATCH_SIZE) {
-        const batch = artistIds.slice(i, i + SPOTIFY_BATCH_SIZE);
-        const batchData = await fetchArtistsBatch(batch);
-        Object.assign(artistMap, batchData);
+      // Check if we got any tracks
+      let totalTracks = 0;
+      results.forEach(r => totalTracks += r.length);
 
-        const progress = Math.min(i + SPOTIFY_BATCH_SIZE, artistIds.length);
-        console.log(`   ✓ Fetched ${progress}/${artistIds.length} artists`);
-      }
+      if (totalTracks === 0) break;
 
-      // Update tracks with country data
-      for (const track of tracksWithArtistId) {
-        const artistId = trackIdToArtistId[track.id];
-        if (!artistId || !artistMap[artistId]) {
-          failed++;
-          continue;
-        }
+      console.log(`\n📦 Batch group ${batchNum}: Processing ${totalTracks} tracks in ${results.length} parallel batches...`);
+      const groupStart = Date.now();
 
-        try {
-          await prisma.verifiedTrack.update({
-            where: { id: track.id },
-            data: { country: artistMap[artistId].country || null }
-          });
-          updated++;
-        } catch (err) {
-          console.warn(`   ⚠️  Failed to update track ${track.id}`);
-          failed++;
-        }
-      }
+      // Process each batch in parallel
+      const batchResults = await Promise.all(
+        results.map((tracks, idx) => processBatch(tracks, batchNum * PARALLEL_BATCHES + idx + 1, 'n/a'))
+      );
 
-      processed += tracks.length;
+      // Aggregate results
+      batchResults.forEach(result => {
+        updated += result.updated;
+        failed += result.failed;
+      });
 
-      const elapsed = ((Date.now() - batchStart) / 1000).toFixed(1);
-      const rate = (tracks.length / (elapsed || 1)).toFixed(0);
+      processed += totalTracks;
+
+      const elapsed = ((Date.now() - groupStart) / 1000).toFixed(1);
+      const rate = (totalTracks / (elapsed || 1)).toFixed(0);
       const progress = ((processed / total) * 100).toFixed(1);
       const timeLeft = ((total - processed) / (processed / ((Date.now() - startTime) / 1000))).toFixed(0);
 
-      console.log(`   📊 Progress: ${progress}% | Updated: ${updated} | Failed: ${failed} | Rate: ${rate} tracks/sec`);
+      console.log(`   📊 Progress: ${progress}% | Updated: ${updated.toLocaleString()} | Failed: ${failed} | Rate: ${rate} tracks/sec`);
       console.log(`   ⏱️  Time left: ~${timeLeft}s`);
 
       // Save checkpoint
@@ -258,8 +293,9 @@ async function backfillCountry() {
     console.log(`   Failed: ${failed}`);
     console.log(`   Processed: ${processed.toLocaleString()}\n`);
     console.log('⏱️  Performance:');
-    console.log(`   Total time: ${totalTime}s`);
-    console.log(`   Average rate: ${avgRate} tracks/sec`);
+    console.log(`   Total time: ${totalTime}s (~${(totalTime / 60).toFixed(1)} minutes)`);
+    console.log(`   Average rate: ${avgRate} tracks/sec (${PARALLEL_BATCHES}x parallel)`);
+    console.log(`   Estimated speedup: ~${PARALLEL_BATCHES}x faster than sequential`);
     console.log(`${'='.repeat(60)}\n`);
 
     // Clean up checkpoint
