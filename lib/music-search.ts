@@ -111,6 +111,9 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     ` as any[];
 
     console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} tracks from Postgres`);
+    if (verifiedTracks.length > 0) {
+      console.log(`📊 Sample: "${verifiedTracks[0].title}" by "${verifiedTracks[0].artist}"`);
+    }
 
     if (verifiedTracks.length === 0) {
       console.log(`⚠️  No tracks found in Postgres for query "${promptLower}"`);
@@ -146,7 +149,7 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
           artist: track.artist,
           genre: track.primaryGenre || undefined,
           year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
-          spotifyUrl: spotifyIdentifier ? `spotify:track:${spotifyIdentifier.value}` : undefined,
+          spotifyUrl: spotifyIdentifier ? `https://open.spotify.com/track/${spotifyIdentifier.value}` : undefined,
           youtubeUrl: youtubeIdentifier ? `https://www.youtube.com/watch?v=${youtubeIdentifier.value}` : undefined,
           verified: true,
           source: 'database',
