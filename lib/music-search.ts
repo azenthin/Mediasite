@@ -93,25 +93,23 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     
     console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
-    // For SQLite, we need to fetch and filter client-side since it doesn't support case-insensitive contains
-    // Get top tracks first, then filter
-    const topTracks = await prisma.verifiedTrack.findMany({
-      orderBy: [
-        { trackPopularity: 'desc' },
-        { verifiedAt: 'desc' },
-      ],
-      take: Math.min(1000, fetchLimit * 10), // Fetch enough to filter
+    // Query tracks directly - Prisma will handle the database-specific query
+    const allTracks = await prisma.verifiedTrack.findMany({
+      orderBy: {
+        trackPopularity: 'desc'
+      },
+      take: 100  // Small fixed limit to avoid performance issues
     });
 
-    // Client-side filtering for case-insensitive search
-    const verifiedTracks = topTracks.filter(track =>
-      (track.artist && track.artist.toLowerCase().includes(promptLower)) ||
-      (track.title && track.title.toLowerCase().includes(promptLower)) ||
-      (track.album && track.album.toLowerCase().includes(promptLower)) ||
-      (track.primaryGenre && track.primaryGenre.toLowerCase().includes(promptLower)) ||
-      (track.genres && track.genres.toLowerCase().includes(promptLower)) ||
-      (track.mood && track.mood.toLowerCase().includes(promptLower))
-    ).slice(0, fetchLimit);
+    // Filter matches client-side
+    const verifiedTracks = allTracks
+      .filter(track =>
+        (track.artist && track.artist.toLowerCase().includes(promptLower)) ||
+        (track.title && track.title.toLowerCase().includes(promptLower)) ||
+        (track.primaryGenre && track.primaryGenre.toLowerCase().includes(promptLower)) ||
+        (track.mood && track.mood.toLowerCase().includes(promptLower))
+      )
+      .slice(0, fetchLimit);
 
     console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} verified tracks`);
     if (verifiedTracks.length > 0) {
