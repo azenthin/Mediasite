@@ -81,14 +81,9 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
 
 /**
  * Query verified tracks from ingestion pipeline (VerifiedTrack table)
- * Optionally applies regional bias if userRegion is provided
+ * Matches by artist or title using raw SQL for better performance
  */
-async function queryVerifiedTracks(
-  prompt: string,
-  limit: number = 15,
-  applyDiversity: boolean = true,
-  userRegion?: string | null
-): Promise<Song[]> {
+async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
   try {
     const promptLower = prompt.toLowerCase();
     const isSingleArtist = isSingleArtistRequest(prompt);
@@ -96,46 +91,39 @@ async function queryVerifiedTracks(
     // Fetch more tracks if we need diversity (2-3x the limit to ensure variety)
     const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
     
-    console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}${userRegion ? `, region=${userRegion}` : ''}`);
+    console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
-    // Use Prisma ORM (compatible with both SQLite and PostgreSQL)
-    // PostgreSQL: use mode: 'insensitive' for case-insensitive search
-    // SQLite: doesn't support mode, so search is naturally case-insensitive for LIKE
-    const isPostgres = process.env.DATABASE_URL?.includes('postgres');
-    const searchMode = isPostgres ? 'insensitive' : undefined;
-    
-    const verifiedTracks = await prisma.verifiedTrack.findMany({
-      where: {
-        OR: [
-          { artist: { contains: promptLower, ...(searchMode ? { mode: searchMode } : {}) } },
-          { title: { contains: promptLower, ...(searchMode ? { mode: searchMode } : {}) } },
-          { album: { contains: promptLower, ...(searchMode ? { mode: searchMode } : {}) } },
-          { primaryGenre: { contains: promptLower, ...(searchMode ? { mode: searchMode } : {}) } },
-          { genres: { contains: promptLower, ...(searchMode ? { mode: searchMode } : {}) } },
-          { mood: { contains: promptLower, ...(searchMode ? { mode: searchMode } : {}) } },
-        ]
-      },
-      orderBy: [
-        { trackPopularity: 'desc' },
-        { verifiedAt: 'desc' }
-      ],
-      take: fetchLimit,
-    });
+    // Use raw SQL for better performance with case-insensitive search
+    const verifiedTracks = await prisma.$queryRaw`
+      SELECT 
+        id, title, artist, album, "primaryGenre", genres, mood, 
+        "trackPopularity", "verifiedAt", "releaseDate"
+      FROM "VerifiedTrack"
+      WHERE 
+        LOWER(artist) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(title) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(album) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER("primaryGenre") LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(genres) LIKE LOWER(${`%${promptLower}%`})
+        OR LOWER(mood) LIKE LOWER(${`%${promptLower}%`})
+      ORDER BY "trackPopularity" DESC, "verifiedAt" DESC
+      LIMIT ${fetchLimit}
+    ` as any[];
 
-    console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} tracks from database`);
+    console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} tracks from Postgres`);
 
     if (verifiedTracks.length === 0) {
-      console.log(`⚠️  No tracks found in database for query "${promptLower}"`);
+      console.log(`⚠️  No tracks found in Postgres for query "${promptLower}"`);
       return [];
     }
 
     // Fetch identifiers for these tracks
     const trackIds = verifiedTracks.map(t => t.id);
-    const identifiersData = await prisma.trackIdentifier.findMany({
-      where: {
-        trackId: { in: trackIds }
-      }
-    });
+    const identifiersData = await prisma.$queryRaw`
+      SELECT "trackId", type, value
+      FROM "TrackIdentifier"
+      WHERE "trackId" = ANY(${trackIds}::text[])
+    ` as any[];
 
     // Group identifiers by trackId
     const identifiersByTrackId = new Map<string, any[]>();
@@ -466,7 +454,7 @@ export async function getSpotifyRecommendations(
   try {
     console.log(`🎵 getSpotifyRecommendations called with prompt: "${prompt}"`);
     
-    // PRIMARY: Query VerifiedTrack table from ingestion pipeline
+    // PRIMARY: Query VerifiedTrack table from ingestion pipeline (PostgreSQL)
     console.log(`📊 PRIMARY: Querying verified tracks from ingestion pipeline (VerifiedTrack)...`);
     const verifiedTracks = await queryVerifiedTracks(prompt, limit);
     
@@ -477,7 +465,8 @@ export async function getSpotifyRecommendations(
       return verifiedTracks;
     }
 
-    console.log(`⚠️  No verified tracks found in database`);
+    console.log(`⚠️  No verified tracks found in PostgreSQL pipeline`);
+    console.log(`📝 Note: Local SQLite fallback disabled - all data should be in PostgreSQL`);
     return [];
   } catch (error) {
     console.error('Music recommendations error:', error);
