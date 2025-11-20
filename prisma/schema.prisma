@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -20,6 +20,7 @@ model User {
   emailVerified Boolean @default(false)
   emailVerificationToken String?
   emailVerificationExpires DateTime?
+  country     String?  // User's country (ISO 3166-1 alpha-2, e.g., "US", "GB", "JP")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -286,6 +287,7 @@ model VerifiedTrack {
   // Genre & Classification
   genres           String?   // JSON array from artist
   primaryGenre     String?   // First/main genre for simple filtering
+  country          String?   // Artist's country origin (ISO 3166-1 alpha-2, e.g., "US", "GB", "JP")
   
   // Popularity & Engagement
   trackPopularity  Int?      // 0-100 from track object
@@ -316,6 +318,7 @@ model VerifiedTrack {
   @@index([isrc])
   @@index([mbid])
   @@index([primaryGenre])
+  @@index([country])
   @@index([mood])
   @@index([trackPopularity])
 }
