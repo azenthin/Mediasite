@@ -122,11 +122,13 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
 
     // Fetch identifiers for these tracks
     const trackIds = verifiedTracks.map(t => t.id);
-    const identifiersData = await prisma.$queryRaw`
-      SELECT "trackId", type, value
-      FROM "TrackIdentifier"
-      WHERE "trackId" = ANY(${trackIds}::text[])
-    ` as any[];
+    
+    // Use Prisma to fetch identifiers instead of raw SQL (works for both SQLite and Postgres)
+    const identifiersData = await prisma.trackIdentifier.findMany({
+      where: {
+        trackId: { in: trackIds },
+      },
+    });
 
     // Group identifiers by trackId
     const identifiersByTrackId = new Map<string, any[]>();
