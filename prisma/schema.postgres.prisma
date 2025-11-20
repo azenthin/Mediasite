@@ -1,3 +1,4 @@
+// Postgres version of schema for production deployment
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -6,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -20,7 +21,6 @@ model User {
   emailVerified Boolean @default(false)
   emailVerificationToken String?
   emailVerificationExpires DateTime?
-  country     String?  // User's country (ISO 3166-1 alpha-2, e.g., "US", "GB", "JP")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -271,68 +271,64 @@ model SongCache {
 
 // Ingestion models
 model VerifiedTrack {
-  id           String   @id @default(cuid())
-  internalUuid String   @unique @default(uuid())
-  title        String
-  artist       String
-  album        String?
-  isrc         String?  @unique
-  mbid         String?  @unique
-  spotifyId    String?  @unique
-  acoustid     String?
-  durationMs   Int?
-  releaseDate  DateTime?
-  rawProvider  String?  // JSON string
-  
-  // Genre & Classification
-  genres           String?   // JSON array from artist
-  primaryGenre     String?   // First/main genre for simple filtering
-  country          String?   // Artist's country origin (ISO 3166-1 alpha-2, e.g., "US", "GB", "JP")
+  id                String   @id @default(cuid())
+  internalUuid      String   @unique @default(uuid())
+  title             String
+  artist            String
+  album             String?
+  isrc              String   @unique
+  releaseDate       DateTime?
+  duration          Int?
+  explicit          Boolean  @default(false)
   
   // Popularity & Engagement
-  trackPopularity  Int?      // 0-100 from track object
-  artistPopularity Int?      // 0-100 from artist object
-  artistFollowers  Int?      // Total followers
+  trackPopularity   Int?
+  artistPopularity  Int?
+  
+  // Genre & Classification
+  primaryGenre      String?
+  genres            String?  // JSON array
   
   // Audio Features (mood/vibe matching)
-  danceability     Float?    // 0-1
-  energy           Float?    // 0-1
-  valence          Float?    // 0-1 (happiness)
-  tempo            Float?    // BPM
-  acousticness     Float?    // 0-1
-  instrumentalness Float?    // 0-1
-  key              Int?      // 0-11
-  mode             Int?      // 0=minor, 1=major
-  loudness         Float?    // dB
+  danceability      Float?
+  energy            Float?
+  valence           Float?
+  tempo             Float?
+  acousticness      Float?
+  instrumentalness  Float?
+  key               Int?
+  mode              Int?
+  loudness          Float?
+  speechiness       Float?
+  liveness          Float?
+  timeSignature     Int?
   
   // Computed/Derived
-  canonicalityScore Float?   // From canonicality module
-  mood             String?   // Computed from valence/energy
+  mood              String?
   
-  verifiedAt   DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  verifiedAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  identifiers  TrackIdentifier[]
+  identifiers       TrackIdentifier[]
 
   @@index([isrc])
-  @@index([mbid])
   @@index([primaryGenre])
-  @@index([country])
   @@index([mood])
   @@index([trackPopularity])
+  @@index([verifiedAt])
 }
 
 model TrackIdentifier {
   id         String   @id @default(cuid())
-  type       String   // 'isrc' | 'mbid' | 'spotify' | 'acoustid'
+  type       String   // 'spotify' | 'youtube' | 'isrc'
   value      String
   trackId    String
   track      VerifiedTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
 
+  @@unique([trackId, type])
   @@index([type, value])
-  @@unique([type, value])
 }
 
 model SkippedTrack {
