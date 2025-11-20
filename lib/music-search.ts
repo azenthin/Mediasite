@@ -81,7 +81,7 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
 
 /**
  * Query verified tracks from ingestion pipeline (VerifiedTrack table)
- * Matches by artist or title using raw SQL for better performance
+ * Uses database-agnostic Prisma queries to work with both SQLite and PostgreSQL
  */
 async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDiversity: boolean = true): Promise<Song[]> {
   try {
@@ -93,40 +93,47 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     
     console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
-    // Use raw SQL for better performance with case-insensitive search
-    const verifiedTracks = await prisma.$queryRaw`
-      SELECT 
-        id, title, artist, album, "primaryGenre", genres, mood, 
-        "trackPopularity", "verifiedAt", "releaseDate"
-      FROM "VerifiedTrack"
-      WHERE 
-        LOWER(artist) LIKE LOWER(${`%${promptLower}%`})
-        OR LOWER(title) LIKE LOWER(${`%${promptLower}%`})
-        OR LOWER(album) LIKE LOWER(${`%${promptLower}%`})
-        OR LOWER("primaryGenre") LIKE LOWER(${`%${promptLower}%`})
-        OR LOWER(genres) LIKE LOWER(${`%${promptLower}%`})
-        OR LOWER(mood) LIKE LOWER(${`%${promptLower}%`})
-      ORDER BY "trackPopularity" DESC, "verifiedAt" DESC
-      LIMIT ${fetchLimit}
-    ` as any[];
+    // Fetch all verified tracks and filter client-side (SQLite limitation with case-insensitive search)
+    const allVerifiedTracks = await prisma.verifiedTrack.findMany({
+      orderBy: [
+        { trackPopularity: 'desc' },
+        { verifiedAt: 'desc' },
+      ],
+      take: fetchLimit * 5, // Fetch extra to account for filtering
+    });
 
-    console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} tracks from Postgres`);
+    // Filter by search term (case-insensitive client-side)
+    const verifiedTracks = allVerifiedTracks.filter(track =>
+      track.artist?.toLowerCase().includes(promptLower) ||
+      track.title?.toLowerCase().includes(promptLower) ||
+      track.album?.toLowerCase().includes(promptLower) ||
+      track.primaryGenre?.toLowerCase().includes(promptLower) ||
+      track.genres?.toLowerCase().includes(promptLower) ||
+      track.mood?.toLowerCase().includes(promptLower)
+    ).slice(0, fetchLimit);
+
+    console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} verified tracks`);
     if (verifiedTracks.length > 0) {
       console.log(`📊 Sample: "${verifiedTracks[0].title}" by "${verifiedTracks[0].artist}"`);
     }
 
     if (verifiedTracks.length === 0) {
-      console.log(`⚠️  No tracks found in Postgres for query "${promptLower}"`);
+      console.log(`⚠️  No tracks found for query "${promptLower}"`);
       return [];
     }
 
     // Fetch identifiers for these tracks
     const trackIds = verifiedTracks.map(t => t.id);
     
-    // Use Prisma to fetch identifiers instead of raw SQL (works for both SQLite and Postgres)
+    // Use Prisma's database-agnostic query that works for both SQLite and PostgreSQL
     const identifiersData = await prisma.trackIdentifier.findMany({
       where: {
         trackId: { in: trackIds },
+      },
+      select: {
+        trackId: true,
+        type: true,
+        value: true,
       },
     });
 
