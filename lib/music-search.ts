@@ -93,24 +93,25 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     
     console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
-    // Fetch all verified tracks and filter client-side (SQLite limitation with case-insensitive search)
-    const allVerifiedTracks = await prisma.verifiedTrack.findMany({
+    // Query with basic filtering using Prisma (works for both SQLite and PostgreSQL)
+    // For case-insensitive search on SQLite, we'll do a LIKE query with LOWER
+    const verifiedTracks = await prisma.verifiedTrack.findMany({
+      where: {
+        OR: [
+          { artist: { contains: promptLower } },
+          { title: { contains: promptLower } },
+          { album: { contains: promptLower } },
+          { primaryGenre: { contains: promptLower } },
+          { genres: { contains: promptLower } },
+          { mood: { contains: promptLower } },
+        ],
+      },
       orderBy: [
         { trackPopularity: 'desc' },
         { verifiedAt: 'desc' },
       ],
-      take: fetchLimit * 5, // Fetch extra to account for filtering
+      take: fetchLimit,
     });
-
-    // Filter by search term (case-insensitive client-side)
-    const verifiedTracks = allVerifiedTracks.filter(track =>
-      track.artist?.toLowerCase().includes(promptLower) ||
-      track.title?.toLowerCase().includes(promptLower) ||
-      track.album?.toLowerCase().includes(promptLower) ||
-      track.primaryGenre?.toLowerCase().includes(promptLower) ||
-      track.genres?.toLowerCase().includes(promptLower) ||
-      track.mood?.toLowerCase().includes(promptLower)
-    ).slice(0, fetchLimit);
 
     console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} verified tracks`);
     if (verifiedTracks.length > 0) {
