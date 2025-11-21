@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { safeAuth } from '@/lib/safe-auth';
 import { prisma } from '@/lib/database';
-import { REGION_MAP } from '@/lib/regional-recommendations';
 
 /**
- * GET /api/profile - Get current user profile including regional preference
+ * GET /api/profile - Get current user profile
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
         username: true,
         displayName: true,
         avatarUrl: true,
-        preferredRegion: true,
+        country: true,
         createdAt: true,
       },
     });
@@ -39,12 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      user: {
-        ...user,
-        regionName: user.preferredRegion 
-          ? REGION_MAP[user.preferredRegion as keyof typeof REGION_MAP]?.name 
-          : null,
-      },
+      user,
     });
   } catch (error) {
     console.error('Profile fetch error:', error);
@@ -56,7 +50,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * PATCH /api/profile - Update user profile including regional preference
+ * PATCH /api/profile - Update user profile
  */
 export async function PATCH(request: NextRequest) {
   try {
@@ -70,22 +64,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { displayName, preferredRegion } = body;
-
-    // Validate region if provided
-    if (preferredRegion && !REGION_MAP[preferredRegion as keyof typeof REGION_MAP]) {
-      return NextResponse.json(
-        { error: `Invalid region: ${preferredRegion}. Must be one of: ${Object.keys(REGION_MAP).join(', ')}` },
-        { status: 400 }
-      );
-    }
+    const { displayName, country } = body;
 
     // Update user
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         ...(displayName !== undefined && { displayName }),
-        ...(preferredRegion !== undefined && { preferredRegion: preferredRegion || null }),
+        ...(country !== undefined && { country: country || null }),
       },
       select: {
         id: true,
@@ -93,7 +79,7 @@ export async function PATCH(request: NextRequest) {
         username: true,
         displayName: true,
         avatarUrl: true,
-        preferredRegion: true,
+        country: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -101,18 +87,13 @@ export async function PATCH(request: NextRequest) {
 
     console.log(`✅ Updated user ${session.user.id} profile`, {
       displayName: updatedUser.displayName,
-      preferredRegion: updatedUser.preferredRegion,
+      country: updatedUser.country,
     });
 
     return NextResponse.json({
       success: true,
       message: 'Profile updated successfully',
-      user: {
-        ...updatedUser,
-        regionName: updatedUser.preferredRegion 
-          ? REGION_MAP[updatedUser.preferredRegion as keyof typeof REGION_MAP]?.name 
-          : null,
-      },
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Profile update error:', error);
