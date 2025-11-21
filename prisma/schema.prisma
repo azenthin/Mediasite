@@ -273,41 +273,33 @@ model SongCache {
 model VerifiedTrack {
   id           String   @id @default(cuid())
   internalUuid String   @unique @default(uuid())
+  isrc         String?  @unique
   title        String
   artist       String
   album        String?
-  isrc         String?  @unique
-  mbid         String?  @unique
-  spotifyId    String?  @unique
-  acoustid     String?
-  durationMs   Int?
   releaseDate  DateTime?
-  rawProvider  String?  // JSON string
+  duration     Int?     // duration in seconds
+  explicit     Boolean? @default(false)
   
-  // Genre & Classification
-  genres           String?   // JSON array from artist
-  primaryGenre     String?   // First/main genre for simple filtering
-  country          String?   // Artist's country origin (ISO 3166-1 alpha-2, e.g., "US", "GB", "JP")
-  
-  // Popularity & Engagement
   trackPopularity  Int?      // 0-100 from track object
   artistPopularity Int?      // 0-100 from artist object
-  artistFollowers  Int?      // Total followers
+  primaryGenre     String?   // First/main genre for simple filtering
+  genres           String?   // JSON array from artist
+  mood             String?   // Computed from valence/energy
   
   // Audio Features (mood/vibe matching)
   danceability     Float?    // 0-1
   energy           Float?    // 0-1
-  valence          Float?    // 0-1 (happiness)
-  tempo            Float?    // BPM
+  key              Int?      // 0-11
+  loudness         Float?    // dB
+  mode             Int?      // 0=minor, 1=major
+  speechiness      Float?    // 0-1
   acousticness     Float?    // 0-1
   instrumentalness Float?    // 0-1
-  key              Int?      // 0-11
-  mode             Int?      // 0=minor, 1=major
-  loudness         Float?    // dB
-  
-  // Computed/Derived
-  canonicalityScore Float?   // From canonicality module
-  mood             String?   // Computed from valence/energy
+  liveness         Float?    // 0-1
+  valence          Float?    // 0-1 (happiness)
+  tempo            Float?    // BPM
+  timeSignature    Int?      // time signature
   
   verifiedAt   DateTime @default(now())
   createdAt    DateTime @default(now())
@@ -316,9 +308,7 @@ model VerifiedTrack {
   identifiers  TrackIdentifier[]
 
   @@index([isrc])
-  @@index([mbid])
   @@index([primaryGenre])
-  @@index([country])
   @@index([mood])
   @@index([trackPopularity])
 }
