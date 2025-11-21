@@ -115,12 +115,11 @@ export async function GET(request: NextRequest) {
         title: true,
         artist: true,
         album: true,
-        durationMs: true,
+        duration: true,
         releaseDate: true,
         verifiedAt: true,
-        spotifyId: true,
         isrc: true,
-        mbid: true,
+
       },
       orderBy: [
         { verifiedAt: 'desc' },
@@ -155,16 +154,15 @@ export async function GET(request: NextRequest) {
       title: track.title,
       artist: track.artist,
       album: track.album,
-      duration: track.durationMs ? Math.floor(track.durationMs / 1000) : undefined,
+      duration: track.duration,
       releaseDate: track.releaseDate,
       identifiers: {
-        spotifyId: track.spotifyId,
+
         isrc: track.isrc,
-        mbid: track.mbid,
+
       },
       spotify: {
-        id: track.spotifyId,
-        url: track.spotifyId ? `spotify:track:${track.spotifyId}` : null,
+        // Spotify ID from identifiers table
       },
       verifiedAt: track.verifiedAt,
     }));
