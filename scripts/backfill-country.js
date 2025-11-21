@@ -19,9 +19,9 @@ const prisma = new PrismaClient();
 
 // Configuration
 const BATCH_SIZE = 500;           // Tracks to process per batch
-const PARALLEL_BATCHES = 10;      // Number of batches to process in parallel (10x speedup)
+const PARALLEL_BATCHES = 2;       // Reduced to 2 for safe rate limiting (was 10)
 const SPOTIFY_BATCH_SIZE = 50;    // Artist lookups per API call (Spotify max: 50)
-const RATE_LIMIT_MS = 50;         // 50ms between requests = 20 req/sec per batch
+const RATE_LIMIT_MS = 100;        // 100ms between requests = 10 req/sec per batch (well below 14 req/sec limit)
 const CHECKPOINT_FILE = path.join(__dirname, 'checkpoint-country.json');
 
 let spotifyToken = null;

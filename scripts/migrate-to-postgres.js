@@ -6,19 +6,15 @@
  * 
  * Usage:
  * 1. Set POSTGRES_URL environment variable with your Vercel database URL
- * 2. Run: node scripts/migrate-to-postgres.js
+ * 2. Run: POSTGRES_URL="postgresql://..." node scripts/migrate-to-postgres.js
  */
 
-const { PrismaClient } = require('@prisma/client');
+const sqlite3 = require('sqlite3').verbose();
+const { Client } = require('pg');
+const path = require('path');
 
-// Source: Local SQLite
-const sourcePrisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: 'file:./prisma/dev.db'
-    }
-  }
-});
+// Source: Local SQLite (in prisma/prisma subdirectory)
+const sqliteDbPath = path.join(process.cwd(), 'prisma', 'prisma', 'dev.db');
 
 // Target: Vercel Postgres (from environment variable)
 const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -30,26 +26,57 @@ if (!POSTGRES_URL || POSTGRES_URL.includes('file:')) {
   process.exit(1);
 }
 
-const targetPrisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: POSTGRES_URL
-    }
-  }
+const pgClient = new Client({
+  connectionString: POSTGRES_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-const BATCH_SIZE = 500; // Smaller batches for Postgres
+const BATCH_SIZE = 2000; // Optimized for bulk insert (2000 tracks × 29 params = ~58k params, under Postgres 65k limit)
 
 async function migrateData() {
   console.log('🚀 Starting SQLite → PostgreSQL Migration\n');
   console.log('📂 Source: SQLite (file:./prisma/dev.db)');
   console.log(`📂 Target: PostgreSQL (${POSTGRES_URL.split('@')[1]?.split('/')[0] || 'hidden'})\n`);
 
+  // Connect to SQLite
+  const sqliteDb = new sqlite3.Database(sqliteDbPath, sqlite3.OPEN_READONLY, (err) => {
+    if (err) {
+      console.error('❌ Failed to connect to SQLite:', err.message);
+      process.exit(1);
+    }
+  });
+
+  // Promisify SQLite operations
+  const sqliteAll = (query, params = []) => {
+    return new Promise((resolve, reject) => {
+      sqliteDb.all(query, params, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  };
+
+  const sqliteGet = (query, params = []) => {
+    return new Promise((resolve, reject) => {
+      sqliteDb.get(query, params, (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+  };
+
   try {
+    // Connect to Postgres
+    console.log('🔌 Connecting to PostgreSQL...');
+    await pgClient.connect();
+    console.log('   ✓ Connected\n');
+
     // Step 1: Count records in source
     console.log('📊 Step 1: Analyzing source database...');
-    const sourceTrackCount = await sourcePrisma.verifiedTrack.count();
-    const sourceIdentifierCount = await sourcePrisma.trackIdentifier.count();
+    const trackCountResult = await sqliteGet('SELECT COUNT(*) as count FROM VerifiedTrack');
+    const sourceTrackCount = trackCountResult.count;
+    const identifierCountResult = await sqliteGet('SELECT COUNT(*) as count FROM TrackIdentifier');
+    const sourceIdentifierCount = identifierCountResult.count;
     
     console.log(`   ✓ Found ${sourceTrackCount.toLocaleString()} tracks`);
     console.log(`   ✓ Found ${sourceIdentifierCount.toLocaleString()} identifiers\n`);
@@ -61,16 +88,9 @@ async function migrateData() {
 
     // Step 2: Check target database
     console.log('📊 Step 2: Checking target database...');
-    const targetTrackCount = await targetPrisma.verifiedTrack.count();
+    const targetResult = await pgClient.query('SELECT COUNT(*) as count FROM "VerifiedTrack"');
+    const targetTrackCount = parseInt(targetResult.rows[0].count);
     console.log(`   ℹ️  Target currently has ${targetTrackCount.toLocaleString()} tracks\n`);
-
-    const shouldProceed = targetTrackCount === 0 || 
-      await promptUser(`Target database has ${targetTrackCount} tracks. Continue? (y/n): `);
-    
-    if (!shouldProceed) {
-      console.log('❌ Migration cancelled by user');
-      return;
-    }
 
     // Step 3: Migrate tracks in batches
     console.log('🔄 Step 3: Migrating tracks...');
@@ -80,117 +100,130 @@ async function migrateData() {
     let errorCount = 0;
 
     for (let batchNum = 0; batchNum < totalBatches; batchNum++) {
-      const skip = batchNum * BATCH_SIZE;
+      const offset = batchNum * BATCH_SIZE;
       const startTime = Date.now();
 
-      console.log(`\n📦 Batch ${batchNum + 1}/${totalBatches} (${skip}-${skip + BATCH_SIZE})...`);
+      console.log(`\n📦 Batch ${batchNum + 1}/${totalBatches} (${offset}-${offset + BATCH_SIZE})...`);
 
-      // Fetch batch from source with identifiers
-      const tracks = await sourcePrisma.verifiedTrack.findMany({
-        skip,
-        take: BATCH_SIZE,
-        include: {
-          identifiers: true
-        }
-      });
+      // Fetch batch from SQLite
+      const tracks = await sqliteAll(`
+        SELECT * FROM VerifiedTrack 
+        ORDER BY createdAt 
+        LIMIT ? OFFSET ?
+      `, [BATCH_SIZE, offset]);
 
-      // Process each track
+      if (tracks.length === 0) continue;
+
+      // Build bulk insert for tracks
+      const trackValues = [];
+      const trackParams = [];
+      let paramIndex = 1;
+
       for (const track of tracks) {
+        // Map SQLite columns to Postgres columns
+        const duration = track.durationMs ? Math.round(track.durationMs / 1000) : null;
+        const explicit = false;
+        const releaseDate = track.releaseDate ? new Date(parseInt(track.releaseDate)).toISOString() : null;
+        const verifiedAt = track.verifiedAt ? new Date(parseInt(track.verifiedAt)).toISOString() : new Date().toISOString();
+        const createdAt = track.createdAt ? new Date(parseInt(track.createdAt)).toISOString() : new Date().toISOString();
+        const updatedAt = new Date().toISOString();
+
+        const placeholders = [];
+        for (let i = 0; i < 29; i++) {
+          placeholders.push(`$${paramIndex++}`);
+        }
+        trackValues.push(`(${placeholders.join(', ')})`);
+
+        // Push all parameters individually
+        trackParams.push(track.id);
+        trackParams.push(track.internalUuid);
+        trackParams.push(track.isrc);
+        trackParams.push(track.title);
+        trackParams.push(track.artist);
+        trackParams.push(track.album);
+        trackParams.push(releaseDate);
+        trackParams.push(duration);
+        trackParams.push(explicit);
+        trackParams.push(track.trackPopularity);
+        trackParams.push(track.artistPopularity);
+        trackParams.push(track.primaryGenre);
+        trackParams.push(track.genres);
+        trackParams.push(track.mood);
+        trackParams.push(track.danceability);
+        trackParams.push(track.energy);
+        trackParams.push(track.key);
+        trackParams.push(track.loudness);
+        trackParams.push(track.mode);
+        trackParams.push(null); // speechiness
+        trackParams.push(track.acousticness);
+        trackParams.push(track.instrumentalness);
+        trackParams.push(null); // liveness
+        trackParams.push(track.valence);
+        trackParams.push(track.tempo);
+        trackParams.push(null); // timeSignature
+        trackParams.push(verifiedAt);
+        trackParams.push(createdAt);
+        trackParams.push(updatedAt);
+      }
+
+      // Bulk insert tracks
+      try {
+        await pgClient.query(`
+          INSERT INTO "VerifiedTrack" (
+            id, "internalUuid", isrc, title, artist, album, "releaseDate", duration, explicit,
+            "trackPopularity", "artistPopularity", "primaryGenre", genres, mood,
+            danceability, energy, key, loudness, mode, speechiness, acousticness,
+            instrumentalness, liveness, valence, tempo, "timeSignature",
+            "verifiedAt", "createdAt", "updatedAt"
+          ) VALUES ${trackValues.join(', ')}
+          ON CONFLICT (isrc) DO UPDATE SET
+            title = EXCLUDED.title,
+            artist = EXCLUDED.artist,
+            album = EXCLUDED.album,
+            "updatedAt" = EXCLUDED."updatedAt"
+        `, trackParams);
+        migratedCount += tracks.length;
+      } catch (error) {
+        console.error(`   ❌ Batch insert error: ${error.message}`);
+        errorCount += tracks.length;
+      }
+
+      // Fetch ALL identifiers for this batch at once (much faster than individual queries)
+      const trackIds = tracks.map(t => t.id);
+      const placeholders = trackIds.map((_, i) => `?`).join(',');
+      const allIdentifiersRaw = await sqliteAll(`SELECT * FROM TrackIdentifier WHERE trackId IN (${placeholders})`, trackIds);
+      
+      // Convert timestamps
+      const allIdentifiers = allIdentifiersRaw.map(identifier => ({
+        id: identifier.id,
+        trackId: identifier.trackId,
+        type: identifier.type,
+        value: identifier.value,
+        createdAt: identifier.createdAt ? new Date(parseInt(identifier.createdAt)).toISOString() : new Date().toISOString()
+      }));
+
+      if (allIdentifiers.length > 0) {
+        const identValues = [];
+        const identParams = [];
+        let identIndex = 1;
+
+        for (const ident of allIdentifiers) {
+          identValues.push(`($${identIndex++}, $${identIndex++}, $${identIndex++}, $${identIndex++}, $${identIndex++})`);
+          identParams.push(ident.id);
+          identParams.push(ident.trackId);
+          identParams.push(ident.type);
+          identParams.push(ident.value);
+          identParams.push(ident.createdAt);
+        }
+
         try {
-          // Upsert track (use ISRC as unique identifier)
-          const upsertedTrack = await targetPrisma.verifiedTrack.upsert({
-            where: { isrc: track.isrc },
-            update: {
-              title: track.title,
-              artist: track.artist,
-              album: track.album,
-              releaseDate: track.releaseDate,
-              duration: track.duration,
-              explicit: track.explicit,
-              trackPopularity: track.trackPopularity,
-              artistPopularity: track.artistPopularity,
-              primaryGenre: track.primaryGenre,
-              genres: track.genres,
-              mood: track.mood,
-              danceability: track.danceability,
-              energy: track.energy,
-              key: track.key,
-              loudness: track.loudness,
-              mode: track.mode,
-              speechiness: track.speechiness,
-              acousticness: track.acousticness,
-              instrumentalness: track.instrumentalness,
-              liveness: track.liveness,
-              valence: track.valence,
-              tempo: track.tempo,
-              timeSignature: track.timeSignature,
-              updatedAt: new Date()
-            },
-            create: {
-              isrc: track.isrc,
-              title: track.title,
-              artist: track.artist,
-              album: track.album,
-              releaseDate: track.releaseDate,
-              duration: track.duration,
-              explicit: track.explicit,
-              trackPopularity: track.trackPopularity,
-              artistPopularity: track.artistPopularity,
-              primaryGenre: track.primaryGenre,
-              genres: track.genres,
-              mood: track.mood,
-              danceability: track.danceability,
-              energy: track.energy,
-              key: track.key,
-              loudness: track.loudness,
-              mode: track.mode,
-              speechiness: track.speechiness,
-              acousticness: track.acousticness,
-              instrumentalness: track.instrumentalness,
-              liveness: track.liveness,
-              valence: track.valence,
-              tempo: track.tempo,
-              timeSignature: track.timeSignature,
-              verifiedAt: track.verifiedAt,
-              createdAt: track.createdAt,
-              updatedAt: track.updatedAt
-            }
-          });
-
-          // Upsert identifiers (Spotify, YouTube, etc.)
-          for (const identifier of track.identifiers) {
-            try {
-              await targetPrisma.trackIdentifier.upsert({
-                where: {
-                  trackId_type: {
-                    trackId: upsertedTrack.id,
-                    type: identifier.type
-                  }
-                },
-                update: {
-                  value: identifier.value
-                },
-                create: {
-                  trackId: upsertedTrack.id,
-                  type: identifier.type,
-                  value: identifier.value
-                }
-              });
-            } catch (identifierError) {
-              // Non-fatal: log but continue
-              console.log(`   ⚠️  Failed to migrate identifier for track ${track.isrc}: ${identifierError.message}`);
-            }
-          }
-
-          migratedCount++;
+          await pgClient.query(`
+            INSERT INTO "TrackIdentifier" (id, "trackId", type, value, "createdAt")
+            VALUES ${identValues.join(', ')}
+            ON CONFLICT ("trackId", type) DO UPDATE SET value = EXCLUDED.value
+          `, identParams);
         } catch (error) {
-          if (error.code === 'P2002') {
-            // Unique constraint violation - track already exists
-            skippedCount++;
-          } else {
-            console.error(`   ❌ Error migrating track ${track.isrc}:`, error.message);
-            errorCount++;
-          }
+          console.error(`   ⚠️  Identifier batch insert error: ${error.message}`);
         }
       }
 
@@ -204,8 +237,10 @@ async function migrateData() {
 
     // Step 4: Final verification
     console.log('\n📊 Step 4: Verifying migration...');
-    const finalTargetCount = await targetPrisma.verifiedTrack.count();
-    const finalIdentifierCount = await targetPrisma.trackIdentifier.count();
+    const finalResult = await pgClient.query('SELECT COUNT(*) as count FROM "VerifiedTrack"');
+    const finalTargetCount = parseInt(finalResult.rows[0].count);
+    const finalIdentResult = await pgClient.query('SELECT COUNT(*) as count FROM "TrackIdentifier"');
+    const finalIdentifierCount = parseInt(finalIdentResult.rows[0].count);
     
     console.log(`   ✓ Target now has ${finalTargetCount.toLocaleString()} tracks`);
     console.log(`   ✓ Target now has ${finalIdentifierCount.toLocaleString()} identifiers\n`);
@@ -226,24 +261,9 @@ async function migrateData() {
     console.error('\n❌ Migration failed:', error);
     throw error;
   } finally {
-    await sourcePrisma.$disconnect();
-    await targetPrisma.$disconnect();
+    sqliteDb.close();
+    await pgClient.end();
   }
-}
-
-// Simple prompt for user confirmation
-function promptUser(question) {
-  return new Promise((resolve) => {
-    const readline = require('readline').createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-
-    readline.question(question, (answer) => {
-      readline.close();
-      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-    });
-  });
 }
 
 // Run migration
