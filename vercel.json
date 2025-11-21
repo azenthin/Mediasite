@@ -1,6 +1,6 @@
 {
-  "buildCommand": "prisma generate && next build",
-  "devCommand": "next dev",
+  "buildCommand": "node scripts/prepare-schema.js && prisma generate && next build",
+  "devCommand": "node scripts/prepare-schema.js && next dev",
   "installCommand": "npm install",
   "framework": "nextjs",
   "functions": {
