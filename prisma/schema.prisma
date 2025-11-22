@@ -20,7 +20,6 @@ model User {
   emailVerified Boolean @default(false)
   emailVerificationToken String?
   emailVerificationExpires DateTime?
-  country     String?  // User's country (ISO 3166-1 alpha-2, e.g., "US", "GB", "JP")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
