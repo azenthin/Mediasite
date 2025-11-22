@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
         username: true,
         displayName: true,
         avatarUrl: true,
-        country: true,
         createdAt: true,
       },
     });
@@ -64,14 +63,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { displayName, country } = body;
+    const { displayName } = body;
 
     // Update user
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         ...(displayName !== undefined && { displayName }),
-        ...(country !== undefined && { country: country || null }),
       },
       select: {
         id: true,
@@ -79,7 +77,6 @@ export async function PATCH(request: NextRequest) {
         username: true,
         displayName: true,
         avatarUrl: true,
-        country: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -87,7 +84,6 @@ export async function PATCH(request: NextRequest) {
 
     console.log(`✅ Updated user ${session.user.id} profile`, {
       displayName: updatedUser.displayName,
-      country: updatedUser.country,
     });
 
     return NextResponse.json({
