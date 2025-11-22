@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set('client_id', process.env.SPOTIFY_CLIENT_ID!);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('redirect_uri', process.env.SPOTIFY_REDIRECT_URI!);
-    authUrl.searchParams.set('scope', 'playlist-modify-public playlist-modify-private user-read-private user-read-email');
+    authUrl.searchParams.set('scope', 'streaming playlist-modify-public playlist-modify-private user-read-private user-read-email user-read-playback-state user-modify-playback-state');
     authUrl.searchParams.set('state', state || 'ai-playlist');
 
     console.log('🎵 Redirecting to Spotify authorize:', authUrl.toString());
