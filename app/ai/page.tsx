@@ -282,78 +282,15 @@ const AIPageContent: React.FC = () => {
     }
   };
 
-  // Hybrid Spotify playback: try Web API first, fall back to URI scheme
+  // Spotify playback: use URI scheme to open in Spotify app/web player
   const playTrackOnSpotify = async (trackId: string) => {
     // Extract Spotify track ID from URI if needed
     const extractedId = trackId.includes('spotify:track:') 
       ? trackId.replace('spotify:track:', '') 
       : trackId;
 
-    // If no token, prompt user to authenticate
-    if (!spotifyToken) {
-      addMessage('ai', '🔐 You need to connect your Spotify account first to play songs directly. Click "Connect Spotify" to authenticate.');
-      return;
-    }
-
-    // Try Web API first
-    try {
-      // Step 1: Get available devices
-      const devicesResponse = await fetch('https://api.spotify.com/v1/me/player/devices', {
-        headers: {
-          'Authorization': `Bearer ${spotifyToken}`,
-        },
-      });
-
-      if (!devicesResponse.ok) {
-        throw new Error('Failed to get devices');
-      }
-
-      const devicesData = await devicesResponse.json();
-      const devices = devicesData.devices || [];
-
-      // Step 2: Find active device, or use first available device
-      let targetDeviceId = null;
-      const activeDevice = devices.find((d: any) => d.is_active);
-      if (activeDevice) {
-        targetDeviceId = activeDevice.id;
-      } else if (devices.length > 0) {
-        // No active device, use first one
-        targetDeviceId = devices[0].id;
-      }
-
-      // Step 3: Play track on target device
-      if (targetDeviceId) {
-        const playResponse = await fetch('https://api.spotify.com/v1/me/player/play', {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${spotifyToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            device_id: targetDeviceId,
-            uris: [`spotify:track:${extractedId}`],
-          }),
-        });
-
-        // 204 No Content is success for Spotify API
-        if (playResponse.status === 204 || playResponse.ok) {
-          console.log('✅ Track started via Web API on device:', targetDeviceId);
-          return;
-        } else if (playResponse.status === 401) {
-          // Token expired or invalid
-          addMessage('ai', '⚠️ Your Spotify connection expired. Please reconnect by clicking "Connect Spotify".');
-          setSpotifyToken(null);
-          return;
-        }
-      } else {
-        console.warn('No active Spotify device found');
-        throw new Error('No active Spotify device');
-      }
-    } catch (error) {
-      console.warn('Web API playback failed, falling back to URI scheme:', error);
-    }
-
-    // Fallback: use URI scheme (opens Spotify app or web player)
+    // Open in Spotify - works without authentication
+    // User's browser will either open Spotify app or web player
     window.location.href = `spotify:track:${extractedId}`;
   };
 
