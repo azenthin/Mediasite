@@ -23,9 +23,10 @@ interface Song {
  * Check if the prompt is requesting a single artist
  */
 function isSingleArtistRequest(prompt: string): boolean {
-  const promptLower = prompt.toLowerCase();
-  // Check for patterns like "songs by X", "music from X", "X songs", "only X", etc.
-  const singleArtistPatterns = [
+  const promptLower = prompt.toLowerCase().trim();
+  
+  // Check for explicit patterns like "songs by X", "music from X", "X songs", etc.
+  const explicitArtistPatterns = [
     /^(?:songs?|music|tracks?) (?:by|from) /i,
     /^only /i,
     /^just /i,
@@ -34,7 +35,32 @@ function isSingleArtistRequest(prompt: string): boolean {
     /^([a-z0-9\s]+) music$/i,
   ];
   
-  return singleArtistPatterns.some(pattern => pattern.test(promptLower));
+  if (explicitArtistPatterns.some(pattern => pattern.test(promptLower))) {
+    return true;
+  }
+  
+  // Heuristic: If it's a 1-2 word query that DOESN'T contain any genre keywords,
+  // it's probably an artist name
+  const wordCount = promptLower.split(/\s+/).length;
+  if (wordCount <= 2) {
+    // Check if it contains known genre/mood keywords
+    const genreKeywords = [
+      'rock', 'pop', 'jazz', 'metal', 'hip hop', 'hip-hop', 'rap', 'electronic', 'electronic', 'edm',
+      'ambient', 'indie', 'folk', 'blues', 'country', 'reggae', 'soul', 'funk', 'disco', 'punk',
+      'happy', 'sad', 'chill', 'relaxing', 'energetic', 'upbeat', 'mellow', 'angry', 'peaceful',
+      'dark', 'light', 'romantic', 'party', 'workout', 'study', 'focus', 'calm', 'intense',
+      'acoustic', 'electric', 'synth', 'instrumental', 'vocal', 'uplifting', 'melancholic'
+    ];
+    
+    const hasGenreKeyword = genreKeywords.some(keyword => promptLower.includes(keyword));
+    
+    if (!hasGenreKeyword) {
+      // Likely an artist name
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 /**
@@ -47,33 +73,30 @@ function applyArtistDiversity(songs: Song[], targetCount: number, isSingleArtist
     return songs.slice(0, targetCount);
   }
   
-  const uniqueArtists = new Set<string>();
+  // Allow max 2 songs per artist (not 1) to provide some variety while allowing related songs
+  const MAX_SONGS_PER_ARTIST = 2;
+  const artistSongCount = new Map<string, number>();
   const diverseTracks: Song[] = [];
-  const duplicateArtistTracks: Song[] = [];
   
-  // First pass: collect one track per artist
   for (const song of songs) {
     const artistKey = song.artist.toLowerCase().trim();
+    const currentCount = artistSongCount.get(artistKey) || 0;
     
-    if (!uniqueArtists.has(artistKey)) {
-      uniqueArtists.add(artistKey);
+    // Allow up to MAX_SONGS_PER_ARTIST from each artist
+    if (currentCount < MAX_SONGS_PER_ARTIST) {
       diverseTracks.push(song);
-    } else {
-      // Save for potential backfill if we don't have enough songs
-      duplicateArtistTracks.push(song);
-    }
-    
-    // If we already have enough diverse tracks, stop
-    if (diverseTracks.length >= targetCount) {
-      break;
+      artistSongCount.set(artistKey, currentCount + 1);
+      
+      if (diverseTracks.length >= targetCount) {
+        break;
+      }
     }
   }
   
-  // If we don't have enough tracks, backfill with duplicate artists
-  if (diverseTracks.length < targetCount && duplicateArtistTracks.length > 0) {
-    const needed = targetCount - diverseTracks.length;
-    diverseTracks.push(...duplicateArtistTracks.slice(0, needed));
-    console.log(`⚠️  Added ${Math.min(needed, duplicateArtistTracks.length)} duplicate artist tracks to meet playlist size`);
+  // If we still don't have enough tracks, add more (don't fail on low count)
+  if (diverseTracks.length < targetCount && songs.length > diverseTracks.length) {
+    const remaining = songs.filter(s => !diverseTracks.includes(s));
+    diverseTracks.push(...remaining.slice(0, targetCount - diverseTracks.length));
   }
   
   return diverseTracks;
@@ -87,44 +110,127 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
   try {
     const promptLower = prompt.toLowerCase();
     const isSingleArtist = isSingleArtistRequest(prompt);
+    const startTime = Date.now();
     
-    // Fetch more tracks if we need diversity (2-3x the limit to ensure variety)
-    const fetchLimit = (applyDiversity && !isSingleArtist) ? limit * 3 : limit;
+    // Optimize fetch limits: smaller pools = faster queries (50 for diversity, 30 for single artist)
+    const fetchLimit = (applyDiversity && !isSingleArtist) ? 50 : 30;
     
     console.log(`🔍 queryVerifiedTracks: searching for "${promptLower}", fetchLimit=${fetchLimit}`);
     
-    // Query tracks directly - Prisma will handle the database-specific query
-    const allTracks = await prisma.verifiedTrack.findMany({
-      orderBy: {
-        trackPopularity: 'desc'
-      },
-      take: 100  // Small fixed limit to avoid performance issues
-    });
-
-    // Filter matches client-side
-    const verifiedTracks = allTracks
-      .filter(track =>
-        (track.artist && track.artist.toLowerCase().includes(promptLower)) ||
-        (track.title && track.title.toLowerCase().includes(promptLower)) ||
-        (track.primaryGenre && track.primaryGenre.toLowerCase().includes(promptLower)) ||
-        (track.mood && track.mood.toLowerCase().includes(promptLower))
-      )
-      .slice(0, fetchLimit);
-
-    console.log(`📊 queryVerifiedTracks: found ${verifiedTracks.length} verified tracks`);
-    if (verifiedTracks.length > 0) {
-      console.log(`📊 Sample: "${verifiedTracks[0].title}" by "${verifiedTracks[0].artist}"`);
+    // First, check if we can find relevant tracks by genre/mood/artist/title
+    // This ensures we're not just ranking by global popularity which would miss niche genres
+    // For multi-word queries, split into individual words and match ANY word for broader results
+    const queryWords = promptLower.split(/\s+/).filter(w => w.length > 0);
+    const orConditions = [];
+    
+    // Add conditions for each word in the query
+    for (const word of queryWords) {
+      orConditions.push({ primaryGenre: { contains: word } });
+      orConditions.push({ artist: { contains: word } });
+      orConditions.push({ title: { contains: word } });
+      orConditions.push({ mood: { contains: word } });
     }
+    
+    const relevantTracks = await prisma.verifiedTrack.findMany({
+      where: {
+        OR: orConditions.length > 0 ? orConditions : undefined
+      },
+      orderBy: { trackPopularity: 'desc' },
+      take: fetchLimit  // Reduced from 150 for faster queries
+    });
+    
+    // If we found relevant tracks, use them. Otherwise, fall back to top 100 by popularity
+    let allTracks = relevantTracks;
+    if (allTracks.length === 0) {
+      console.log(`📊 No relevant tracks found, falling back to top 100 by popularity`);
+      allTracks = await prisma.verifiedTrack.findMany({
+        orderBy: { trackPopularity: 'desc' },
+        take: 100  // Reduced from 500 for better performance
+      });
+    }
+    
+    console.log(`📊 PRIMARY: Found ${relevantTracks.length} relevant tracks, using ${allTracks.length} total`);
 
-    if (verifiedTracks.length === 0) {
+    // Optimize scoring: cache string operations, reduce splits
+    const scoredTracks: Array<{track: any, score: number}> = [];
+    
+    for (const track of allTracks) {
+      let score = 0;
+      const titleLower = track.title?.toLowerCase() || '';
+      const artistLower = track.artist?.toLowerCase() || '';
+      const genresLower = (track.primaryGenre || '').toLowerCase();
+      const moodsLower = (track.mood || '').toLowerCase();
+      
+      // Score based on matches (faster than complex splits)
+      for (const word of queryWords) {
+        if (genresLower.includes(word)) score += 100;
+        if (moodsLower.includes(word)) score += 80;
+        if (titleLower.includes(word)) score += 40;
+        if (artistLower.includes(word)) score += 30;
+      }
+      
+      // Only add tracks with matches
+      if (score > 0) {
+        score += (track.trackPopularity || 0) * 0.2;  // Popularity bonus
+        scoredTracks.push({ track, score });
+      }
+    }
+    
+    // Sort and limit in one pass
+    scoredTracks.sort((a, b) => b.score - a.score).splice(fetchLimit);
+
+    console.log(`📊 queryVerifiedTracks: found ${scoredTracks.length} matches`);
+    if (scoredTracks.length === 0) {
       console.log(`⚠️  No tracks found for query "${promptLower}"`);
       return [];
     }
+    
+    if (scoredTracks.length > 0) {
+      console.log(`📊 Sample: "${scoredTracks[0].track.title}" by "${scoredTracks[0].track.artist}" (score: ${scoredTracks[0].score.toFixed(1)})`);
+    }
+
+    // Apply artist diversity BEFORE random selection to get diverse pool
+    let tracksForSelection = scoredTracks;
+    if (applyDiversity && !isSingleArtist) {
+      // Filter for diversity: max 3 songs per artist before random selection
+      const MAX_SONGS_PER_ARTIST = 3;
+      const artistSongCount = new Map<string, number>();
+      tracksForSelection = [];
+      
+      for (const scoredTrack of scoredTracks) {
+        const artistKey = scoredTrack.track.artist.toLowerCase().trim();
+        const currentCount = artistSongCount.get(artistKey) || 0;
+        
+        if (currentCount < MAX_SONGS_PER_ARTIST) {
+          tracksForSelection.push(scoredTrack);
+          artistSongCount.set(artistKey, currentCount + 1);
+        }
+      }
+      
+      console.log(`🎨 Diversity filter: ${tracksForSelection.length} tracks after limiting to ${MAX_SONGS_PER_ARTIST} per artist`);
+    }
+
+    // Efficiently select N random tracks from pool using Fisher-Yates
+    const selectedTracks: any[] = [];
+    const available = [...tracksForSelection];
+    
+    for (let i = 0; i < Math.min(limit, available.length); i++) {
+      const randomIdx = Math.floor(Math.random() * available.length);
+      selectedTracks.push(available[randomIdx].track);
+      available.splice(randomIdx, 1);  // Remove selected to avoid duplicates
+    }
+
+    // Check if we have enough tracks
+    if (selectedTracks.length < limit) {
+      console.warn(`⚠️  Only found ${selectedTracks.length}/${limit} tracks for "${promptLower}"`);
+    }
+    
+    const dbTime = Date.now() - startTime;
+    if (dbTime > 300) console.log(`⏱️  Query took ${dbTime}ms`);
 
     // Fetch identifiers for these tracks
-    const trackIds = verifiedTracks.map(t => t.id);
+    const trackIds = selectedTracks.map(t => t.id);
     
-    // Use Prisma's database-agnostic query that works for both SQLite and PostgreSQL
     const identifiersData = await prisma.trackIdentifier.findMany({
       where: {
         trackId: { in: trackIds },
@@ -146,7 +252,7 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     });
 
     // Convert VerifiedTrack records to Song format
-    const songs: Song[] = verifiedTracks
+    const songs: Song[] = selectedTracks
       .map((track: any) => {
         const identifiers = identifiersByTrackId.get(track.id) || [];
         const spotifyIdentifier = identifiers.find((id: any) => id.type === 'spotify');
@@ -157,7 +263,7 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
           artist: track.artist,
           genre: track.primaryGenre || undefined,
           year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
-          spotifyUrl: spotifyIdentifier ? `https://open.spotify.com/track/${spotifyIdentifier.value}` : undefined,
+          spotifyUrl: spotifyIdentifier ? `spotify:track:${spotifyIdentifier.value}` : undefined,
           youtubeUrl: youtubeIdentifier ? `https://www.youtube.com/watch?v=${youtubeIdentifier.value}` : undefined,
           verified: true,
           source: 'database',
@@ -165,25 +271,11 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       })
       .filter((s: any) => s.title && s.artist) as Song[];
 
-    // FRESHNESS SORTING: 2015+ songs first (newest to oldest), then pre-2015 songs
-    songs.sort((a: any, b: any) => {
-      const yearA = a.year || 1995;
-      const yearB = b.year || 1995;
-      
-      // Primary sort: 2015+ songs come first
-      if ((yearA >= 2015) !== (yearB >= 2015)) {
-        return (yearB >= 2015) ? 1 : -1;
-      }
-      
-      // Secondary sort: within each era, newest first
-      return yearB - yearA;
-    });
-
     // Apply artist diversity if requested
-    if (applyDiversity) {
-      const diverseSongs = applyArtistDiversity(songs, limit, isSingleArtist);
-      console.log(`🎨 Artist diversity applied: ${diverseSongs.length} tracks (single artist: ${isSingleArtist})`);
-      return diverseSongs;
+    if (applyDiversity && !isSingleArtist) {
+      // Diversity has already been applied during selection phase
+      console.log(`🎨 Artist diversity already applied during selection`);
+      return songs.slice(0, limit);
     }
 
     return songs.slice(0, limit);

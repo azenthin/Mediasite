@@ -75,6 +75,7 @@ const AIPageContent: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const spotifyTokenParam = urlParams.get('spotify_token');
+    const spotifyEmail = urlParams.get('spotify_email');
     const youtubeTokenParam = urlParams.get('youtube_token');
     const success = urlParams.get('success');
     const error = urlParams.get('error');
@@ -281,6 +282,49 @@ const AIPageContent: React.FC = () => {
     }
   };
 
+  // Hybrid Spotify playback: try Web API first, fall back to URI scheme
+  const playTrackOnSpotify = async (trackId: string) => {
+    // Extract Spotify track ID from URI if needed
+    const extractedId = trackId.includes('spotify:track:') 
+      ? trackId.replace('spotify:track:', '') 
+      : trackId;
+
+    // If no token, prompt user to authenticate
+    if (!spotifyToken) {
+      addMessage('ai', '🔐 You need to connect your Spotify account first to play songs directly. Click "Connect Spotify" to authenticate.');
+      return;
+    }
+
+    // Try Web API first
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/player/play', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${spotifyToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uris: [`spotify:track:${extractedId}`],
+        }),
+      });
+
+      // 204 No Content is success for Spotify API
+      if (response.status === 204 || response.ok) {
+        console.log('Track started via Web API');
+        return;
+      } else if (response.status === 401) {
+        // Token expired or invalid
+        addMessage('ai', '⚠️ Your Spotify connection expired. Please reconnect by clicking "Connect Spotify".');
+        setSpotifyToken(null);
+      }
+    } catch (error) {
+      console.warn('Web API playback failed, falling back to URI scheme:', error);
+    }
+
+    // Fallback: use URI scheme
+    window.location.href = `spotify:track:${extractedId}`;
+  };
+
   const handleSongClick = (song: Song) => {
     const hasSpotify = !!song.spotifyUrl;
     const hasYoutube = !!song.youtubeUrl;
@@ -290,9 +334,8 @@ const AIPageContent: React.FC = () => {
       setSelectedSong(song);
       setShowPlatformModal(true);
     } else if (hasSpotify && song.spotifyUrl) {
-      // Only Spotify available, open directly
-      // Use window.location for Spotify URI to properly handle app redirect
-      window.location.href = song.spotifyUrl;
+      // Only Spotify available, open directly via hybrid approach
+      playTrackOnSpotify(song.spotifyUrl);
     } else if (hasYoutube && song.youtubeUrl) {
       // Only YouTube available, open directly
       window.open(song.youtubeUrl, '_blank', 'noopener,noreferrer');
@@ -302,15 +345,12 @@ const AIPageContent: React.FC = () => {
   const openPlatform = (platform: 'spotify' | 'youtube') => {
     if (!selectedSong) return;
     
-    const url = platform === 'spotify' ? selectedSong.spotifyUrl : selectedSong.youtubeUrl;
-    if (url) {
-      if (platform === 'spotify') {
-        // Use window.location for Spotify URI to properly handle app redirect
-        window.location.href = url as string;
-      } else {
-        // YouTube uses regular window.open
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
+    if (platform === 'spotify' && selectedSong.spotifyUrl) {
+      // Use hybrid approach for Spotify
+      playTrackOnSpotify(selectedSong.spotifyUrl);
+    } else if (platform === 'youtube' && selectedSong.youtubeUrl) {
+      // YouTube uses regular window.open
+      window.open(selectedSong.youtubeUrl, '_blank', 'noopener,noreferrer');
     }
     
     setShowPlatformModal(false);
@@ -497,14 +537,32 @@ const AIPageContent: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <div className="flex items-center gap-1">
                                 {song.spotifyUrl && (
-                                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-                                  </svg>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      playTrackOnSpotify(song.spotifyUrl!);
+                                    }}
+                                    className="text-green-500 hover:text-green-400 transition-colors"
+                                    aria-label="Open on Spotify"
+                                  >
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                                    </svg>
+                                  </button>
                                 )}
                                 {song.youtubeUrl && (
-                                  <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                  </svg>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      window.open(song.youtubeUrl, '_blank', 'noopener,noreferrer');
+                                    }}
+                                    className="text-red-500 hover:text-red-400 transition-colors"
+                                    aria-label="Open on YouTube"
+                                  >
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                    </svg>
+                                  </button>
                                 )}
                               </div>
                             </div>
@@ -514,11 +572,22 @@ const AIPageContent: React.FC = () => {
                       {/* CTAs */}
                       <div className="flex gap-2">
                         <button
-                          onClick={() => createPlaylist('spotify', message.content, message.playlist!)}
+                          onClick={() => {
+                            if (!session) {
+                              // Not logged in - redirect to Spotify OAuth (which will sign them up)
+                              window.location.href = '/api/ai/auth/spotify';
+                            } else if (!spotifyToken) {
+                              // Logged in but no token - just get the token
+                              window.location.href = '/api/ai/auth/spotify';
+                            } else {
+                              // Logged in with token - create playlist
+                              createPlaylist('spotify', message.content, message.playlist!);
+                            }
+                          }}
                           className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-[0_8px_20px_rgba(16,185,129,.25)] focus:outline-none focus:ring-2 focus:ring-green-400/40"
-                          aria-label={spotifyToken ? 'Create playlist on Spotify' : 'Connect to Spotify'}
+                          aria-label={spotifyToken ? 'Create playlist on Spotify' : session ? 'Add Spotify account' : 'Sign in with Spotify'}
                         >
-                          {spotifyToken ? 'Create on Spotify' : 'Connect Spotify'}
+                          {spotifyToken ? 'Create on Spotify' : session ? 'Add Spotify' : 'Sign in with Spotify'}
                         </button>
                         <button
                           onClick={() => createPlaylist('youtube', message.content, message.playlist!)}
