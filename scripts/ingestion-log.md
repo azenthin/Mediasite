@@ -5,6 +5,8 @@ Keep entries concise and relevant so this file remains useful for context after 
 
 Format: YYYY-MM-DD HH:MM — SHORT TITLE — Details (what was done, why, next steps)
 
+2025-11-24 10:00 — Spotify identifier fill script — Added `scripts/add-spotify-identifiers.js` to scan Postgres for `VerifiedTrack` rows that already have a Spotify ID but lack a `TrackIdentifier(type='spotify')` entry, then bulk-insert the missing identifiers in batches to keep the AI playlist lookup working. Reminder: update this log for every ingestion change so context survives chat deletions.
+
 2025-11-09 11:00 — TODO list restored and canonicality work started — Restored full 25-item todo list. Added item to empty DB (id:26). Began implementing canonicality score module for decisioning.
 
 2025-11-09 11:05 — canonicality module added — `lib/canonicality.ts` created implementing computeCanonicality(evidence) with default weights and breakdown.
