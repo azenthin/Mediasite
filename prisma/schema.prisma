@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -273,6 +273,7 @@ model VerifiedTrack {
   id           String   @id @default(cuid())
   internalUuid String   @unique @default(uuid())
   isrc         String?  @unique
+  spotifyId    String?  @unique
   title        String
   artist       String
   album        String?
@@ -282,6 +283,8 @@ model VerifiedTrack {
   
   trackPopularity  Int?      // 0-100 from track object
   artistPopularity Int?      // 0-100 from artist object
+  artistCountry    String?   // ISO 3166-1 alpha-2 (US, GB, JP, NO, etc)
+  artistFollowers  Int?      // Total followers count
   primaryGenre     String?   // First/main genre for simple filtering
   genres           String?   // JSON array from artist
   mood             String?   // Computed from valence/energy
@@ -300,6 +303,14 @@ model VerifiedTrack {
   tempo            Float?    // BPM
   timeSignature    Int?      // time signature
   
+  // Metadata & URLs
+  previewUrl       String?   // 30-second Spotify preview MP3
+  spotifyImageUrl  String?   // Album artwork URL
+  
+  // Computed fields
+  releaseDecade    Int?      // 1980, 1990, 2000, 2010, 2020
+  isInstrumental   Boolean?  // Computed from instrumentalness > 0.7
+  
   verifiedAt   DateTime @default(now())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -310,6 +321,12 @@ model VerifiedTrack {
   @@index([primaryGenre])
   @@index([mood])
   @@index([trackPopularity])
+  @@index([artistCountry])
+  @@index([artistFollowers(sort: Desc)])
+  @@index([releaseDecade])
+  @@index([isInstrumental])
+  @@index([primaryGenre, artistCountry])
+  @@index([releaseDecade, primaryGenre])
 }
 
 model TrackIdentifier {

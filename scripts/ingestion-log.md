@@ -7,6 +7,8 @@ Format: YYYY-MM-DD HH:MM — SHORT TITLE — Details (what was done, why, next s
 
 2025-11-24 10:00 — Spotify identifier fill script — Added `scripts/add-spotify-identifiers.js` to scan Postgres for `VerifiedTrack` rows that already have a Spotify ID but lack a `TrackIdentifier(type='spotify')` entry, then bulk-insert the missing identifiers in batches to keep the AI playlist lookup working. Reminder: update this log for every ingestion change so context survives chat deletions.
 
+2025-11-24 12:30 — Exposed Spotify ID and populated identifiers — Added nullable `spotifyId` to `VerifiedTrack`, pushed the Prisma schema to both local/production Postgres, then ran `scripts/add-spotify-identifiers.js` against the Vercel DB; the script now confirms every track with a Spotify ID has a `TrackIdentifier(type='spotify')`. Logged the step to keep the ingestion history complete.
+
 2025-11-09 11:00 — TODO list restored and canonicality work started — Restored full 25-item todo list. Added item to empty DB (id:26). Began implementing canonicality score module for decisioning.
 
 2025-11-09 11:05 — canonicality module added — `lib/canonicality.ts` created implementing computeCanonicality(evidence) with default weights and breakdown.
