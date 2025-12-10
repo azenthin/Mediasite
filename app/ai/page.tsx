@@ -119,6 +119,11 @@ const AIPageContent: React.FC = () => {
   const { data: session } = useSession();
   const pathname = usePathname();
 
+  // Scroll to top on initial mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+
   // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
