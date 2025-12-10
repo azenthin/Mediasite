@@ -639,7 +639,7 @@ const AIPageContent: React.FC = () => {
                   <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
                     <label className="sr-only" htmlFor="mood-ai-input">Describe your perfect playlist</label>
                     <div
-                      className="relative flex items-center rounded-full p-[6px] shadow-[0_15px_50px_rgba(2,10,52,0.55)] bg-[length:200%_200%] animate-[rainbowFlow_8s_linear_infinite]"
+                      className="relative flex items-center rounded-full p-1 sm:p-[6px] shadow-[0_15px_50px_rgba(2,10,52,0.55)] bg-[length:200%_200%] animate-[rainbowFlow_8s_linear_infinite]"
                       style={{
                         backgroundImage: 'linear-gradient(120deg, #3da3cc, #4a3acc, #8b5cf6, #3da3cc)'
                       }}
@@ -647,7 +647,7 @@ const AIPageContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleRandomPrompt}
-                        className="ml-0.5 flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#f6a7ff] via-[#7a6cff] to-[#4bd9ff] text-white text-lg font-semibold shadow-[0_8px_18px_rgba(79,70,255,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 hover:scale-105 active:scale-95 transition-transform"
+                        className="ml-0.5 flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#f6a7ff] via-[#7a6cff] to-[#4bd9ff] text-white text-base sm:text-lg font-semibold shadow-[0_8px_18px_rgba(79,70,255,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 hover:scale-105 active:scale-95 transition-transform"
                         aria-label="Random playlist suggestion"
                       >
                         ?
@@ -658,17 +658,18 @@ const AIPageContent: React.FC = () => {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Describe your perfect playlist..."
-                        className="flex-1 h-11 bg-transparent text-base md:text-lg text-white placeholder-white/70 px-4 !outline-none !ring-0 !border-0"
+                        placeholder="Describe your vibe..."
+                        className="flex-1 h-9 sm:h-10 md:h-11 bg-transparent text-sm sm:text-base md:text-lg text-white placeholder-white/70 px-2 sm:px-3 md:px-4 !outline-none !ring-0 !border-0"
                         style={{ outline: 'none', boxShadow: 'none' }}
                         disabled={isLoading}
                       />
                       <button
                         type="submit"
                         disabled={!input.trim() || isLoading}
-                        className="mr-0.5 inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-6 py-2 text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60"
+                        className="mr-0.5 inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2 text-xs sm:text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60"
                       >
-                        Generate
+                        <span className="hidden sm:inline">Generate</span>
+                        <span className="sm:hidden">Go</span>
                       </button>
                     </div>
                   </form>
