@@ -546,7 +546,7 @@ const AIPageContent: React.FC = () => {
                 }}
                 className="relative w-36 h-36 rounded-full bg-[length:400%_400%] animate-[gradientShift_6s_ease-in-out_infinite] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-500 ease-out cursor-pointer group antialiased"
                 style={{
-                  backgroundImage: 'linear-gradient(45deg, #8b5cf6, #06b6d4, #a78bfa, #ec4899, #8b5cf6)',
+                  backgroundImage: 'linear-gradient(45deg, #8b5cf6, #06b6d4, #7c3aed, #ec4899, #8b5cf6)',
                   willChange: 'transform',
                   backfaceVisibility: 'hidden',
                   WebkitFontSmoothing: 'antialiased'
