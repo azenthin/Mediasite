@@ -369,9 +369,33 @@ const AIPageContent: React.FC = () => {
     setInput(value);
   };
 
+  const handleTypingPrompt = (promptText: string) => {
+    // Clear input first
+    setInput('');
+    
+    // Scroll to search bar
+    const searchInput = document.getElementById('mood-ai-input');
+    searchInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Type out the prompt character by character
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+      if (currentIndex <= promptText.length) {
+        setInput(promptText.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 15); // 15ms delay between each character
+    
+    // Focus after typing is done
+    setTimeout(() => searchInput?.focus(), promptText.length * 15 + 100);
+  };
+
   const handleRandomPrompt = () => {
     const randomIndex = Math.floor(Math.random() * randomPrompts.length);
-    setInput(randomPrompts[randomIndex]);
+    const selectedPrompt = randomPrompts[randomIndex];
+    handleTypingPrompt(selectedPrompt);
   };
 
   const handleSongClick = (song: Song) => {
@@ -501,14 +525,37 @@ const AIPageContent: React.FC = () => {
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-6 pt-12 pb-16 lg:pt-16 text-white flex flex-col gap-8 lg:gap-10 min-h-[70vh]">
         <div className="flex flex-col gap-8">
           <div className="text-[11px] font-semibold uppercase tracking-[0.55em] text-white/60">AI Curated</div>
-          <div className="space-y-4">
-            <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
-              Discover the soundtrack for
-              <span className="block">every moment.</span>
-            </h1>
-            <p className="text-lg text-white/70 max-w-3xl">
-              Describe your vibe in a single sentence and MediaSite pairs it with verified sources, export-ready playlists, and instant playback controls.
-            </p>
+          <div className="flex items-start gap-27">
+            <div className="space-y-4" style={{ maxWidth: 'calc(100% - 160px)' }}>
+              <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+                Discover the soundtrack for
+                <span className="block">every moment.</span>
+              </h1>
+              <p className="text-lg text-white/70 max-w-3xl">
+                Describe your vibe in a single sentence and MediaSite pairs it with verified sources, export-ready playlists, and instant playback controls.
+              </p>
+            </div>
+            
+            <div className="hidden lg:block flex-shrink-0 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const searchInput = document.getElementById('mood-ai-input');
+                  searchInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  setTimeout(() => searchInput?.focus(), 500);
+                }}
+                className="relative w-36 h-36 rounded-full bg-[length:400%_400%] animate-[gradientShift_6s_ease-in-out_infinite] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-500 ease-out cursor-pointer group antialiased"
+                style={{
+                  backgroundImage: 'linear-gradient(45deg, #8b5cf6, #06b6d4, #a78bfa, #ec4899, #8b5cf6)',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitFontSmoothing: 'antialiased'
+                }}
+                aria-label="Go to AI search"
+              >
+                <span className="text-6xl font-bold text-white transition-all duration-500 antialiased drop-shadow-[0_6px_4px_rgba(0,0,0,0.7)]" style={{ WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale', textRendering: 'optimizeLegibility' }}>AI</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -517,7 +564,7 @@ const AIPageContent: React.FC = () => {
                 key={prompt.title}
                 type="button"
                 onClick={() => {
-                  handleComposerChange(prompt.prompt);
+                  handleTypingPrompt(prompt.prompt);
                 }}
                 className="flex h-full flex-col justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
               >
@@ -584,9 +631,9 @@ const AIPageContent: React.FC = () => {
                   <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
                     <label className="sr-only" htmlFor="mood-ai-input">Describe your perfect playlist</label>
                     <div
-                      className="relative flex items-center rounded-full p-[6px] shadow-[0_15px_50px_rgba(2,10,52,0.55)] bg-[length:200%_200%] animate-[rainbowFlow_18s_linear_infinite]"
+                      className="relative flex items-center rounded-full p-[6px] shadow-[0_15px_50px_rgba(2,10,52,0.55)] bg-[length:200%_200%] animate-[rainbowFlow_8s_linear_infinite]"
                       style={{
-                        backgroundImage: 'linear-gradient(120deg, #fbd38d, #76e0ff, #6a5bff, #fbd38d)'
+                        backgroundImage: 'linear-gradient(120deg, #3da3cc, #4a3acc, #8b5cf6, #3da3cc)'
                       }}
                     >
                       <button
