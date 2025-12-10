@@ -533,18 +533,18 @@ const AIPageContent: React.FC = () => {
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-6 pt-12 pb-16 lg:pt-16 text-white flex flex-col gap-8 lg:gap-10 min-h-[70vh]">
         <div className="flex flex-col gap-8">
           <div className="text-[11px] font-semibold uppercase tracking-[0.55em] text-white/60">AI Curated</div>
-          <div className="flex items-start gap-27">
-            <div className="space-y-4" style={{ maxWidth: 'calc(100% - 160px)' }}>
-              <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+          <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
+            <div className="space-y-4 flex-1">
+              <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
                 Discover the soundtrack for
                 <span className="block">every moment.</span>
               </h1>
-              <p className="text-lg text-white/70 max-w-3xl">
+              <p className="text-base sm:text-lg text-white/70 max-w-3xl">
                 Describe your vibe in a single sentence and MediaSite pairs it with verified sources, export-ready playlists, and instant playback controls.
               </p>
             </div>
             
-            <div className="hidden lg:block flex-shrink-0 mt-2">
+            <div className="flex-shrink-0 mt-2">
               <button
                 type="button"
                 onClick={() => {
@@ -552,7 +552,7 @@ const AIPageContent: React.FC = () => {
                   searchInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   setTimeout(() => searchInput?.focus(), 500);
                 }}
-                className="relative w-36 h-36 rounded-full bg-[length:400%_400%] animate-[gradientShift_6s_ease-in-out_infinite] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-500 ease-out cursor-pointer group antialiased"
+                className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full bg-[length:400%_400%] animate-[gradientShift_6s_ease-in-out_infinite] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-500 ease-out cursor-pointer group antialiased"
                 style={{
                   backgroundImage: 'linear-gradient(45deg, #8b5cf6, #06b6d4, #7c3aed, #ec4899, #8b5cf6)',
                   willChange: 'transform',
@@ -561,7 +561,7 @@ const AIPageContent: React.FC = () => {
                 }}
                 aria-label="Go to AI search"
               >
-                <span className="text-6xl font-bold text-white transition-all duration-500 antialiased drop-shadow-[0_6px_4px_rgba(0,0,0,0.7)]" style={{ WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale', textRendering: 'optimizeLegibility' }}>AI</span>
+                <span className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white transition-all duration-500 antialiased drop-shadow-[0_6px_4px_rgba(0,0,0,0.7)]" style={{ WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale', textRendering: 'optimizeLegibility' }}>AI</span>
               </button>
             </div>
           </div>
@@ -629,10 +629,10 @@ const AIPageContent: React.FC = () => {
               <div className="w-full max-w-4xl px-6 py-10 sm:px-12 sm:py-16">
                 <div className="text-center space-y-6">
                   <div>
-                    <h1 className="text-4xl md:text-[3.2rem] font-semibold text-white tracking-tight">
+                    <h1 className="text-3xl sm:text-4xl md:text-[3.2rem] font-semibold text-white tracking-tight">
                       What are you in the mood for?
                     </h1>
-                    <p className="text-lg md:text-xl text-white/65 mt-3">
+                    <p className="text-base sm:text-lg md:text-xl text-white/65 mt-3">
                       Tell me the vibe, and I'll create the perfect playlist.
                     </p>
                   </div>
