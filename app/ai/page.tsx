@@ -113,9 +113,11 @@ const AIPageContent: React.FC = () => {
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isNavHidden, setIsNavHidden] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
   const { data: session } = useSession();
   const pathname = usePathname();
 
@@ -136,6 +138,27 @@ const AIPageContent: React.FC = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
+
+  // Fade mobile navbar when scrolling down, show when scrolling up or near top
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      const previousY = lastScrollY.current;
+      const scrollingDown = currentY > previousY + 8;
+      const scrollingUp = currentY < previousY - 8;
+
+      if (scrollingDown && currentY > 80) {
+        setIsNavHidden(true);
+      } else if (scrollingUp || currentY <= 80) {
+        setIsNavHidden(false);
+      }
+
+      lastScrollY.current = currentY;
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const handleSignOut = async () => {
@@ -450,7 +473,7 @@ const AIPageContent: React.FC = () => {
       `}</style>
 
       {/* Custom Mobile Header - Only visible on mobile */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-transparent">
+      <div className={`md:hidden fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-500 ease-out ${isNavHidden ? 'opacity-0 -translate-y-6 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
         <div className="flex items-center justify-between px-4 py-3">
           {/* Menu Button */}
           <button
@@ -553,7 +576,7 @@ const AIPageContent: React.FC = () => {
                   searchInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   setTimeout(() => searchInput?.focus(), 500);
                 }}
-                className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full bg-[length:400%_400%] animate-[gradientShift_6s_ease-in-out_infinite] flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-500 ease-out cursor-pointer group antialiased"
+                className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 rounded-full bg-[length:400%_400%] animate-[gradientShift_6s_ease-in-out_infinite] flex items-center justify-center hover:scale-110 hover:animate-[aiButtonPulse_1.5s_ease-in-out_infinite] active:scale-95 transition-all duration-500 ease-out cursor-pointer group antialiased"
                 style={{
                   backgroundImage: 'linear-gradient(45deg, #8b5cf6, #06b6d4, #7c3aed, #ec4899, #8b5cf6)',
                   willChange: 'transform',
