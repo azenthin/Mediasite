@@ -100,7 +100,7 @@ const featureHighlights = [
   { title: 'Smart history', body: 'Conversations stay in context so you can refine the vibe instead of starting over.', tag: 'Memory', icon: '💡' },
 ];
 
-const verifiedSources = ['Spotify', 'YouTube', 'Genius', 'AcousticBrainz'];
+const verifiedSources = ['Spotify', 'YouTube', 'AcousticBrainz'];
 
 const AIPageContent: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -592,13 +592,15 @@ const AIPageContent: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/60 max-w-3xl">
-            <span>Verified with</span>
-            {verifiedSources.map((source) => (
-              <span key={source} className="rounded-full border border-white/10 px-2.5 py-0.5 sm:px-3 sm:py-1 text-white/80">
-                {source}
-              </span>
-            ))}
+          <div className="max-w-3xl space-y-2 mx-auto text-center">
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/60">Verified with</div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {verifiedSources.map((source) => (
+                <span key={source} className="rounded-full border border-white/10 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/80">
+                  {source}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-3 max-w-4xl">
