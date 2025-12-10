@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       spotify: {
         // Spotify ID from identifiers table
       },
-      verifiedAt: track.verifiedAt,
+      spotifyValidatedAt: track.spotifyValidatedAt,
     }));
 
     return NextResponse.json({
