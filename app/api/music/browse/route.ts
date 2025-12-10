@@ -93,11 +93,11 @@ export async function GET(request: NextRequest) {
         album: true,
         duration: true,
         releaseDate: true,
-        verifiedAt: true,
+        spotifyValidatedAt: true,
         isrc: true,
 
       },
-      orderBy: { verifiedAt: 'desc' },
+      orderBy: { spotifyValidatedAt: 'desc' },
       skip: randomOffset,
       take: fetchLimit,
     });
