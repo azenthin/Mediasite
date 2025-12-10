@@ -117,12 +117,12 @@ export async function GET(request: NextRequest) {
         album: true,
         duration: true,
         releaseDate: true,
-        verifiedAt: true,
+        spotifyValidatedAt: true,
         isrc: true,
 
       },
       orderBy: [
-        { verifiedAt: 'desc' },
+        { spotifyValidatedAt: 'desc' },
         { createdAt: 'desc' },
       ],
       skip: offset,
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       spotify: {
         // Spotify ID from identifiers table
       },
-      verifiedAt: track.verifiedAt,
+      spotifyValidatedAt: track.spotifyValidatedAt,
     }));
 
     return NextResponse.json({
