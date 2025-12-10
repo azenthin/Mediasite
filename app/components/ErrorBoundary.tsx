@@ -59,7 +59,7 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
             
             <p className="text-gray-400 mb-4">
-              We encountered an unexpected error. Don't worry, our team has been notified.
+              We encountered an unexpected error. Don&apos;t worry, our team has been notified.
             </p>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (

@@ -208,7 +208,7 @@ export default function SignInPage() {
 
         <div className="text-center">
           <p className="text-sm" style={{ color: '#9ca3af' }}>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a href="/auth/signup" className="font-medium" style={{ color: '#f87171' }}>
               Sign up
             </a>

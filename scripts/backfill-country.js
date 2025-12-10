@@ -17,6 +17,25 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+// Manually parse .env file for Spotify credentials
+const envPath = path.join(__dirname, '..', '.env');
+let envContent = '';
+try {
+  envContent = fs.readFileSync(envPath, 'utf8');
+} catch (err) {
+  console.warn('⚠️  Could not read .env file');
+}
+
+envContent.split(/\r?\n/).forEach(line => {
+  line = line.trim();
+  if (line.startsWith('SPOTIFY_CLIENT_ID=')) {
+    process.env.SPOTIFY_CLIENT_ID = line.substring('SPOTIFY_CLIENT_ID='.length);
+  }
+  if (line.startsWith('SPOTIFY_CLIENT_SECRET=')) {
+    process.env.SPOTIFY_CLIENT_SECRET = line.substring('SPOTIFY_CLIENT_SECRET='.length);
+  }
+});
+
 // Configuration
 const BATCH_SIZE = 500;           // Tracks to process per batch
 const PARALLEL_BATCHES = 2;       // Reduced to 2 for safe rate limiting (was 10)
@@ -30,6 +49,13 @@ let spotifyToken = null;
  * Get Spotify access token
  */
 async function getSpotifyToken() {
+  const now = Date.now();
+  
+  // Return cached token if still valid (with 30s buffer)
+  if (spotifyToken && now < tokenExpireTime - 30000) {
+    return spotifyToken;
+  }
+
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
@@ -37,22 +63,32 @@ async function getSpotifyToken() {
     throw new Error('SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET required');
   }
 
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
-    },
-    body: 'grant_type=client_credentials'
-  });
+  try {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
+      },
+      body: 'grant_type=client_credentials'
+    });
 
-  if (!response.ok) {
-    throw new Error(`Spotify auth failed: ${response.statusText}`);
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Spotify auth failed: ${response.status} ${text}`);
+    }
+
+    const data = await response.json();
+    spotifyToken = data.access_token;
+    tokenExpireTime = Date.now() + (data.expires_in || 3600) * 1000;
+    return spotifyToken;
+  } catch (error) {
+    console.error('❌ Token fetch error:', error.message);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.access_token;
 }
+
+let tokenExpireTime = 0;
 
 /**
  * Fetch artist data in batch (up to 50 per request)
@@ -126,51 +162,87 @@ async function processBatch(tracks, batchNum, totalBatches) {
   let updated = 0;
   let failed = 0;
 
-  // Get unique artist IDs from tracks
+  // Get track IDs for this batch
   const trackIds = tracks.map(t => t.id);
-  const tracksWithArtistId = await prisma.verifiedTrack.findMany({
-    where: { id: { in: trackIds } },
+  
+  // Query TrackIdentifier to get Spotify artist IDs
+  // Note: We need to get the Spotify ID from TrackIdentifier table
+  // The TrackIdentifier table stores Spotify track IDs, but we also need artist IDs
+  // For now, we'll fetch artist data directly using Spotify's search/API
+  // This is a simplified approach - ideal would be to store artistSpotifyId in VerifiedTrack
+  
+  // Fetch tracks with their basic info to search for artist on Spotify
+  const tracksToUpdate = await prisma.verifiedTrack.findMany({
+    where: { 
+      id: { in: trackIds },
+      artistCountry: null  // Only update tracks that don't have country yet
+    },
     select: {
       id: true,
-      rawProvider: true
+      artist: true,
+      title: true
     }
   });
 
-  // Extract artist IDs from raw provider data
-  const artistIds = [];
-  const trackIdToArtistId = {};
+  if (tracksToUpdate.length === 0) {
+    return { updated: 0, failed: 0 };
+  }
 
-  tracksWithArtistId.forEach(track => {
+  // Search for each artist on Spotify to get artist details
+  const artistMap = {};
+  const trackToArtistId = {};
+
+  for (const track of tracksToUpdate) {
+    // Try to find artist via search
+    if (!spotifyToken) {
+      spotifyToken = await getSpotifyToken();
+    }
+
+    await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_MS));
+
     try {
-      if (track.rawProvider) {
-        const raw = JSON.parse(track.rawProvider);
-        const artistId = raw.spotify?.raw?.artists?.[0]?.id;
-        if (artistId) {
-          artistIds.push(artistId);
-          trackIdToArtistId[track.id] = artistId;
+      const searchResponse = await fetch(
+        `https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(track.artist)}&type=artist&limit=1`,
+        { headers: { 'Authorization': `Bearer ${spotifyToken}` } }
+      );
+
+      if (searchResponse.status === 401) {
+        spotifyToken = await getSpotifyToken();
+        // Retry with fresh token
+        const retryResponse = await fetch(
+          `https://api.spotify.com/v1/search?q=artist:${encodeURIComponent(track.artist)}&type=artist&limit=1`,
+          { headers: { 'Authorization': `Bearer ${spotifyToken}` } }
+        );
+        if (!retryResponse.ok) throw new Error('Search failed');
+        const data = await retryResponse.json();
+        const artist = data.artists?.items?.[0];
+        if (artist) {
+          trackToArtistId[track.id] = artist.id;
+          artistMap[artist.id] = {
+            country: artist.country || null,
+            followers: artist.followers?.total
+          };
+        }
+      } else if (searchResponse.ok) {
+        const data = await searchResponse.json();
+        const artist = data.artists?.items?.[0];
+        if (artist) {
+          trackToArtistId[track.id] = artist.id;
+          artistMap[artist.id] = {
+            country: artist.country || null,
+            followers: artist.followers?.total
+          };
         }
       }
     } catch (err) {
-      // Skip tracks with invalid JSON
+      console.warn(`⚠️  Artist search failed for "${track.artist}": ${err.message}`);
+      failed++;
     }
-  });
-
-  if (artistIds.length === 0) {
-    return { updated: 0, failed: tracks.length };
-  }
-
-  // Fetch artist data in batches of 50
-  const artistMap = {};
-
-  for (let i = 0; i < artistIds.length; i += SPOTIFY_BATCH_SIZE) {
-    const batch = artistIds.slice(i, i + SPOTIFY_BATCH_SIZE);
-    const batchData = await fetchArtistsBatch(batch);
-    Object.assign(artistMap, batchData);
   }
 
   // Update tracks with country data
-  for (const track of tracksWithArtistId) {
-    const artistId = trackIdToArtistId[track.id];
+  for (const track of tracksToUpdate) {
+    const artistId = trackToArtistId[track.id];
     if (!artistId || !artistMap[artistId]) {
       failed++;
       continue;
@@ -179,10 +251,14 @@ async function processBatch(tracks, batchNum, totalBatches) {
     try {
       await prisma.verifiedTrack.update({
         where: { id: track.id },
-        data: { country: artistMap[artistId].country || null }
+        data: { 
+          artistCountry: artistMap[artistId].country || null,
+          artistFollowers: artistMap[artistId].followers || null
+        }
       });
       updated++;
     } catch (err) {
+      console.error(`Failed to update track ${track.id}:`, err.message);
       failed++;
     }
   }
@@ -212,7 +288,7 @@ async function backfillCountry() {
 
     // Count already-filled tracks
     const filled = await prisma.verifiedTrack.count({
-      where: { country: { not: null } }
+      where: { artistCountry: { not: null } }
     });
     console.log(`   ✓ Already filled: ${filled.toLocaleString()}`);
     console.log(`   ✓ Remaining: ${(total - filled).toLocaleString()}\n`);
@@ -234,7 +310,7 @@ async function backfillCountry() {
         if (processed + (i * BATCH_SIZE) >= total) break;
 
         const promise = prisma.verifiedTrack.findMany({
-          where: { country: null },
+          where: { artistCountry: null },
           select: { id: true, artist: true },
           skip: processed + (i * BATCH_SIZE),
           take: BATCH_SIZE,

@@ -6,6 +6,7 @@
 import { prisma } from './database';
 import { execSync } from 'child_process';
 import path from 'path';
+import type { TrackIdentifier, VerifiedTrack, Prisma } from '@prisma/client';
 
 interface Song {
   title: string;
@@ -18,6 +19,8 @@ interface Song {
   verified: boolean;
   source?: 'genre-match' | 'fuzzy-match' | 'search-fallback' | 'ai-generated' | 'database';
 }
+
+const supportsCaseInsensitiveFilters = !((process.env.DATABASE_URL || '').startsWith('file:'));
 
 /**
  * Check if the prompt is requesting a single artist
@@ -123,6 +126,16 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     const queryWords = promptLower.split(/\s+/).filter(w => w.length > 0);
     const orConditions = [];
     
+    // Smart genre matching: when searching for "pop", exclude subgenres like k-pop, j-pop, c-pop
+    // unless explicitly requested. Prioritize mainstream pop genres.
+    const isGenreSearch = queryWords.length === 1 && ['pop', 'rock', 'jazz', 'metal', 'hip hop', 'hip-hop'].includes(queryWords[0]);
+    const excludeSubgenres = isGenreSearch ? {
+      AND: [
+        { primaryGenre: { not: null } },
+        { NOT: { primaryGenre: { contains: '-pop' } } },  // Exclude k-pop, j-pop, c-pop, etc.
+      ]
+    } : undefined;
+    
     // Add conditions for each word in the query
     for (const word of queryWords) {
       orConditions.push({ primaryGenre: { contains: word } });
@@ -132,7 +145,12 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     }
     
     const relevantTracks = await prisma.verifiedTrack.findMany({
-      where: {
+      where: excludeSubgenres ? {
+        AND: [
+          excludeSubgenres,
+          { OR: orConditions.length > 0 ? orConditions : undefined }
+        ]
+      } : {
         OR: orConditions.length > 0 ? orConditions : undefined
       },
       orderBy: { trackPopularity: 'desc' },
@@ -154,6 +172,12 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
     // Optimize scoring: cache string operations, reduce splits
     const scoredTracks: Array<{track: any, score: number}> = [];
     
+    // Mainstream pop subgenres that are English/Western-focused
+    const mainstreampopGenres = new Set([
+      'pop', 'pop rock', 'dance pop', 'electropop', 'pop punk', 
+      'soft pop', 'pop soul', 'power pop', 'pop rap', 'synth pop'
+    ]);
+    
     for (const track of allTracks) {
       let score = 0;
       const titleLower = track.title?.toLowerCase() || '';
@@ -161,9 +185,19 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       const genresLower = (track.primaryGenre || '').toLowerCase();
       const moodsLower = (track.mood || '').toLowerCase();
       
-      // Score based on matches (faster than complex splits)
+      // Score based on matches with intelligent genre emphasis
       for (const word of queryWords) {
-        if (genresLower.includes(word)) score += 100;
+        if (genresLower === word) {
+          // Exact genre match (e.g., "pop" = "pop") gets highest score
+          score += 300;
+        } else if (isGenreSearch && mainstreampopGenres.has(genresLower)) {
+          // Boost mainstream pop subgenres when searching for "pop"
+          score += 200;
+        } else if (genresLower.includes(word)) {
+          // Partial match (e.g., "pop" in "soft pop") gets good score
+          score += 100;
+        }
+        
         if (moodsLower.includes(word)) score += 80;
         if (titleLower.includes(word)) score += 40;
         if (artistLower.includes(word)) score += 30;
@@ -251,34 +285,59 @@ async function queryVerifiedTracks(prompt: string, limit: number = 15, applyDive
       identifiersByTrackId.get(id.trackId)!.push(id);
     });
 
-    // Convert VerifiedTrack records to Song format
-    const songs: Song[] = selectedTracks
+    // Convert VerifiedTrack records to Song format with metadata for sorting
+    const songs: (Song & { popularity?: number; releaseDate?: Date })[] = selectedTracks
       .map((track: any) => {
         const identifiers = identifiersByTrackId.get(track.id) || [];
         const spotifyIdentifier = identifiers.find((id: any) => id.type === 'spotify');
         const youtubeIdentifier = identifiers.find((id: any) => id.type === 'youtube');
+        const resolvedSpotifyUrl =
+          buildSpotifyUrl(track.spotifyUrl) ||
+          buildSpotifyUrl(track.spotifyId) ||
+          buildSpotifyUrl(spotifyIdentifier?.value);
         
         return {
           title: track.title,
           artist: track.artist,
           genre: track.primaryGenre || undefined,
           year: track.releaseDate ? new Date(track.releaseDate).getFullYear() : undefined,
-          spotifyUrl: spotifyIdentifier ? `spotify:track:${spotifyIdentifier.value}` : undefined,
+          spotifyUrl: resolvedSpotifyUrl || undefined,
           youtubeUrl: youtubeIdentifier ? `https://www.youtube.com/watch?v=${youtubeIdentifier.value}` : undefined,
           verified: true,
           source: 'database',
+          popularity: track.trackPopularity || 0,
+          releaseDate: track.releaseDate,
         };
       })
       .filter((s: any) => s.title && s.artist) as Song[];
 
-    // Apply artist diversity if requested
+    // Sort with heavy bias toward newer songs while maintaining popularity quality
+    // Algorithm: Combined score = (recency * 0.7) + (popularity * 0.3)
+    // This heavily favors recent songs but still respects popularity
+    const currentYear = new Date().getFullYear();
+    songs.sort((a, b) => {
+      const aYear = a.releaseDate ? new Date(a.releaseDate).getFullYear() : currentYear - 30;
+      const aRecency = Math.max(0, (aYear - (currentYear - 30)) / 30); // Songs in last 30 years normalized to 0-1
+      const aPopularity = (a.popularity || 0) / 100; // Normalize to 0-1
+      const aScore = (aRecency * 0.7) + (aPopularity * 0.3);
+      
+      const bYear = b.releaseDate ? new Date(b.releaseDate).getFullYear() : currentYear - 30;
+      const bRecency = Math.max(0, (bYear - (currentYear - 30)) / 30);
+      const bPopularity = (b.popularity || 0) / 100;
+      const bScore = (bRecency * 0.7) + (bPopularity * 0.3);
+      
+      return bScore - aScore; // Higher score first
+    });
+
+    // Remove the metadata fields before returning
+    const finalSongs = songs.slice(0, limit).map(({ popularity, releaseDate, ...song }) => song);
+
     if (applyDiversity && !isSingleArtist) {
-      // Diversity has already been applied during selection phase
-      console.log(`🎨 Artist diversity already applied during selection`);
-      return songs.slice(0, limit);
+      console.log(`🎨 Songs sorted by popularity and year`);
+      return finalSongs;
     }
 
-    return songs.slice(0, limit);
+    return finalSongs;
   } catch (error) {
     console.error('Failed to query verified tracks:', error);
     return [];
@@ -375,6 +434,25 @@ async function searchLocalDatabase(query: string, limit: number = 15, applyDiver
   }
 }
 
+function songFromCache(cached: {
+  title: string;
+  artist: string;
+  year: number | null;
+  spotifyUrl: string | null;
+  spotifyId?: string | null;
+  youtubeUrl: string | null;
+}): Song {
+  const resolvedSpotifyUrl = buildSpotifyUrl(cached.spotifyUrl || cached.spotifyId);
+  return {
+    title: cached.title,
+    artist: cached.artist,
+    year: cached.year || undefined,
+    spotifyUrl: resolvedSpotifyUrl || undefined,
+    youtubeUrl: cached.youtubeUrl || undefined,
+    verified: true,
+  };
+}
+
 /**
  * Check cache for song URLs
  */
@@ -400,15 +478,8 @@ async function checkSongCache(
             lastAccessed: new Date(),
           },
         });
-        
-        return {
-          title: cached.title,
-          artist: cached.artist,
-          year: cached.year || undefined,
-          spotifyUrl: cached.spotifyUrl || undefined,
-          youtubeUrl: cached.youtubeUrl || undefined,
-          verified: true,
-        };
+
+        return songFromCache(cached);
       }
     }
     
@@ -426,15 +497,8 @@ async function checkSongCache(
             lastAccessed: new Date(),
           },
         });
-        
-        return {
-          title: cached.title,
-          artist: cached.artist,
-          year: cached.year || undefined,
-          spotifyUrl: cached.spotifyUrl || undefined,
-          youtubeUrl: cached.youtubeUrl || undefined,
-          verified: true,
-        };
+
+        return songFromCache(cached);
       }
     }
     
@@ -454,15 +518,8 @@ async function checkSongCache(
           lastAccessed: new Date(),
         },
       });
-      
-      return {
-        title: cached.title,
-        artist: cached.artist,
-        year: cached.year || undefined,
-        spotifyUrl: cached.spotifyUrl || undefined,
-        youtubeUrl: cached.youtubeUrl || undefined,
-        verified: true,
-      };
+
+      return songFromCache(cached);
     }
     
     return null;
@@ -485,12 +542,17 @@ async function saveSongCache(
   year?: number
 ): Promise<void> {
   try {
+    const normalizedSpotifyUrl = buildSpotifyUrl(spotifyUrl);
+    const spotifyUrlUpdate = normalizedSpotifyUrl ? { spotifyUrl: normalizedSpotifyUrl } : {};
+    const youtubeUrlUpdate = youtubeUrl ? { youtubeUrl } : {};
+
     // Use upsert to handle duplicates gracefully
     if (spotifyId) {
       await prisma.songCache.upsert({
         where: { spotifyId },
         update: {
-          youtubeUrl: youtubeUrl || undefined,
+          ...spotifyUrlUpdate,
+          ...youtubeUrlUpdate,
           lastAccessed: new Date(),
           hitCount: { increment: 1 },
         },
@@ -499,7 +561,7 @@ async function saveSongCache(
           artist,
           spotifyId,
           isrc,
-          spotifyUrl,
+          spotifyUrl: normalizedSpotifyUrl,
           youtubeUrl,
           year,
         },
@@ -508,7 +570,8 @@ async function saveSongCache(
       await prisma.songCache.upsert({
         where: { isrc },
         update: {
-          youtubeUrl: youtubeUrl || undefined,
+          ...spotifyUrlUpdate,
+          ...youtubeUrlUpdate,
           lastAccessed: new Date(),
           hitCount: { increment: 1 },
         },
@@ -516,7 +579,7 @@ async function saveSongCache(
           title,
           artist,
           isrc,
-          spotifyUrl,
+          spotifyUrl: normalizedSpotifyUrl,
           youtubeUrl,
           year,
         },
@@ -527,7 +590,7 @@ async function saveSongCache(
         data: {
           title,
           artist,
-          spotifyUrl,
+          spotifyUrl: normalizedSpotifyUrl,
           youtubeUrl,
           year,
         },
@@ -537,6 +600,107 @@ async function saveSongCache(
     // Non-fatal - just log
     console.error('Failed to cache song:', error);
   }
+}
+
+type VerifiedTrackWithIds = VerifiedTrack & { identifiers: TrackIdentifier[]; spotifyUrl?: string | null };
+
+function normalizeKey(title: string, artist: string) {
+  return `${title.toLowerCase().trim()}::${artist.toLowerCase().trim()}`;
+}
+
+function normalizeSpotifyTrackId(raw?: string | null): string | undefined {
+  if (!raw) return undefined;
+  const value = raw.trim();
+  if (!value) return undefined;
+
+  if (value.startsWith('spotify:track:')) {
+    return value.substring('spotify:track:'.length);
+  }
+
+  const urlMatch = value.match(/spotify\.com\/track\/([A-Za-z0-9]+)/i);
+  if (urlMatch?.[1]) {
+    return urlMatch[1];
+  }
+
+  const bareIdMatch = value.match(/^[A-Za-z0-9]{11,}$/);
+  if (bareIdMatch) {
+    return value;
+  }
+
+  return undefined;
+}
+
+function extractSpotifyId(track: VerifiedTrackWithIds): string | undefined {
+  const identifierValue = track.identifiers.find((id) => id.type === 'spotify')?.value;
+  return normalizeSpotifyTrackId(track.spotifyUrl || track.spotifyId || identifierValue);
+}
+
+function extractYoutubeUrl(track: VerifiedTrackWithIds): string | undefined {
+  const raw = track.identifiers.find((id) => id.type === 'youtube')?.value;
+  if (!raw) return undefined;
+  if (raw.startsWith('http')) return raw;
+  return `https://www.youtube.com/watch?v=${raw}`;
+}
+
+function buildSpotifyUrl(raw?: string | null) {
+  const normalized = normalizeSpotifyTrackId(raw);
+  if (!normalized) return undefined;
+  return `spotify:track:${normalized}`;
+}
+
+function buildExactMatchClause(title: string, artist: string): Prisma.VerifiedTrackWhereInput | null {
+  if (!title || !artist) return null;
+  if (supportsCaseInsensitiveFilters) {
+    return {
+      AND: [
+        { title: { equals: title, mode: 'insensitive' as const } },
+        { artist: { equals: artist, mode: 'insensitive' as const } },
+      ],
+    };
+  }
+  return {
+    AND: [
+      { title: { equals: title } },
+      { artist: { equals: artist } },
+    ],
+  };
+}
+
+function buildFuzzyMatchClause(title: string, artist: string): Prisma.VerifiedTrackWhereInput | null {
+  if (!title || !artist) return null;
+  if (supportsCaseInsensitiveFilters) {
+    return {
+      AND: [
+        { title: { contains: title, mode: 'insensitive' as const } },
+        { artist: { contains: artist, mode: 'insensitive' as const } },
+      ],
+    };
+  }
+  return {
+    AND: [
+      { title: { contains: title } },
+      { artist: { contains: artist } },
+    ],
+  };
+}
+
+function trackToSong(track: VerifiedTrackWithIds & { spotifyUrl?: string | null }, fallback?: Partial<Song>): Song {
+  const spotifyId = extractSpotifyId(track);
+  const spotifyUrl = buildSpotifyUrl(track.spotifyUrl || spotifyId);
+  const youtubeUrl = extractYoutubeUrl(track);
+  const releaseYear = track.releaseDate ? new Date(track.releaseDate).getFullYear() : fallback?.year;
+
+  return {
+    title: track.title,
+    artist: track.artist,
+    genre: track.primaryGenre || fallback?.genre,
+    mood: track.mood || fallback?.mood,
+    year: releaseYear,
+    spotifyUrl: spotifyUrl,
+    youtubeUrl,
+    verified: true,
+    source: 'database',
+  };
 }
 
 /**
@@ -608,15 +772,103 @@ export async function searchBoth(title: string, artist: string): Promise<Song> {
   };
 }
 
-/**
- * @deprecated Use ingestion pipeline verified tracks instead
- * This function is disabled and should not be used
- */
-export async function verifySongs(songs: Array<{ title: string; artist: string; genre?: string; mood?: string; year?: number }>): Promise<Song[]> {
-  console.warn('❌ verifySongs() is DEPRECATED - use ingestion pipeline verified tracks instead');
-  return songs.map(song => ({
-    ...song,
-    verified: false,
+export async function verifySongs(
+  songs: Array<{ title: string; artist: string; genre?: string; mood?: string; year?: number }>
+): Promise<Song[]> {
+  if (!songs || songs.length === 0) return [];
+
+  const normalizedInputs = songs.map((song, idx) => ({
+    idx,
+    original: song,
+    title: song.title?.trim() || '',
+    artist: song.artist?.trim() || '',
   }));
+
+  const resolved: (Song | null)[] = Array(songs.length).fill(null);
+
+  // Step 1: quick cache lookups to avoid repeated Prisma queries
+  await Promise.all(
+    normalizedInputs.map(async (entry) => {
+      if (!entry.title || !entry.artist) return;
+      const cached = await checkSongCache(entry.artist, entry.title);
+      if (cached) {
+        resolved[entry.idx] = {
+          ...cached,
+          genre: cached.genre || entry.original.genre,
+          mood: cached.mood || entry.original.mood,
+          year: cached.year || entry.original.year,
+          source: cached.source || 'database',
+          verified: true,
+        };
+      }
+    })
+  );
+
+  const unresolved = normalizedInputs.filter((entry) => !resolved[entry.idx] && entry.title && entry.artist);
+  if (unresolved.length === 0) {
+    return resolved.map((song, idx) => song || {
+      ...songs[idx],
+      verified: false,
+      source: 'ai-generated',
+    });
+  }
+
+  // Step 2: batch exact matches for the remaining songs
+  const exactClauses = unresolved
+    .map((entry) => buildExactMatchClause(entry.title, entry.artist))
+    .filter(Boolean) as Prisma.VerifiedTrackWhereInput[];
+
+  const trackMap = new Map<string, VerifiedTrackWithIds>();
+  if (exactClauses.length > 0) {
+    const matches = await prisma.verifiedTrack.findMany({
+      where: { OR: exactClauses },
+      include: { identifiers: true },
+    });
+    matches.forEach((track) => {
+      trackMap.set(normalizeKey(track.title, track.artist), track);
+    });
+  }
+
+  // Step 3: resolve each outstanding song, using fuzzy search as a fallback
+  for (const entry of unresolved) {
+    const key = normalizeKey(entry.title, entry.artist);
+    let track = trackMap.get(key);
+
+    if (!track) {
+      const fuzzyClause = buildFuzzyMatchClause(entry.title, entry.artist);
+      if (fuzzyClause) {
+        track = await prisma.verifiedTrack.findFirst({
+          where: fuzzyClause,
+          include: { identifiers: true },
+        }) || undefined;
+      }
+    }
+
+    if (track) {
+      const verifiedSong = trackToSong(track, entry.original);
+      resolved[entry.idx] = verifiedSong;
+      await saveSongCache(
+        verifiedSong.title,
+        verifiedSong.artist,
+        verifiedSong.spotifyUrl,
+        verifiedSong.youtubeUrl,
+        extractSpotifyId(track),
+        track.isrc || undefined,
+        verifiedSong.year
+      );
+    } else {
+      resolved[entry.idx] = {
+        ...entry.original,
+        verified: false,
+          source: 'ai-generated',
+      };
+    }
+  }
+
+  return resolved.map((song, idx) => song || {
+    ...songs[idx],
+    verified: false,
+    source: 'ai-generated',
+  });
 }
 

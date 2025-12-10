@@ -21,3 +21,21 @@ Notes
 - openl3 requires ffmpeg; on Windows download ffmpeg and add to PATH.
 - This is a dev-ready pipeline. For production, replace SQLite+FAISS with Postgres+pgvector or Pinecone/Weaviate and run extraction as a background worker.
 - The key estimation here is a heuristic. For better accuracy, use Essentia's KeyExtractor or a trained model.
+
+## `get-several-tracks.js`
+
+- Calls Spotify's `GET /v1/tracks` endpoint in batches of 50 IDs (Spotify's maximum) and enforces a 100 ms delay between each request, yielding ~10 requests per second.
+- Automatically stops if Spotify responds with a `429` rate-limit response and surfaces the `Retry-After` header so you can diagnose throttling.
+- Automatically fetches artist metadata in 50-artist batches (same delay) and attaches the full artist object (genres, followers, etc.) to each track.
+- Returns full track objects (not just IDs) and supports outputting to a file for downstream ingestion.
+
+### Usage (PowerShell)
+```
+cd "C:\Users\Joabzz\Documents\Visual Studio Code\mediasite"
+node scripts/get-several-tracks.js <trackId> <trackId> ...
+```
+or
+```
+node scripts/get-several-tracks.js --file data/track-ids.txt --output data/tracks.json
+```
+The script reads credentials from `.env` (see `SPOTIFY_CLIENT_ID`/`SPOTIFY_CLIENT_SECRET`) and writes JSON to stdout unless `--output` is provided.

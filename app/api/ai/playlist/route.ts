@@ -64,6 +64,40 @@ const limiter = createRateLimit({
   message: 'Too many playlist requests. Please try again in a minute.'
 });
 
+type CachedPayload = {
+  result: Record<string, unknown>;
+  expiresAt: number;
+  source: 'spotify' | 'ai';
+};
+
+const PROMPT_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const promptCache = new Map<string, CachedPayload>();
+
+function normalizeHistory(history?: ConversationMessage[]) {
+  if (!Array.isArray(history) || history.length === 0) return [];
+  return history.slice(-3).map((item) => `${item.role}:${item.content}`.toLowerCase());
+}
+
+function buildCacheKey(prompt: string, conversationHistory?: ConversationMessage[]) {
+  const base = prompt.trim().toLowerCase();
+  const historyKey = normalizeHistory(conversationHistory).join('|');
+  return historyKey ? `${base}::${historyKey}` : base;
+}
+
+function getCachedResponse(cacheKey: string) {
+  const cached = promptCache.get(cacheKey);
+  if (!cached) return null;
+  if (cached.expiresAt < Date.now()) {
+    promptCache.delete(cacheKey);
+    return null;
+  }
+  return cached;
+}
+
+function setCachedResponse(cacheKey: string, payload: CachedPayload) {
+  promptCache.set(cacheKey, payload);
+}
+
 export async function POST(request: NextRequest) {
   // Apply rate limit before any heavy work
   const limited = limiter(request);
@@ -95,6 +129,33 @@ export async function POST(request: NextRequest) {
 
     if (!prompt || prompt.trim().length === 0) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+    }
+
+    const sanitizedHistory = Array.isArray(conversationHistory)
+      ? conversationHistory
+          .filter((entry): entry is ConversationMessage => {
+            return (
+              !!entry &&
+              (entry.role === 'user' || entry.role === 'assistant' || entry.role === 'system') &&
+              typeof entry.content === 'string' &&
+              entry.content.trim().length > 0
+            );
+          })
+          .slice(-3)
+      : [];
+
+    const cacheKey = buildCacheKey(prompt, sanitizedHistory);
+    const cachedResponse = cacheKey ? getCachedResponse(cacheKey) : null;
+    if (cachedResponse) {
+      logger.info('Serving playlist response from cache', {
+        component: 'api.ai.playlist',
+        cacheSource: cachedResponse.source,
+      });
+      const res = NextResponse.json(cachedResponse.result);
+      res.headers.set('X-Cache', 'HIT');
+      res.headers.set('X-Cache-Source', cachedResponse.source);
+      res.headers.set('Server-Timing', timer.header());
+      return res;
     }
 
     // Always try Spotify first since this is the AI playlist endpoint
@@ -155,12 +216,20 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const res = NextResponse.json({
+      const payload = {
         success: true,
         type: 'playlist',
         message: `Explore the vibe of ${prompt}!`,
         playlist: spotifyTracks,
-      });
+      };
+      if (cacheKey) {
+        setCachedResponse(cacheKey, {
+          result: payload,
+          expiresAt: Date.now() + PROMPT_CACHE_TTL_MS,
+          source: 'spotify',
+        });
+      }
+      const res = NextResponse.json(payload);
       res.headers.set('Server-Timing', timer.header());
       res.headers.set('X-Source', 'spotify-recommendations');
       logger.performance('ai.playlist.total', timer.elapsed(), {
@@ -190,18 +259,8 @@ Output discipline: keep every string concise—song field values should be short
     ];
 
     // Add a small slice of conversation history for context
-    if (Array.isArray(conversationHistory)) {
-      const sanitizedHistory = conversationHistory
-        .filter((entry): entry is ConversationMessage => {
-          return (
-            !!entry &&
-            (entry.role === 'user' || entry.role === 'assistant' || entry.role === 'system') &&
-            typeof entry.content === 'string' &&
-            entry.content.trim().length > 0
-          );
-        })
-        .slice(-2); // last turn for each side keeps flow light
-      messages.push(...sanitizedHistory);
+    if (sanitizedHistory.length > 0) {
+      messages.push(...sanitizedHistory.slice(-2));
     }
 
     // Add current user message
@@ -355,11 +414,19 @@ Output discipline: keep every string concise—song field values should be short
     const userId = session?.user?.id;
 
     if (result.type === 'conversation') {
-      const res = NextResponse.json({
+      const payload = {
         success: true,
         type: 'conversation',
         message: result.message,
-      });
+      };
+      if (cacheKey) {
+        setCachedResponse(cacheKey, {
+          result: payload,
+          expiresAt: Date.now() + PROMPT_CACHE_TTL_MS,
+          source: 'ai',
+        });
+      }
+      const res = NextResponse.json(payload);
       res.headers.set('Server-Timing', timer.header());
       res.headers.set('X-AI-Model', String(usedModel));
       if (fallbackOccurred) res.headers.set('X-AI-Fallback', 'true');
@@ -417,13 +484,21 @@ Output discipline: keep every string concise—song field values should be short
         }
       }
 
-      const res = NextResponse.json({
+      const payload = {
         success: true,
         type: 'playlist',
         message: result.message,
         playlist: verifiedSongs,
         prompt,
-      });
+      };
+      if (cacheKey) {
+        setCachedResponse(cacheKey, {
+          result: payload,
+          expiresAt: Date.now() + PROMPT_CACHE_TTL_MS,
+          source: 'ai',
+        });
+      }
+      const res = NextResponse.json(payload);
       res.headers.set('Server-Timing', timer.header());
       res.headers.set('X-AI-Model', String(usedModel));
       if (fallbackOccurred) res.headers.set('X-AI-Fallback', 'true');
@@ -461,12 +536,20 @@ Output discipline: keep every string concise—song field values should be short
           }
         }
 
-        const res = NextResponse.json({
+        const payload = {
           success: true,
           type: 'playlist',
           playlist: result,
           prompt,
-        });
+        };
+        if (cacheKey) {
+          setCachedResponse(cacheKey, {
+            result: payload,
+            expiresAt: Date.now() + PROMPT_CACHE_TTL_MS,
+            source: 'ai',
+          });
+        }
+        const res = NextResponse.json(payload);
         res.headers.set('Server-Timing', timer.header());
         res.headers.set('X-AI-Model', String(usedModel));
         if (fallbackOccurred) res.headers.set('X-AI-Fallback', 'true');

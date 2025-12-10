@@ -27,6 +27,81 @@ interface Message {
   feedback?: 'like' | 'dislike' | null;
 }
 
+const heroPrompts = [
+  { title: 'Chill study', description: 'Focus & flow', prompt: 'Chill study playlist with ambient electronica and soft beats' },
+  { title: 'Uplifting pop', description: 'Weekend energy', prompt: 'Uplifting pop hits with positive lyrics for weekend drives' },
+  { title: 'Late-night jazz', description: 'After hours', prompt: 'Late-night jazz with muted trumpets and smoky piano trios' },
+  { title: 'Throwback hip-hop', description: "90s classics", prompt: 'Throwback hip-hop from 1994-2002 with storytelling verses' },
+];
+
+const randomPrompts = [
+  'Energetic 2020s EDM and trap workout playlist with fast tempo',
+  'Romantic 1950s jazz with muted trumpet and slow tempo',
+  'Upbeat 1970s-80s classic rock anthems for road trips',
+  'Calming ambient spa music with very slow tempo',
+  'Exciting 2023-2024 pop and dance party hits',
+  'Cozy acoustic 2010s indie folk for morning coffee',
+  'Focused chill lo-fi hip hop beats for coding sessions',
+  'Happy summer beach vibes with tropical house and reggaeton',
+  'Sad and slow 1990s shoegaze and dream pop',
+  'Epic and dramatic cinematic orchestral music',
+  'Dark industrial underground Berlin techno',
+  'Nostalgic 1980s synthwave and retrowave classics',
+  'Heartfelt storytelling 2000s country and southern rock',
+  'Vibrant and upbeat 2022-2024 K-pop hits with high energy',
+  'Peaceful and very slow meditation with tibetan singing bowls',
+  'Angry and aggressive 2000s punk rock with fast tempo',
+  'Smooth and groovy 1960s-70s soul and motown',
+  'Intense gaming music with dubstep and drum & bass',
+  'Hot and passionate Latin dance party with salsa and bachata',
+  'Lively acoustic bluegrass and folk music',
+  'Dreamy lo-fi 2018-2023 bedroom pop',
+  'Raw 1990s grunge and alternative rock',
+  'Smooth 1960s Brazilian bossa nova',
+  'Epic instrumental post-rock playlist with slow builds',
+  'Feel-good 1970s disco with funky and groovy basslines',
+  'Energetic 2010s electro house for late night parties',
+  'Chill 2000s R&B and neo-soul for relaxing evenings',
+  'Heavy 2010s metal and hard rock with powerful riffs',
+  'Classic 1990s hip hop with boom bap beats',
+  'Uplifting 2020s future bass and melodic dubstep',
+  'Mellow 1970s folk rock with acoustic guitars',
+  'Dark 2010s trap and drill with heavy bass',
+  'Bright and happy 2010s indie pop for good vibes',
+  'Intense 2000s emo and screamo with emotional vocals',
+  'Groovy 1980s funk and boogie with slap bass',
+  'Atmospheric 2010s ambient and downtempo electronica',
+  'Fast 1990s jungle and breakbeat with choppy drums',
+  'Smooth 2000s contemporary jazz with piano',
+  'Powerful 2010s progressive house for festivals',
+  'Warm 1960s folk with storytelling lyrics',
+  'Aggressive 2020s hardstyle and hardcore techno',
+  'Relaxing 2010s chillhop and jazzhop instrumentals',
+  'Upbeat 1950s rock and roll with twangy guitars',
+  'Deep 2010s deep house with smooth basslines',
+  'Energetic 2000s garage rock and post-punk revival',
+  'Soulful 1970s blues rock with electric guitar solos',
+  'Modern 2020s hyperpop with experimental production',
+  'Classic 1960s psychedelic rock with trippy effects',
+  'Minimal 2010s minimal techno with repetitive patterns',
+  'Catchy 2020s pop punk with power chords',
+];
+
+const heroStats = [
+  { label: 'Playlists generated', value: '48k+', detail: 'since launch' },
+  { label: 'Tracks verified', value: '1.2M', detail: 'clean metadata' },
+  { label: 'Avg. response', value: '1.8s', detail: 'global median' },
+  { label: 'Connected apps', value: 'Spotify + YouTube', detail: 'export ready' },
+];
+
+const featureHighlights = [
+  { title: 'Verified sources', body: 'Every track is matched against Spotify IDs for guaranteed accuracy.', tag: 'Accuracy', icon: '🛡️' },
+  { title: 'One-click playback', body: 'Choose Spotify or YouTube instantly, with your preferred platform remembered.', tag: 'Playback', icon: '⚡️' },
+  { title: 'Smart history', body: 'Conversations stay in context so you can refine the vibe instead of starting over.', tag: 'Memory', icon: '💡' },
+];
+
+const verifiedSources = ['Spotify', 'YouTube', 'Genius', 'AcousticBrainz'];
+
 const AIPageContent: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -222,10 +297,6 @@ const AIPageContent: React.FC = () => {
       addMessage('error', 'Failed to connect to AI service');
     } finally {
       setIsLoading(false);
-      // Auto-focus input after message is sent
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
     }
   };
 
@@ -294,6 +365,15 @@ const AIPageContent: React.FC = () => {
     window.location.href = `spotify:track:${extractedId}`;
   };
 
+  const handleComposerChange = (value: string) => {
+    setInput(value);
+  };
+
+  const handleRandomPrompt = () => {
+    const randomIndex = Math.floor(Math.random() * randomPrompts.length);
+    setInput(randomPrompts[randomIndex]);
+  };
+
   const handleSongClick = (song: Song) => {
     const hasSpotify = !!song.spotifyUrl;
     const hasYoutube = !!song.youtubeUrl;
@@ -327,7 +407,7 @@ const AIPageContent: React.FC = () => {
   };
 
   return (
-    <div className="relative bg-[#141414] text-white overflow-hidden antialiased [-webkit-font-smoothing:antialiased] [-moz-osx-font-smoothing:grayscale]">
+    <div className="relative min-h-screen text-white overflow-hidden antialiased [-webkit-font-smoothing:antialiased] [-moz-osx-font-smoothing:grayscale] bg-transparent">
       {/* Hide default navbar on mobile */}
       <style jsx global>{`
         @media (max-width: 768px) {
@@ -417,48 +497,127 @@ const AIPageContent: React.FC = () => {
         currentPath={pathname}
       />
 
+      {/* Hero intro */}
+      <div className="mx-auto w-full max-w-6xl px-5 sm:px-6 pt-12 pb-16 lg:pt-16 text-white flex flex-col gap-8 lg:gap-10 min-h-[70vh]">
+        <div className="flex flex-col gap-8">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.55em] text-white/60">AI Curated</div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+              Discover the soundtrack for
+              <span className="block">every moment.</span>
+            </h1>
+            <p className="text-lg text-white/70 max-w-3xl">
+              Describe your vibe in a single sentence and MediaSite pairs it with verified sources, export-ready playlists, and instant playback controls.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {heroPrompts.map((prompt) => (
+              <button
+                key={prompt.title}
+                type="button"
+                onClick={() => {
+                  handleComposerChange(prompt.prompt);
+                }}
+                className="flex h-full flex-col justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
+              >
+                <span>{prompt.title}</span>
+                <span className="text-[11px] font-normal text-white/60">{prompt.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+            {heroStats.map((stat) => (
+              <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div className="text-lg font-semibold text-white">{stat.value}</div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-white/50">{stat.label}</div>
+                <p className="text-[11px] text-white/60">{stat.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-white/60">
+            <span>Verified with</span>
+            {verifiedSources.map((source) => (
+              <span key={source} className="rounded-full border border-white/10 px-3 py-1 text-white/80">
+                {source}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+            {featureHighlights.map((highlight) => (
+              <div key={highlight.title} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-5">
+                <div className="flex items-center gap-3 text-sm text-white/70">
+                  <span className="text-2xl leading-none">{highlight.icon}</span>
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-white/60">{highlight.tag}</span>
+                </div>
+                <h3 className="mt-3 text-lg font-semibold text-white">{highlight.title}</h3>
+                <p className="text-sm text-white/60">{highlight.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
       {/* Content container */}
-  <div className="relative max-w-3xl md:max-w-4xl mx-auto flex flex-col px-5 md:px-6 pb-24 pt-16 md:pt-0">
+      <div
+        className="relative max-w-3xl md:max-w-4xl mx-auto flex flex-col px-5 md:px-6 pb-24 pt-12"
+      >
 
         {/* Messages */}
-  <div className="p-4 space-y-6" role="log" aria-live="polite" aria-relevant="additions">
+  <div className={`${messages.length === 0 ? 'p-0' : 'p-4'} space-y-6`} role="log" aria-live="polite" aria-relevant="additions">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6 mt-6 md:mt-10">
-              <h1 className="text-4xl md:text-5xl font-semibold text-white mb-6 tracking-tight">
-                What are you in the mood for?
-              </h1>
-              <p className="text-lg md:text-xl text-white/60 mb-8 max-w-2xl">
-                Tell me the vibe, and I'll create the perfect playlist.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl w-full">
-                <button
-                  onClick={() => setInput('Chill study music')}
-                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
-                >
-                  <div className="font-medium text-sm">Chill study music</div>
-                  <div className="text-xs text-white/50 mt-0.5">Focus and concentration</div>
-                </button>
-                <button
-                  onClick={() => setInput('Upbeat workout playlist')}
-                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
-                >
-                  <div className="font-medium text-sm">Upbeat workout playlist</div>
-                  <div className="text-xs text-white/50 mt-0.5">High energy motivation</div>
-                </button>
-                <button
-                  onClick={() => setInput('Sad rainy day vibes')}
-                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
-                >
-                  <div className="font-medium text-sm">Sad rainy day vibes</div>
-                  <div className="text-xs text-white/50 mt-0.5">Melancholic and reflective</div>
-                </button>
-                <button
-                  onClick={() => setInput('Feel-good summer hits')}
-                  className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/80 text-left transition-all duration-200"
-                >
-                  <div className="font-medium text-sm">Feel-good summer hits</div>
-                  <div className="text-xs text-white/50 mt-0.5">Sunshine and good vibes</div>
-                </button>
+            <div className="flex items-center justify-center min-h-[calc(100vh-220px)] px-3">
+              <div className="w-full max-w-4xl px-6 py-10 sm:px-12 sm:py-16">
+                <div className="text-center space-y-6">
+                  <div>
+                    <h1 className="text-4xl md:text-[3.2rem] font-semibold text-white tracking-tight">
+                      What are you in the mood for?
+                    </h1>
+                    <p className="text-lg md:text-xl text-white/65 mt-3">
+                      Tell me the vibe, and I'll create the perfect playlist.
+                    </p>
+                  </div>
+                  <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
+                    <label className="sr-only" htmlFor="mood-ai-input">Describe your perfect playlist</label>
+                    <div
+                      className="relative flex items-center rounded-full p-[6px] shadow-[0_15px_50px_rgba(2,10,52,0.55)] bg-[length:200%_200%] animate-[rainbowFlow_18s_linear_infinite]"
+                      style={{
+                        backgroundImage: 'linear-gradient(120deg, #fbd38d, #76e0ff, #6a5bff, #fbd38d)'
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleRandomPrompt}
+                        className="ml-0.5 flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#f6a7ff] via-[#7a6cff] to-[#4bd9ff] text-white text-lg font-semibold shadow-[0_8px_18px_rgba(79,70,255,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 hover:scale-105 active:scale-95 transition-transform"
+                        aria-label="Random playlist suggestion"
+                      >
+                        ?
+                      </button>
+                      <input
+                        id="mood-ai-input"
+                        ref={inputRef}
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Describe your perfect playlist..."
+                        className="flex-1 h-11 bg-transparent text-base md:text-lg text-white placeholder-white/70 px-4 !outline-none !ring-0 !border-0"
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                        disabled={isLoading}
+                      />
+                      <button
+                        type="submit"
+                        disabled={!input.trim() || isLoading}
+                        className="mr-0.5 inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-6 py-2 text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60"
+                      >
+                        Generate
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           )}
@@ -622,38 +781,6 @@ const AIPageContent: React.FC = () => {
           )}
 
           <div ref={messagesEndRef} />
-        </div>
-
-  {/* Input - fixed to bottom edge of viewport, centered to content */}
-  <div className="fixed bottom-6 md:bottom-4 left-0 md:left-20 right-0 z-20 bg-transparent">
-          <div className="max-w-3xl md:max-w-4xl mx-auto px-5 md:px-6">
-          <div className="py-4">
-          {/* AI search bar styled to match navbar search */}
-          <form onSubmit={handleSubmit} className="flex items-center">
-            <div className="relative flex w-full h-11 md:h-12 rounded-full overflow-hidden border border-white/20 bg-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] focus-within:border-white/30 focus-within:bg-white/[0.12] focus-within:shadow-[0_0_12px_rgba(255,255,255,0.04)] transition-all duration-200 transform focus-within:-translate-y-1 active:-translate-y-1">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Describe your perfect playlist..."
-                className="search-input w-full h-full pl-4 md:pl-5 pr-12 md:pr-14 py-0 outline-none placeholder-white/60 caret-white text-base md:text-[1.02rem] text-white bg-transparent border-0"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 grid place-items-center h-8 w-8 md:h-9 md:w-9 rounded-full text-white/80 hover:text-white bg-transparent border-0 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Send AI prompt"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-5 md:w-5 icon-hq" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-          </form>
-          </div>
-          </div>
         </div>
 
         {/* Platform Selection Modal */}

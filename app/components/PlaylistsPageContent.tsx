@@ -128,7 +128,7 @@ const PlaylistsPageContent = () => {
               <div className="flex-1">
                 <h2 className="text-2xl font-semibold text-white mb-1">{playlist.name}</h2>
                 <p className="text-sm text-gray-400 mb-2">
-                  Prompt: <span className="italic">"{playlist.prompt}"</span>
+                  Prompt: <span className="italic">&ldquo;{playlist.prompt}&rdquo;</span>
                 </p>
                 <p className="text-xs text-gray-500">
                   {new Date(playlist.createdAt).toLocaleDateString()} • {playlist.songs.length} songs
