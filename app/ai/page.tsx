@@ -566,7 +566,7 @@ const AIPageContent: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 max-w-4xl">
             {heroPrompts.map((prompt) => (
               <button
                 key={prompt.title}
@@ -574,42 +574,42 @@ const AIPageContent: React.FC = () => {
                 onClick={() => {
                   handleTypingPrompt(prompt.prompt);
                 }}
-                className="flex h-full flex-col justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
+                className="flex h-full flex-col justify-between rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-left text-xs sm:text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
               >
                 <span>{prompt.title}</span>
-                <span className="text-[11px] font-normal text-white/60">{prompt.description}</span>
+                <span className="text-[10px] sm:text-[11px] font-normal text-white/60">{prompt.description}</span>
               </button>
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:grid-cols-4 max-w-4xl">
             {heroStats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <div className="text-lg font-semibold text-white">{stat.value}</div>
-                <div className="text-[10px] uppercase tracking-[0.3em] text-white/50">{stat.label}</div>
-                <p className="text-[11px] text-white/60">{stat.detail}</p>
+              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <div className="text-base sm:text-lg font-semibold text-white">{stat.value}</div>
+                <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/50 leading-tight">{stat.label}</div>
+                <p className="text-[10px] sm:text-[11px] text-white/60">{stat.detail}</p>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-white/60">
+          <div className="flex flex-wrap items-center gap-2 text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/60 max-w-3xl">
             <span>Verified with</span>
             {verifiedSources.map((source) => (
-              <span key={source} className="rounded-full border border-white/10 px-3 py-1 text-white/80">
+              <span key={source} className="rounded-full border border-white/10 px-2.5 py-0.5 sm:px-3 sm:py-1 text-white/80">
                 {source}
               </span>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-3 max-w-4xl">
             {featureHighlights.map((highlight) => (
-              <div key={highlight.title} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-5">
-                <div className="flex items-center gap-3 text-sm text-white/70">
-                  <span className="text-2xl leading-none">{highlight.icon}</span>
-                  <span className="text-[11px] uppercase tracking-[0.3em] text-white/60">{highlight.tag}</span>
+              <div key={highlight.title} className="rounded-xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4">
+                <div className="flex items-center gap-2 text-sm text-white/70">
+                  <span className="text-xl sm:text-2xl leading-none">{highlight.icon}</span>
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/60">{highlight.tag}</span>
                 </div>
-                <h3 className="mt-3 text-lg font-semibold text-white">{highlight.title}</h3>
-                <p className="text-sm text-white/60">{highlight.body}</p>
+                <h3 className="mt-2.5 text-base sm:text-lg font-semibold text-white">{highlight.title}</h3>
+                <p className="text-xs sm:text-sm text-white/60">{highlight.body}</p>
               </div>
             ))}
           </div>
