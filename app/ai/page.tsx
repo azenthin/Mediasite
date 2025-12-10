@@ -183,7 +183,10 @@ const AIPageContent: React.FC = () => {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // Only scroll to bottom if there are messages
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const addMessage = (type: Message['type'], content: string, playlist?: Song[]) => {
