@@ -533,18 +533,19 @@ const AIPageContent: React.FC = () => {
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-6 pt-12 pb-16 lg:pt-16 text-white flex flex-col gap-8 lg:gap-10 min-h-[70vh]">
         <div className="flex flex-col gap-8">
           <div className="text-[11px] font-semibold uppercase tracking-[0.55em] text-white/60">AI Curated</div>
-          <div className="flex items-start gap-4 sm:gap-6 lg:gap-8">
+          <div className="flex items-start gap-2 sm:gap-3 lg:gap-4">
             <div className="space-y-4 flex-1">
               <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
                 Discover the soundtrack for
                 <span className="block">every moment.</span>
               </h1>
               <p className="text-base sm:text-lg text-white/70 max-w-3xl">
-                Describe your vibe in a single sentence and MediaSite pairs it with verified sources, export-ready playlists, and instant playback controls.
+                <span className="hidden sm:inline">Describe your vibe in a single sentence and MediaSite pairs it with verified sources, export-ready playlists, and instant playback controls.</span>
+                <span className="sm:hidden">Describe your vibe and get verified playlists with instant playback.</span>
               </p>
             </div>
             
-            <div className="flex-shrink-0 mt-2">
+            <div className="flex-shrink-0 mt-2 relative -left-8 sm:-left-16 md:-left-20 lg:-left-24">
               <button
                 type="button"
                 onClick={() => {
@@ -566,7 +567,7 @@ const AIPageContent: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 max-w-4xl">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
             {heroPrompts.map((prompt) => (
               <button
                 key={prompt.title}
@@ -574,7 +575,7 @@ const AIPageContent: React.FC = () => {
                 onClick={() => {
                   handleTypingPrompt(prompt.prompt);
                 }}
-                className="flex h-full flex-col justify-between rounded-xl border border-white/15 bg-white/5 px-3 py-2.5 text-left text-xs sm:text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
+                className="flex h-full flex-col justify-between rounded-xl md:rounded-2xl border border-white/15 bg-white/5 px-3 md:px-4 py-2.5 md:py-3 text-left text-xs sm:text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/10"
               >
                 <span>{prompt.title}</span>
                 <span className="text-[10px] sm:text-[11px] font-normal text-white/60">{prompt.description}</span>
@@ -582,9 +583,9 @@ const AIPageContent: React.FC = () => {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:grid-cols-4 max-w-4xl">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:grid-cols-4">
             {heroStats.map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-3">
+              <div key={stat.label} className="rounded-xl md:rounded-2xl border border-white/10 bg-white/5 p-3 md:p-4">
                 <div className="text-base sm:text-lg font-semibold text-white">{stat.value}</div>
                 <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/50 leading-tight">{stat.label}</div>
                 <p className="text-[10px] sm:text-[11px] text-white/60">{stat.detail}</p>
@@ -603,14 +604,14 @@ const AIPageContent: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-3 max-w-4xl">
+          <div className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-3">
             {featureHighlights.map((highlight) => (
-              <div key={highlight.title} className="rounded-xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4">
-                <div className="flex items-center gap-2 text-sm text-white/70">
+              <div key={highlight.title} className="rounded-xl md:rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-4 md:p-5">
+                <div className="flex items-center gap-2 md:gap-3 text-sm text-white/70">
                   <span className="text-xl sm:text-2xl leading-none">{highlight.icon}</span>
                   <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/60">{highlight.tag}</span>
                 </div>
-                <h3 className="mt-2.5 text-base sm:text-lg font-semibold text-white">{highlight.title}</h3>
+                <h3 className="mt-2.5 md:mt-3 text-base sm:text-lg font-semibold text-white">{highlight.title}</h3>
                 <p className="text-xs sm:text-sm text-white/60">{highlight.body}</p>
               </div>
             ))}
@@ -660,7 +661,7 @@ const AIPageContent: React.FC = () => {
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder="Describe your vibe..."
+                        placeholder="Describe your perfect playlist..."
                         className="flex-1 h-9 sm:h-10 md:h-11 bg-transparent text-sm sm:text-base md:text-lg text-white placeholder-white/70 px-2 sm:px-3 md:px-4 !outline-none !ring-0 !border-0"
                         style={{ outline: 'none', boxShadow: 'none' }}
                         disabled={isLoading}
@@ -668,7 +669,7 @@ const AIPageContent: React.FC = () => {
                       <button
                         type="submit"
                         disabled={!input.trim() || isLoading}
-                        className="mr-0.5 inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2 text-xs sm:text-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60"
+                        className="mr-0.5 inline-flex items-center justify-center rounded-full bg-white text-slate-900 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-2 text-xs sm:text-sm font-semibold hover:bg-white transition-all duration-500 ease-in-out disabled:opacity-40 disabled:bg-white/60"
                       >
                         <span className="hidden sm:inline">Generate</span>
                         <span className="sm:hidden">Go</span>
